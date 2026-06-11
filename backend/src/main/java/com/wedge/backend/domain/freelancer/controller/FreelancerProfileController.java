@@ -1,13 +1,14 @@
 package com.wedge.backend.domain.freelancer.controller;
 
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileRequestDto;
-import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponseDto;
 import com.wedge.backend.domain.freelancer.service.FreelancerProfileService;
+import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponseDto;
 import com.wedge.backend.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequiredArgsConstructor
