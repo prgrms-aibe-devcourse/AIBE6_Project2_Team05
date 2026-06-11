@@ -1,5 +1,6 @@
 package com.wedge.backend.domain.freelancer.entity;
 
+import com.wedge.backend.domain.category.entity.Category;
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -19,8 +20,9 @@ public class FreelancerProfile extends BaseTimeEntity {
     @JoinColumn(name = "member_id", nullable = false, unique = true)
     private Member member;
 
-    @Column(name = "category_id", nullable = false)
-    private Long categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -38,10 +40,10 @@ public class FreelancerProfile extends BaseTimeEntity {
     private int careerYears = 0;
 
     @Builder
-    public FreelancerProfile(Member member, Long categoryId, String title,
+    public FreelancerProfile(Member member, Category category, String title,
                              String introduction, String region, Integer price, int careerYears) {
         this.member = member;
-        this.categoryId = categoryId;
+        this.category = category;
         this.title = title;
         this.introduction = introduction;
         this.region = region;
@@ -49,9 +51,9 @@ public class FreelancerProfile extends BaseTimeEntity {
         this.careerYears = careerYears;
     }
 
-    public void update(Long categoryId, String title, String introduction,
+    public void update(Category category, String title, String introduction,
                        String region, Integer price, int careerYears) {
-        this.categoryId = categoryId;
+        this.category = category;
         this.title = title;
         this.introduction = introduction;
         this.region = region;

@@ -1,5 +1,7 @@
 package com.wedge.backend.domain.freelancer.service;
 
+import com.wedge.backend.domain.category.entity.Category;
+import com.wedge.backend.domain.category.repository.CategoryRepository;
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileRequestDto;
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponseDto;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FreelancerProfileService {
 
     private final FreelancerProfileRepository freelancerProfileRepository;
+    private final CategoryRepository categoryRepository;
 
     // 프로필 등록
     @Transactional
@@ -21,9 +24,12 @@ public class FreelancerProfileService {
         if (freelancerProfileRepository.existsByMemberId(member.getId())) {
             throw new IllegalStateException("이미 프로필이 존재합니다.");
         }
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+
         FreelancerProfile profile = FreelancerProfile.builder()
                 .member(member)
-                .categoryId(request.getCategoryId())
+                .category(category)
                 .title(request.getTitle())
                 .introduction(request.getIntroduction())
                 .region(request.getRegion())
@@ -49,7 +55,10 @@ public class FreelancerProfileService {
         if (!profile.getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
-        profile.update(request.getCategoryId(), request.getTitle(), request.getIntroduction(),
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+
+        profile.update(category, request.getTitle(), request.getIntroduction(),
                 request.getRegion(), request.getPrice(), request.getCareerYears());
         return new FreelancerProfileResponseDto(profile);
     }

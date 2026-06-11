@@ -24,7 +24,7 @@ public class FreelancerProfileResponse {
         this.id = profile.getId();
         this.memberId = profile.getMember().getId();
         this.memberName = profile.getMember().getName();
-        this.categoryId = profile.getCategoryId();
+        this.categoryId = profile.getCategory().getId();
         this.title = profile.getTitle();
         this.introduction = profile.getIntroduction();
         this.region = profile.getRegion();

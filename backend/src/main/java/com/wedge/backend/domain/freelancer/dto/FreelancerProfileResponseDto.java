@@ -8,6 +8,7 @@ public class FreelancerProfileResponseDto {
     private Long id;
     private Long memberId;
     private Long categoryId;
+    private String categoryName;
     private String title;
     private String introduction;
     private String region;
@@ -17,7 +18,8 @@ public class FreelancerProfileResponseDto {
     public FreelancerProfileResponseDto(FreelancerProfile profile) {
         this.id = profile.getId();
         this.memberId = profile.getMember().getId();
-        this.categoryId = profile.getCategoryId();
+        this.categoryId = profile.getCategory().getId();
+        this.categoryName = profile.getCategory().getName();
         this.title = profile.getTitle();
         this.introduction = profile.getIntroduction();
         this.region = profile.getRegion();
