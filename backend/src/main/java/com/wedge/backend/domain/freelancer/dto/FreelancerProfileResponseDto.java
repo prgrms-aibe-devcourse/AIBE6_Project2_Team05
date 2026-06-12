@@ -1,7 +1,10 @@
 package com.wedge.backend.domain.freelancer.dto;
 
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
+import com.wedge.backend.domain.review.entity.Review;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public class FreelancerProfileResponseDto {
@@ -14,6 +17,8 @@ public class FreelancerProfileResponseDto {
     private String region;
     private Integer price;
     private int careerYears;
+    private double averageRating;
+    private int reviewCount;
 
     public FreelancerProfileResponseDto(FreelancerProfile profile) {
         this.id = profile.getId();
@@ -25,5 +30,13 @@ public class FreelancerProfileResponseDto {
         this.region = profile.getRegion();
         this.price = profile.getPrice();
         this.careerYears = profile.getCareerYears();
+
+        List<Review> reviews = profile.getReviews();
+        this.reviewCount = reviews.size();
+        this.averageRating = reviews.isEmpty() ? 0.0
+                : reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
     }
 }

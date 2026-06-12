@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import Navbar from "@/components/Navbar";
+import AboutTab from "@/components/profile/AboutTab";
+import PortfolioTab from "@/components/profile/PortfolioTab";
+import ProfileErrorState from "@/components/profile/ProfileErrorState";
+import ProfileLoadingState from "@/components/profile/ProfileLoadingState";
+import ReviewTab from "@/components/profile/ReviewTab";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+import { use, useEffect, useState } from "react";
 
 interface FreelancerProfile {
   id: number;
@@ -21,6 +25,8 @@ interface FreelancerProfile {
   region: string;
   price: number;
   careerYears: number;
+  averageRating: number;
+  reviewCount: number;
 }
 
 interface Portfolio {
@@ -84,48 +90,8 @@ export default function ProfilePage({
     fetchAll();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-10 h-10 border-4 border-[#4f6231] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm text-[#75786c]">
-              프로필을 불러오는 중입니다...
-            </p>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (error || !profile) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-[#1b1c18] mb-2">
-              프로필을 찾을 수 없습니다
-            </p>
-            <p className="text-sm text-[#75786c] mb-6">{error}</p>
-            <Link
-              href="/search"
-              className={cn(
-                buttonVariants(),
-                "bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl",
-              )}
-            >
-              프리랜서 탐색하기
-            </Link>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  if (loading) return <ProfileLoadingState />;
+  if (error || !profile) return <ProfileErrorState error={error} />;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
@@ -167,14 +133,19 @@ export default function ProfilePage({
                     {[...Array(5)].map((_, i) => (
                       <svg
                         key={i}
-                        className="w-4 h-4 text-[#f59e0b] fill-current"
+                        className={`w-4 h-4 fill-current ${
+                          i < Math.round(profile.averageRating)
+                            ? "text-[#f59e0b]"
+                            : "text-[#d1d5db]"
+                        }`}
                         viewBox="0 0 20 20"
                       >
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     ))}
                     <span className="text-sm text-[#45483d] ml-1">
-                      {reviews.length} 리뷰
+                      {profile.averageRating.toFixed(1)} ({profile.reviewCount}{" "}
+                      리뷰)
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-[#75786c]">
@@ -261,103 +232,16 @@ export default function ProfilePage({
             ))}
           </TabsList>
 
-          {/* Portfolio Tab */}
           <TabsContent value="portfolio" className="mt-0">
-            {portfolios.length === 0 ? (
-              <div className="text-center py-16 text-[#75786c]">
-                <p>등록된 포트폴리오가 없습니다.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                {portfolios.map((portfolio) => (
-                  <div
-                    key={portfolio.id}
-                    className="relative aspect-[4/3] rounded-xl overflow-hidden group"
-                  >
-                    <Image
-                      src={portfolio.imageUrl}
-                      alt={portfolio.description || "포트폴리오"}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <PortfolioTab portfolios={portfolios} />
           </TabsContent>
 
-          {/* Reviews Tab */}
           <TabsContent value="reviews" className="mt-0">
-            {reviews.length === 0 ? (
-              <div className="text-center py-16 text-[#75786c]">
-                <p>아직 리뷰가 없습니다.</p>
-              </div>
-            ) : (
-              <div className="space-y-6 max-w-2xl">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="bg-white rounded-2xl p-6 border border-[#efeee7]"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      <Avatar>
-                        <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] font-semibold text-sm">
-                          {review.memberName.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-[#1b1c18] text-sm">
-                          {review.memberName}
-                        </p>
-                        <p className="text-xs text-[#75786c]">
-                          {review.createdAt.slice(0, 10)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-0.5 ml-auto">
-                        {[...Array(review.rating)].map((_, j) => (
-                          <svg
-                            key={j}
-                            className="w-3.5 h-3.5 text-[#f59e0b] fill-current"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-[#45483d] leading-relaxed">
-                      {review.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <ReviewTab reviews={reviews} />
           </TabsContent>
 
-          {/* About Tab */}
           <TabsContent value="about" className="mt-0">
-            <div className="max-w-2xl">
-              <h2 className="font-[var(--font-display)] text-xl font-semibold text-[#1b1c18] mb-4">
-                소개
-              </h2>
-              <p className="text-sm text-[#45483d] leading-relaxed mb-4">
-                {profile.introduction || "소개글이 없습니다."}
-              </p>
-              <div className="grid grid-cols-2 gap-4 mt-8 p-5 bg-[#f5f4ec] rounded-2xl">
-                <div className="text-center">
-                  <p className="font-[var(--font-display)] text-2xl font-bold text-[#4f6231]">
-                    {profile.careerYears}년
-                  </p>
-                  <p className="text-xs text-[#75786c]">경력</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-[var(--font-display)] text-2xl font-bold text-[#4f6231]">
-                    {reviews.length}개
-                  </p>
-                  <p className="text-xs text-[#75786c]">리뷰</p>
-                </div>
-              </div>
-            </div>
+            <AboutTab profile={profile} reviewCount={profile.reviewCount} />
           </TabsContent>
         </Tabs>
       </div>
