@@ -24,8 +24,7 @@ public class FreelancerProfileService {
         if (freelancerProfileRepository.existsByMemberId(member.getId())) {
             throw new IllegalStateException("이미 프로필이 존재합니다.");
         }
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+        Category category = findCategoryById(request.getCategoryId());
 
         FreelancerProfile profile = FreelancerProfile.builder()
                 .member(member)
@@ -55,11 +54,16 @@ public class FreelancerProfileService {
         if (!profile.getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
+        Category category = findCategoryById(request.getCategoryId());
 
         profile.update(category, request.getTitle(), request.getIntroduction(),
                 request.getRegion(), request.getPrice(), request.getCareerYears());
         return new FreelancerProfileResponseDto(profile);
+    }
+
+    // 카테고리 조회 공통 메서드
+    private Category findCategoryById(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
     }
 }
