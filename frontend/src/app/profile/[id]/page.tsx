@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import { authFetch } from "@/lib/authFetch";
+
 
 interface FreelancerProfile {
   id: number;
@@ -66,9 +68,9 @@ export default function ProfilePage({
         setError(null);
 
         const [profileRes, portfolioRes, reviewRes] = await Promise.all([
-          fetch(`/api/freelancers/${id}`),
-          fetch(`/api/freelancers/${id}/portfolios`),
-          fetch(`/api/freelancers/${id}/reviews`),
+          authFetch(`/api/freelancers/${id}`),
+          authFetch(`/api/freelancers/${id}/portfolios`),
+          authFetch(`/api/freelancers/${id}/reviews`),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
