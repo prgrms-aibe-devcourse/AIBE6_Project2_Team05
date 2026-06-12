@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const redirectTo = searchParams.get("redirect") || "/";
+
+  const handleLogin = async () => {
+    // TODO: 실제 로그인 API 호출로 교체 (feature/auth-members 머지 후)
+    router.push(redirectTo);
+  };
 
   return (
     <div className="min-h-screen bg-[#fbf9f2] flex flex-col items-center justify-center px-4 py-12">
@@ -32,7 +41,13 @@ export default function LoginPage() {
           로그인하여 당신의 웨딩 여정을 계속하세요
         </p>
 
-        <form className="space-y-5">
+        <form
+          className="space-y-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+        >
           {/* Email */}
           <div className="space-y-1.5">
             <Label
@@ -58,10 +73,7 @@ export default function LoginPage() {
               >
                 비밀번호
               </Label>
-              <Link
-                href="#"
-                className="text-xs text-[#4f6231] hover:underline"
-              >
+              <Link href="#" className="text-xs text-[#4f6231] hover:underline">
                 비밀번호를 잊으셨나요?
               </Link>
             </div>
@@ -117,7 +129,10 @@ export default function LoginPage() {
           </div>
 
           {/* Submit */}
-          <Button className="w-full h-11 bg-[#4f6231] hover:bg-[#677b47] text-white font-medium rounded-xl">
+          <Button
+            type="submit"
+            className="w-full h-11 bg-[#4f6231] hover:bg-[#677b47] text-white font-medium rounded-xl"
+          >
             로그인
           </Button>
         </form>
@@ -134,7 +149,11 @@ export default function LoginPage() {
             variant="outline"
             className="w-full h-11 border-[#c5c8ba] bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#1b1c18] font-medium rounded-xl"
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              className="w-5 h-5 mr-2"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
               <path d="M12 3C7.03 3 3 6.358 3 10.5c0 2.655 1.727 4.99 4.34 6.358-.19.655-.69 2.384-.791 2.756-.127.459.168.453.353.33.145-.095 2.305-1.562 3.234-2.192.613.09 1.24.138 1.864.138 4.97 0 9-3.358 9-7.5S16.97 3 12 3z" />
             </svg>
             카카오로 계속하기
@@ -168,7 +187,10 @@ export default function LoginPage() {
         {/* Footer */}
         <p className="text-center text-sm text-[#75786c] mt-6">
           계정이 없으신가요?{" "}
-          <Link href="/signup" className="text-[#4f6231] font-medium hover:underline">
+          <Link
+            href="/signup"
+            className="text-[#4f6231] font-medium hover:underline"
+          >
             회원가입
           </Link>
         </p>
@@ -176,9 +198,15 @@ export default function LoginPage() {
 
       {/* Page Footer Links */}
       <div className="flex gap-5 mt-8 text-xs text-[#75786c]">
-        <a href="#" className="hover:text-[#45483d]">도움말</a>
-        <a href="#" className="hover:text-[#45483d]">개인정보 처리방침</a>
-        <a href="#" className="hover:text-[#45483d]">이용약관</a>
+        <a href="#" className="hover:text-[#45483d]">
+          도움말
+        </a>
+        <a href="#" className="hover:text-[#45483d]">
+          개인정보 처리방침
+        </a>
+        <a href="#" className="hover:text-[#45483d]">
+          이용약관
+        </a>
       </div>
     </div>
   );

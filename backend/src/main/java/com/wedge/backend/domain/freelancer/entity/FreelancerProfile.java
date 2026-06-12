@@ -2,9 +2,13 @@ package com.wedge.backend.domain.freelancer.entity;
 
 import com.wedge.backend.domain.category.entity.Category;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.review.entity.Review;
 import com.wedge.backend.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -38,6 +42,9 @@ public class FreelancerProfile extends BaseTimeEntity {
 
     @Column(name = "career_years", nullable = false)
     private int careerYears = 0;
+
+    @OneToMany(mappedBy = "freelancerProfile", fetch = FetchType.LAZY)
+    private List<Review> reviews = new ArrayList<>();
 
     @Builder
     public FreelancerProfile(Member member, Category category, String title,
