@@ -5,6 +5,7 @@ import com.wedge.backend.domain.category.repository.CategoryRepository;
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileRequestDto;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponseDto;
+import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import com.wedge.backend.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -3,6 +3,7 @@ package com.wedge.backend.domain.freelancer.service;
 import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponse;
 import com.wedge.backend.domain.freelancer.dto.SortType;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
+import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
