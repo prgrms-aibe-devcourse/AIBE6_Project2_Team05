@@ -3,13 +3,11 @@ package com.wedge.backend.domain.freelancer.service;
 import com.wedge.backend.domain.freelancer.dto.PortfolioResponseDto;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.entity.Portfolio;
-import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import com.wedge.backend.domain.freelancer.repository.PortfolioRepository;
 import com.wedge.backend.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
