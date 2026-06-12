@@ -3,9 +3,11 @@ package com.wedge.backend.domain.freelancer.controller;
 import com.wedge.backend.domain.freelancer.dto.PortfolioResponseDto;
 import com.wedge.backend.domain.freelancer.service.PortfolioService;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,32 +18,38 @@ import java.util.List;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
+    private final MemberRepository memberRepository;
 
-    // 포트폴리오 목록 조회
+    private Member getCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("인증이 필요합니다.");
+        }
+        Long memberId = Long.parseLong(authentication.getName());
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    }
+
     @GetMapping
     public ResponseEntity<List<PortfolioResponseDto>> getPortfolios(
             @PathVariable Long profileId) {
         return ResponseEntity.ok(portfolioService.getPortfolios(profileId));
     }
 
-    // 포트폴리오 등록
     @PostMapping
     public ResponseEntity<PortfolioResponseDto> createPortfolio(
             @PathVariable Long profileId,
-            @AuthenticationPrincipal Member member,
             @RequestParam String imageUrl,
             @RequestParam(required = false) String description,
             @RequestParam(defaultValue = "0") int sortOrder) {
-        return ResponseEntity.ok(portfolioService.createPortfolio(member, profileId, imageUrl, description, sortOrder));
+        return ResponseEntity.ok(portfolioService.createPortfolio(getCurrentMember(), profileId, imageUrl, description, sortOrder));
     }
 
-    // 포트폴리오 삭제
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<Void> deletePortfolio(
             @PathVariable Long profileId,
-            @PathVariable Long portfolioId,
-            @AuthenticationPrincipal Member member) {
-        portfolioService.deletePortfolio(member, portfolioId);
+            @PathVariable Long portfolioId) {
+        portfolioService.deletePortfolio(getCurrentMember(), portfolioId);
         return ResponseEntity.noContent().build();
     }
 }
