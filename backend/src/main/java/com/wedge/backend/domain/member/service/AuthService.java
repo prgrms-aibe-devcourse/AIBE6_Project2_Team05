@@ -4,6 +4,7 @@ import com.wedge.backend.domain.member.dto.AuthResponse;
 import com.wedge.backend.domain.member.dto.LoginRequest;
 import com.wedge.backend.domain.member.dto.SignUpRequest;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.member.entity.MemberStatus;
 import com.wedge.backend.domain.member.entity.Provider;
 import com.wedge.backend.domain.member.repository.MemberRepository;
 import com.wedge.backend.global.jwt.JwtUtil;
@@ -42,6 +43,10 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
+
+        if (member.getStatus() == MemberStatus.DELETED) {
+            throw new IllegalStateException("탈퇴한 회원입니다.");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
