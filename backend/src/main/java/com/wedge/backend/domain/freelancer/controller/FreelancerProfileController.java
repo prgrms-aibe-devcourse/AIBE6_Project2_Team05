@@ -21,7 +21,9 @@ public class FreelancerProfileController {
 
     private Member getCurrentMember() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
             throw new IllegalArgumentException("인증이 필요합니다.");
         }
         Long memberId = Long.parseLong(authentication.getName());

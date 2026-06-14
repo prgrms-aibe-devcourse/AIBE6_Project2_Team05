@@ -7,6 +7,7 @@ import com.wedge.backend.global.oauth2.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -45,9 +46,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**",
-                                "/api/freelancers/**"
+                                "/webjars/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/freelancers/**").permitAll()  // 조회는 누구나
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
