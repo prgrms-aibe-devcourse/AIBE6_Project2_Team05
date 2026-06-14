@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -38,13 +40,13 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolioService.getPortfolios(profileId));
     }
 
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<PortfolioResponseDto> createPortfolio(
             @PathVariable Long profileId,
-            @RequestParam String imageUrl,
+            @RequestParam MultipartFile image,
             @RequestParam(required = false) String description,
-            @RequestParam(defaultValue = "0") int sortOrder) {
-        return ResponseEntity.ok(portfolioService.createPortfolio(getCurrentMember(), profileId, imageUrl, description, sortOrder));
+            @RequestParam(defaultValue = "0") int sortOrder) throws IOException {
+        return ResponseEntity.ok(portfolioService.createPortfolio(getCurrentMember(), profileId, image, description, sortOrder));
     }
 
     @DeleteMapping("/{portfolioId}")
