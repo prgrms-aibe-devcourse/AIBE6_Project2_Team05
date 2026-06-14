@@ -43,6 +43,12 @@ public class FreelancerProfileController {
         return ResponseEntity.ok(freelancerProfileService.getProfile(profileId));
     }
 
+    @DeleteMapping("/{profileId}")
+    public ResponseEntity<Void> deleteProfile(@PathVariable Long profileId) {
+        freelancerProfileService.deleteProfile(profileId, getCurrentMember());
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{profileId}")
     public ResponseEntity<FreelancerProfileResponseDto> updateProfile(
             @PathVariable Long profileId,
