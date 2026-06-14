@@ -2,12 +2,9 @@ package com.wedge.backend.domain.freelancer.controller;
 
 import com.wedge.backend.domain.freelancer.dto.PortfolioResponseDto;
 import com.wedge.backend.domain.freelancer.service.PortfolioService;
-import com.wedge.backend.domain.member.entity.Member;
-import com.wedge.backend.domain.member.repository.MemberRepository;
+import com.wedge.backend.global.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,19 +17,7 @@ import java.util.List;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
-    private final MemberRepository memberRepository;
-
-    private Member getCurrentMember() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new IllegalArgumentException("인증이 필요합니다.");
-        }
-        Long memberId = Long.parseLong(authentication.getName());
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-    }
+    private final AuthUtil authUtil;
 
     @GetMapping
     public ResponseEntity<List<PortfolioResponseDto>> getPortfolios(
@@ -46,14 +31,14 @@ public class PortfolioController {
             @RequestParam MultipartFile image,
             @RequestParam(required = false) String description,
             @RequestParam(defaultValue = "0") int sortOrder) throws IOException {
-        return ResponseEntity.ok(portfolioService.createPortfolio(getCurrentMember(), profileId, image, description, sortOrder));
+        return ResponseEntity.ok(portfolioService.createPortfolio(authUtil.getCurrentMember(), profileId, image, description, sortOrder));
     }
 
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<Void> deletePortfolio(
             @PathVariable Long profileId,
             @PathVariable Long portfolioId) {
-        portfolioService.deletePortfolio(getCurrentMember(), portfolioId);
+        portfolioService.deletePortfolio(authUtil.getCurrentMember(), portfolioId);
         return ResponseEntity.noContent().build();
     }
 }

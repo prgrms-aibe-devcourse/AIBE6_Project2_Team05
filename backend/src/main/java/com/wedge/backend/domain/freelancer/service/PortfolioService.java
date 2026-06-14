@@ -43,6 +43,9 @@ public class PortfolioService {
             throw new IllegalStateException("등록 권한이 없습니다.");
         }
 
+        if (image.isEmpty()) throw new IllegalArgumentException("파일이 비어있습니다.");
+        if (image.getSize() > 10 * 1024 * 1024) throw new IllegalArgumentException("파일 크기는 10MB 이하여야 합니다.");
+
         String imageUrl = r2FileUploadService.upload(image, "portfolios");
 
         Portfolio portfolio = Portfolio.builder()
@@ -62,6 +65,7 @@ public class PortfolioService {
         if (!portfolio.getFreelancerProfile().getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("삭제 권한이 없습니다.");
         }
+        r2FileUploadService.delete(portfolio.getImageUrl());
         portfolioRepository.delete(portfolio);
     }
 }
