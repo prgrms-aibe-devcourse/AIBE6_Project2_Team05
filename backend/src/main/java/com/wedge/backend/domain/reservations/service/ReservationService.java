@@ -60,6 +60,13 @@ public class ReservationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public ReservationResponse getReservation(Long reservationId, Member member) {
+        Reservation reservation = findReservation(reservationId);
+        validateReservationAccess(reservation, member);
+        return new ReservationResponse(reservation);
+    }
+
     // 예약자 권한과 취소 가능한 상태를 검증한 후 예약을 취소
     @Transactional
     public ReservationResponse cancelReservation(Long reservationId, Member member, String cancelReason) {
@@ -149,6 +156,15 @@ public class ReservationService {
         validateMember(member);
         if (!reservation.getFreelancerProfile().getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("예약 상태 변경 권한이 없습니다.");
+        }
+    }
+
+    private void validateReservationAccess(Reservation reservation, Member member) {
+        validateMember(member);
+        boolean isClient = reservation.getClient().getId().equals(member.getId());
+        boolean isFreelancer = reservation.getFreelancerProfile().getMember().getId().equals(member.getId());
+        if (!isClient && !isFreelancer) {
+            throw new IllegalStateException("예약 상세 조회 권한이 없습니다.");
         }
     }
 

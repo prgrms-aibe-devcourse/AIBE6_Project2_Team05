@@ -10,6 +10,7 @@ import java.util.List;
 public class FreelancerProfileResponseDto {
     private Long id;
     private Long memberId;
+    private String memberName;
     private Long categoryId;
     private String categoryName;
     private String title;
@@ -24,6 +25,7 @@ public class FreelancerProfileResponseDto {
     public FreelancerProfileResponseDto(FreelancerProfile profile) {
         this.id = profile.getId();
         this.memberId = profile.getMember().getId();
+        this.memberName = profile.getMember().getName();
         this.categoryId = profile.getCategory().getId();
         this.categoryName = profile.getCategory().getName();
         this.title = profile.getTitle();
