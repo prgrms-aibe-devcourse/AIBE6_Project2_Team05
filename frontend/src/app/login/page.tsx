@@ -1,19 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { API_BASE_URL, setAuthTokens } from "@/lib/auth";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { API_BASE_URL, setAccessToken } from "@/lib/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/mypage";
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +27,7 @@ export default function LoginPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -40,8 +40,8 @@ export default function LoginPage() {
         throw new Error(data?.message ?? "로그인에 실패했습니다.");
       }
 
-      setAuthTokens(data.accessToken, data.refreshToken);
-      router.push("/mypage");
+      setAccessToken(data.accessToken);
+      router.push(redirectTo);
       router.refresh();
     } catch (error) {
       setErrorMessage(
@@ -50,13 +50,6 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const redirectTo = searchParams.get("redirect") || "/";
-
-  const handleLogin = async () => {
-    // TODO: 실제 로그인 API 호출로 교체 (feature/auth-members 머지 후)
-    router.push(redirectTo);
   };
 
   return (
@@ -82,13 +75,6 @@ export default function LoginPage() {
         </p>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
-        <form
-          className="space-y-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleLogin();
-          }}
-        >
           {/* Email */}
           <div className="space-y-1.5">
             <Label
@@ -265,5 +251,13 @@ export default function LoginPage() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
