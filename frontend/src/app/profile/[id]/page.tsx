@@ -10,6 +10,7 @@ import ReviewTab from "@/components/profile/ReviewTab";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -55,6 +56,7 @@ export default function ProfilePage({
 }) {
   const { id } = use(params);
   const [bookmarked, setBookmarked] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profile, setProfile] = useState<FreelancerProfile | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -72,15 +74,17 @@ export default function ProfilePage({
   };
 
   useEffect(() => {
+    setIsLoggedIn(!!getAccessToken());
+
     const fetchAll = async () => {
       try {
         setLoading(true);
         setError(null);
 
         const [profileRes, portfolioRes, reviewRes] = await Promise.all([
-          authFetch(`/api/freelancers/${id}`),
-          authFetch(`/api/freelancers/${id}/portfolios`),
-          authFetch(`/api/freelancers/${id}/reviews`),
+          fetch(`/api/freelancers/${id}`),
+          fetch(`/api/freelancers/${id}/portfolios`),
+          fetch(`/api/freelancers/${id}/reviews`),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
@@ -245,7 +249,11 @@ export default function ProfilePage({
           </TabsList>
 
           <TabsContent value="portfolio" className="mt-0">
-            <PortfolioTab portfolios={portfolios} />
+            <PortfolioTab
+              portfolios={portfolios}
+              isLoggedIn={isLoggedIn}
+              profileId={id}
+            />
           </TabsContent>
 
           <TabsContent value="reviews" className="mt-0">

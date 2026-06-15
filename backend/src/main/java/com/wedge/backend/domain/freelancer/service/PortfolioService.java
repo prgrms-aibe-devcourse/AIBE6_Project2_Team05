@@ -7,6 +7,7 @@ import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepositor
 import com.wedge.backend.domain.freelancer.repository.PortfolioRepository;
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.global.storage.R2FileUploadService;
+import com.wedge.backend.global.util.FileValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,11 +27,17 @@ public class PortfolioService {
 
     // 포트폴리오 목록 조회
     @Transactional(readOnly = true)
-    public List<PortfolioResponseDto> getPortfolios(Long profileId) {
-        return portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(profileId)
+    public List<PortfolioResponseDto> getPortfolios(Long profileId, boolean isLoggedIn) {
+        List<PortfolioResponseDto> portfolios = portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(profileId)
                 .stream()
                 .map(PortfolioResponseDto::new)
                 .collect(Collectors.toList());
+
+        // 비로그인 시 3장만 노출
+        if (!isLoggedIn && portfolios.size() > 3) {
+            return portfolios.subList(0, 3);
+        }
+        return portfolios;
     }
 
     // 포트폴리오 등록
@@ -43,8 +50,7 @@ public class PortfolioService {
             throw new IllegalStateException("등록 권한이 없습니다.");
         }
 
-        if (image.isEmpty()) throw new IllegalArgumentException("파일이 비어있습니다.");
-        if (image.getSize() > 10 * 1024 * 1024) throw new IllegalArgumentException("파일 크기는 10MB 이하여야 합니다.");
+        FileValidator.validate(image);
 
         String imageUrl = r2FileUploadService.upload(image, "portfolios");
 

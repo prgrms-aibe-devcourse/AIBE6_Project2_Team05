@@ -98,7 +98,7 @@ class PortfolioServiceTest {
         given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L))
                 .willReturn(List.of(portfolio));
 
-        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L);
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true); // ✅ 파라미터 추가
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getDescription()).isEqualTo("테스트 포트폴리오");
@@ -110,7 +110,7 @@ class PortfolioServiceTest {
         given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L))
                 .willReturn(List.of());
 
-        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L);
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true); // ✅ 파라미터 추가
 
         assertThat(result).isEmpty();
     }
@@ -199,5 +199,39 @@ class PortfolioServiceTest {
         assertThatThrownBy(() -> portfolioService.deletePortfolio(otherMember, 1L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("삭제 권한이 없습니다.");
+    }
+
+    // ===== 열람 권한 처리 =====
+
+    @Test
+    @DisplayName("포트폴리오 목록 조회 - 비로그인 시 3장만 노출")
+    void getPortfolios_notLoggedIn_limit3() {
+        List<Portfolio> portfolios = List.of(
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url1").description("1").sortOrder(1).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url2").description("2").sortOrder(2).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url3").description("3").sortOrder(3).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url4").description("4").sortOrder(4).build()
+        );
+        given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L)).willReturn(portfolios);
+
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, false);
+
+        assertThat(result).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("포트폴리오 목록 조회 - 로그인 시 전체 노출")
+    void getPortfolios_loggedIn_showAll() {
+        List<Portfolio> portfolios = List.of(
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url1").description("1").sortOrder(1).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url2").description("2").sortOrder(2).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url3").description("3").sortOrder(3).build(),
+                Portfolio.builder().freelancerProfile(profile).imageUrl("url4").description("4").sortOrder(4).build()
+        );
+        given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L)).willReturn(portfolios);
+
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true);
+
+        assertThat(result).hasSize(4);
     }
 }
