@@ -25,15 +25,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 헤더에서 토큰 추출
         String token = resolveToken(request); 
 
-        if (token != null && jwtUtil.validateToken(token)) {
-            Long memberId = jwtUtil.getMemberId(token);
-            String role = jwtUtil.getRole(token);
+        if (token != null) {
+            try {
+                jwtUtil.validateTokenOrThrow(token);
+                Long memberId = jwtUtil.getMemberId(token);
+                String role = jwtUtil.getRole(token);
 
-            // SecurityContext에 인증 정보 저장
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    memberId, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                // SecurityContext에 인증 정보 저장
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        memberId, null, List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                request.setAttribute("exception", "EXPIRED_TOKEN");
+            } catch (io.jsonwebtoken.security.SignatureException e) {
+                request.setAttribute("exception", "INVALID_SIGNATURE");
+            } catch (io.jsonwebtoken.MalformedJwtException e) {
+                request.setAttribute("exception", "MALFORMED_TOKEN");
+            } catch (Exception e) {
+                request.setAttribute("exception", "INVALID_TOKEN");
+            }
         }
 
         filterChain.doFilter(request, response);
