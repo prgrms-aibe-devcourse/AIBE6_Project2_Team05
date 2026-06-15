@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +24,15 @@ public class PortfolioController {
     private final PortfolioService portfolioService;
     private final AuthUtil authUtil;
 
-    @Operation(summary = "포트폴리오 목록 조회", description = "프리랜서의 포트폴리오 목록을 sortOrder 순으로 조회합니다. 비로그인 사용자도 조회 가능합니다.")
+    @Operation(summary = "포트폴리오 목록 조회", description = "비로그인 시 3장, 로그인 시 전체 조회")
     @GetMapping
     public ResponseEntity<List<PortfolioResponseDto>> getPortfolios(
             @PathVariable Long profileId) {
-        return ResponseEntity.ok(portfolioService.getPortfolios(profileId));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isLoggedIn = auth != null && auth.isAuthenticated()
+                && !auth.getPrincipal().equals("anonymousUser");
+
+        return ResponseEntity.ok(portfolioService.getPortfolios(profileId, isLoggedIn));
     }
 
     @Operation(summary = "포트폴리오 등록", description = "이미지를 Cloudflare R2에 업로드하고 포트폴리오를 등록합니다. 본인 프로필에만 등록 가능합니다. 파일 크기 10MB 이하.")

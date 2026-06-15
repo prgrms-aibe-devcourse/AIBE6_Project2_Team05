@@ -26,11 +26,17 @@ public class PortfolioService {
 
     // 포트폴리오 목록 조회
     @Transactional(readOnly = true)
-    public List<PortfolioResponseDto> getPortfolios(Long profileId) {
-        return portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(profileId)
+    public List<PortfolioResponseDto> getPortfolios(Long profileId, boolean isLoggedIn) {
+        List<PortfolioResponseDto> portfolios = portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(profileId)
                 .stream()
                 .map(PortfolioResponseDto::new)
                 .collect(Collectors.toList());
+
+        // 비로그인 시 3장만 노출
+        if (!isLoggedIn && portfolios.size() > 3) {
+            return portfolios.subList(0, 3);
+        }
+        return portfolios;
     }
 
     // 포트폴리오 등록
