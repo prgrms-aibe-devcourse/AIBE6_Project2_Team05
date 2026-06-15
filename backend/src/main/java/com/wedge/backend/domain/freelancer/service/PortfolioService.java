@@ -7,6 +7,7 @@ import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepositor
 import com.wedge.backend.domain.freelancer.repository.PortfolioRepository;
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.global.storage.R2FileUploadService;
+import com.wedge.backend.global.util.FileValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +50,7 @@ public class PortfolioService {
             throw new IllegalStateException("등록 권한이 없습니다.");
         }
 
-        if (image.isEmpty()) throw new IllegalArgumentException("파일이 비어있습니다.");
-        if (image.getSize() > 10 * 1024 * 1024) throw new IllegalArgumentException("파일 크기는 10MB 이하여야 합니다.");
+        FileValidator.validate(image);
 
         String imageUrl = r2FileUploadService.upload(image, "portfolios");
 
