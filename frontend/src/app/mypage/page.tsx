@@ -9,7 +9,8 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { API_BASE_URL, clearAuthTokens, createAuthHeaders, getAccessToken } from "@/lib/auth";
+import { API_BASE_URL, clearAccessToken, createAuthHeaders, getAccessToken } from "@/lib/auth";
+import { authFetch } from "@/lib/authFetch";
 
 const sidebarMenu = [
   { icon: "👤", label: "회원 정보 수정", href: "/mypage", active: true },
@@ -43,11 +44,7 @@ export default function MyPage() {
 
     const fetchMyInfo = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
-          headers: {
-            ...createAuthHeaders(),
-          },
-        });
+        const response = await authFetch(`${API_BASE_URL}/api/v1/members/me`);
 
         const data = await response.json().catch(() => null);
 
@@ -83,11 +80,10 @@ export default function MyPage() {
     setSuccessMessage("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
+      const response = await authFetch(`${API_BASE_URL}/api/v1/members/me`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          ...createAuthHeaders(),
         },
         body: JSON.stringify({ name, phone }),
       });
@@ -114,11 +110,8 @@ export default function MyPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
+      const response = await authFetch(`${API_BASE_URL}/api/v1/members/me`, {
         method: "DELETE",
-        headers: {
-          ...createAuthHeaders(),
-        },
       });
 
       if (!response.ok) {
@@ -126,7 +119,12 @@ export default function MyPage() {
         throw new Error(data?.message ?? "회원 탈퇴에 실패했습니다.");
       }
 
-      clearAuthTokens();
+      await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      }).catch(() => {});
+
+      clearAccessToken();
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -136,8 +134,14 @@ export default function MyPage() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuthTokens();
+  const handleLogout = async () => {
+    await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { ...createAuthHeaders() },
+    }).catch(() => {});
+
+    clearAccessToken();
     router.push("/login");
     router.refresh();
   };

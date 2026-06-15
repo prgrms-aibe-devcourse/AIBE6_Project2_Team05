@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { clearAuthTokens, getAccessToken } from "@/lib/auth";
+import { API_BASE_URL, clearAccessToken, createAuthHeaders, getAccessToken } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -25,8 +25,18 @@ export default function Navbar() {
     setIsLoggedIn(Boolean(getAccessToken()));
   }, []);
 
-  const handleLogout = () => {
-    clearAuthTokens();
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { ...createAuthHeaders() },
+      });
+    } catch {
+      // 네트워크 오류와 무관하게 클라이언트 로그아웃은 계속 진행
+    }
+
+    clearAccessToken();
     setIsLoggedIn(false);
     setMobileOpen(false);
     router.push("/");
