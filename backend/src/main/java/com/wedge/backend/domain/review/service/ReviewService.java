@@ -23,4 +23,13 @@ public class ReviewService {
                 .map(ReviewResponseDto::new)
                 .collect(Collectors.toList());
     }
+
+    // 내 리뷰 목록 조회
+    @Transactional(readOnly = true)
+    public List<ReviewResponseDto> getMyReviews(Long memberId) {
+        return reviewRepository.findByMemberId(memberId)
+                .stream()
+                .map(ReviewResponseDto::new)
+                .collect(Collectors.toList());
+    }
 }
