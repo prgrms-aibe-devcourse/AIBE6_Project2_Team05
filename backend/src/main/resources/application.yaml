@@ -44,11 +44,11 @@ jwt:
 cloud:
   aws:
     s3:
-      endpoint: https://18a0add865a6d997171f11f38859d5d9.r2.cloudflarestorage.com
-      bucket: wedge-storage
+      endpoint: ${R2_ENDPOINT}
+      bucket: ${R2_BUCKET}
     credentials:
-      access-key: 2b2cfd4f52b35bbb54cf54ec6581c88c
-      secret-key: bc659f7c2d5d06d3d565d5098c23345c6ddf4abbfe7bd2bbaa99be0a623a19dc
+      access-key: ${R2_ACCESS_KEY}
+      secret-key: ${R2_SECRET_KEY}
     region:
       static: auto
 
