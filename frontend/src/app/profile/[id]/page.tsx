@@ -10,12 +10,11 @@ import ReviewTab from "@/components/profile/ReviewTab";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
-import { authFetch } from "@/lib/authFetch";
-
 
 interface FreelancerProfile {
   id: number;
@@ -29,6 +28,7 @@ interface FreelancerProfile {
   careerYears: number;
   averageRating: number;
   reviewCount: number;
+  bookmarkCount: number;
 }
 
 interface Portfolio {
@@ -60,6 +60,16 @@ export default function ProfilePage({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleBookmark = async () => {
+    try {
+      const res = await authFetch(`/api/bookmarks/${id}`, { method: "POST" });
+      const data = await res.json();
+      setBookmarked(data.bookmarked);
+    } catch (err) {
+      console.error("북마크 오류:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -181,7 +191,7 @@ export default function ProfilePage({
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setBookmarked(!bookmarked)}
+                  onClick={handleBookmark}
                   className={`p-2.5 rounded-xl border transition-colors ${
                     bookmarked
                       ? "border-[#6f5a55] bg-[#f6d9d3] text-[#6f5a55]"

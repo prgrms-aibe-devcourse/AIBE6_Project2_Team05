@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -45,6 +46,11 @@ public class JwtUtil {
         return parseClaims(token).get("role", String.class);
     }
 
+    // 예외를 직접 던지는 토큰 유효성 검증
+    public void validateTokenOrThrow(String token) {
+        parseClaims(token);
+    }
+
     // 토큰 유효성 검증
     public boolean validateToken(String token) {
         try {
@@ -58,6 +64,7 @@ public class JwtUtil {
     private String createToken(Long memberId, String role, long expireMs) {
         Date now = new Date();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(String.valueOf(memberId))
                 .claim("role", role)
                 .issuedAt(now)
