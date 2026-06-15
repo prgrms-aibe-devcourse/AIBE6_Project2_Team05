@@ -78,9 +78,9 @@ export default function ProfilePage({
         setError(null);
 
         const [profileRes, portfolioRes, reviewRes] = await Promise.all([
-          authFetch(`/api/freelancers/${id}`),
-          authFetch(`/api/freelancers/${id}/portfolios`),
-          authFetch(`/api/freelancers/${id}/reviews`),
+          fetch(`/api/freelancers/${id}`),
+          fetch(`/api/freelancers/${id}/portfolios`),
+          fetch(`/api/freelancers/${id}/reviews`),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
