@@ -60,6 +60,7 @@ public class ReservationService {
                 .toList();
     }
 
+    // 특정 예약 내역 조회 (본인 확인 권한 검증 포함)
     @Transactional(readOnly = true)
     public ReservationResponse getReservation(Long reservationId, Member member) {
         Reservation reservation = findReservation(reservationId);
