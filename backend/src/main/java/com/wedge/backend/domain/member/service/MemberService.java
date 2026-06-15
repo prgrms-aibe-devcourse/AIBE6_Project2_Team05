@@ -39,10 +39,11 @@ public class MemberService {
 
         member.withdraw();
     }
+        //내부 개발용 회원 조회 메서드 정보, 프론트에서 사용X
+        public Member getMember (Long memberId){
+            return memberRepository.findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+        }
 
-    //내부 개발용 회원 조회 메서드 정보, 프론트에서 사용X
-    public Member getMember(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
-    }
+
 }

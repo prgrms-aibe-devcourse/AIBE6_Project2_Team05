@@ -69,7 +69,7 @@ public class FreelancerSearchService {
             case POPULAR -> PageRequest.of(
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
-                    Sort.by(Sort.Direction.DESC, "careerYears") // TODO: 북마크 수 기준 정렬로 교체 예정
+                    Sort.by(Sort.Direction.DESC, "bookmarkCount")
             );
             default -> pageable;
         };

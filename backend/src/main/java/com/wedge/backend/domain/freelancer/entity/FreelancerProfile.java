@@ -43,6 +43,9 @@ public class FreelancerProfile extends BaseTimeEntity {
     @Column(name = "career_years", nullable = false)
     private int careerYears = 0;
 
+    @Column(name = "bookmark_count", nullable = false)
+    private int bookmarkCount = 0;
+
     @OneToMany(mappedBy = "freelancerProfile", fetch = FetchType.LAZY)
     private List<Review> reviews = new ArrayList<>();
 
@@ -66,5 +69,15 @@ public class FreelancerProfile extends BaseTimeEntity {
         this.region = region;
         this.price = price;
         this.careerYears = careerYears;
+    }
+
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
     }
 }

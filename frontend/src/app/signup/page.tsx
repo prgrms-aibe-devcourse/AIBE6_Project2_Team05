@@ -2,17 +2,68 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { API_BASE_URL } from "@/lib/auth";
 
 type UserType = "couple" | "freelancer" | null;
 type Step = 1 | 2 | 3;
 
 export default function SignupPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [userType, setUserType] = useState<UserType>(null);
   const [agreed, setAgreed] = useState({ terms: false, privacy: false, marketing: false });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const role = userType === "freelancer" ? "FREELANCER" : "CLIENT";
+
+  const handleSignup = async () => {
+    if (!userType) {
+      setErrorMessage("회원 유형을 선택해주세요.");
+      return;
+    }
+
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          phone,
+          role,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message ?? "회원가입에 실패했습니다.");
+      }
+
+      router.push("/login");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "회원가입에 실패했습니다."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fbf9f2] flex flex-col items-center justify-center px-4 py-12">
@@ -135,6 +186,8 @@ export default function SignupPage() {
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-[#45483d]">성함</Label>
                 <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="홍길동"
                   className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231]"
                 />
@@ -143,6 +196,8 @@ export default function SignupPage() {
                 <Label className="text-sm font-medium text-[#45483d]">이메일 주소</Label>
                 <Input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="hello@example.com"
                   className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231]"
                 />
@@ -151,6 +206,8 @@ export default function SignupPage() {
                 <Label className="text-sm font-medium text-[#45483d]">전화번호</Label>
                 <Input
                   type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   placeholder="010-0000-0000"
                   className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231]"
                 />
@@ -159,6 +216,8 @@ export default function SignupPage() {
                 <Label className="text-sm font-medium text-[#45483d]">비밀번호</Label>
                 <Input
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="8자 이상 입력해주세요"
                   className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231]"
                 />
@@ -233,9 +292,13 @@ export default function SignupPage() {
                 </div>
               </label>
             </div>
+            {errorMessage && (
+              <p className="text-sm text-red-500 mb-4">{errorMessage}</p>
+            )}
             <Button
+              onClick={handleSignup}
               className="w-full h-11 bg-[#4f6231] hover:bg-[#677b47] text-white rounded-xl"
-              disabled={!agreed.terms || !agreed.privacy}
+              disabled={!agreed.terms || !agreed.privacy || isSubmitting}
             >
               가입 완료하기
             </Button>

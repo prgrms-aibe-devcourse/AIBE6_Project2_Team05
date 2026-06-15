@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { API_BASE_URL, clearAuthTokens, createAuthHeaders, getAccessToken } from "@/lib/auth";
 
 const sidebarMenu = [
   { icon: "👤", label: "회원 정보 수정", href: "/mypage", active: true },
@@ -19,13 +20,55 @@ const sidebarMenu = [
 ];
 
 export default function MyPage() {
+  const router = useRouter();
   const [profileImg, setProfileImg] = useState<string | null>(null);
-  const [name, setName] = useState("홍길동");
-  const [email, setEmail] = useState("honggildong@email.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const token = getAccessToken();
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchMyInfo = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
+          headers: {
+            ...createAuthHeaders(),
+          },
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+          throw new Error(data?.message ?? "회원 정보를 불러오지 못했습니다.");
+        }
+
+        setName(data.name ?? "");
+        setEmail(data.email ?? "");
+        setPhone(data.phone ?? "");
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : "회원 정보를 불러오지 못했습니다."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchMyInfo();
+  }, [router]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,6 +77,78 @@ export default function MyPage() {
       setProfileImg(url);
     }
   };
+
+  const handleProfileUpdate = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...createAuthHeaders(),
+        },
+        body: JSON.stringify({ name, phone }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message ?? "회원 정보 수정에 실패했습니다.");
+      }
+
+      setName(data.name ?? "");
+      setPhone(data.phone ?? "");
+      setSuccessMessage("회원 정보가 저장되었습니다.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "회원 정보 수정에 실패했습니다."
+      );
+    }
+  };
+
+  const handleWithdraw = async () => {
+    if (!window.confirm("정말 탈퇴하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
+        method: "DELETE",
+        headers: {
+          ...createAuthHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message ?? "회원 탈퇴에 실패했습니다.");
+      }
+
+      clearAuthTokens();
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "회원 탈퇴에 실패했습니다."
+      );
+    }
+  };
+
+  const handleLogout = () => {
+    clearAuthTokens();
+    router.push("/login");
+    router.refresh();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+        회원 정보를 불러오는 중입니다...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
@@ -78,7 +193,10 @@ export default function MyPage() {
                 ))}
               </nav>
               <div className="p-2 border-t border-[#efeee7]">
-                <button className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#75786c] hover:bg-[#f5f4ec] hover:text-[#45483d] w-full transition-colors">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-[#75786c] hover:bg-[#f5f4ec] hover:text-[#45483d] w-full transition-colors"
+                >
                   <span>🚪</span>
                   로그아웃
                 </button>
@@ -91,6 +209,18 @@ export default function MyPage() {
             <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
               회원 정보 수정
             </h1>
+
+            {errorMessage && (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-500">
+                {errorMessage}
+              </p>
+            )}
+
+            {successMessage && (
+              <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-600">
+                {successMessage}
+              </p>
+            )}
 
             {/* Profile Image */}
             <div className="bg-white rounded-2xl border border-[#efeee7] p-6">
@@ -166,7 +296,15 @@ export default function MyPage() {
                   <Input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    readOnly
+                    className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-[#45483d]">전화번호</Label>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18]"
                   />
                 </div>
@@ -217,7 +355,10 @@ export default function MyPage() {
                   >
                     취소
                   </Button>
-                  <Button className="bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl">
+                  <Button
+                    onClick={handleProfileUpdate}
+                    className="bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl"
+                  >
                     저장하기
                   </Button>
                 </div>
@@ -231,6 +372,7 @@ export default function MyPage() {
                 계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
               </p>
               <Button
+                onClick={handleWithdraw}
                 variant="outline"
                 className="border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-sm"
               >

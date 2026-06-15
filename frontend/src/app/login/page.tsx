@@ -1,15 +1,55 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { API_BASE_URL, setAuthTokens } from "@/lib/auth";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.message ?? "로그인에 실패했습니다.");
+      }
+
+      setAuthTokens(data.accessToken, data.refreshToken);
+      router.push("/mypage");
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "로그인에 실패했습니다."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   const searchParams = useSearchParams();
   const router = useRouter();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -41,6 +81,7 @@ export default function LoginPage() {
           로그인하여 당신의 웨딩 여정을 계속하세요
         </p>
 
+        <form className="space-y-5" onSubmit={handleSubmit}>
         <form
           className="space-y-5"
           onSubmit={(e) => {
@@ -59,6 +100,8 @@ export default function LoginPage() {
             <Input
               id="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="hello@example.com"
               className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] placeholder:text-[#75786c]"
             />
@@ -81,6 +124,8 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] placeholder:text-[#75786c] pr-11"
               />
@@ -128,9 +173,14 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {errorMessage && (
+            <p className="text-sm text-red-500">{errorMessage}</p>
+          )}
+
           {/* Submit */}
           <Button
             type="submit"
+            disabled={isSubmitting}
             className="w-full h-11 bg-[#4f6231] hover:bg-[#677b47] text-white font-medium rounded-xl"
           >
             로그인
@@ -147,6 +197,9 @@ export default function LoginPage() {
         <div className="space-y-3">
           <Button
             variant="outline"
+            onClick={() => {
+              window.location.href = `${API_BASE_URL}/oauth2/authorization/kakao`;
+            }}
             className="w-full h-11 border-[#c5c8ba] bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#1b1c18] font-medium rounded-xl"
           >
             <svg
@@ -160,6 +213,9 @@ export default function LoginPage() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => {
+              window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
+            }}
             className="w-full h-11 border-[#c5c8ba] text-[#45483d] font-medium rounded-xl hover:bg-[#f5f4ec]"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
