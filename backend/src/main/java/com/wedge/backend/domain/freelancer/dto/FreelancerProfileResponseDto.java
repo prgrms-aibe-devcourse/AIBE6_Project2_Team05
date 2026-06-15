@@ -17,6 +17,7 @@ public class FreelancerProfileResponseDto {
     private String region;
     private Integer price;
     private int careerYears;
+    private int bookmarkCount;
     private double averageRating;
     private int reviewCount;
 
@@ -30,6 +31,7 @@ public class FreelancerProfileResponseDto {
         this.region = profile.getRegion();
         this.price = profile.getPrice();
         this.careerYears = profile.getCareerYears();
+        this.bookmarkCount = profile.getBookmarkCount();
 
         List<Review> reviews = profile.getReviews();
         this.reviewCount = reviews.size();
