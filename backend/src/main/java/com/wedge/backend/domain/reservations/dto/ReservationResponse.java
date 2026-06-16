@@ -19,11 +19,16 @@ public class ReservationResponse {
     private final LocalDateTime reservationDate;
     private final String requestMessage;
     private final ReservationStatus status;
+    private final Long reviewId;
     private final String cancelReason;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     public ReservationResponse(Reservation reservation) {
+        this(reservation, null);
+    }
+
+    public ReservationResponse(Reservation reservation, Long reviewId) {
         this.id = reservation.getId();
         this.clientId = reservation.getClient().getId();
         this.clientName = reservation.getClient().getName();
@@ -33,6 +38,7 @@ public class ReservationResponse {
         this.reservationDate = reservation.getReservationDate();
         this.requestMessage = reservation.getRequestMessage();
         this.status = reservation.getStatus();
+        this.reviewId = reviewId;
         this.cancelReason = reservation.getCancelReason();
         this.createdAt = reservation.getCreatedAt();
         this.updatedAt = reservation.getUpdatedAt();

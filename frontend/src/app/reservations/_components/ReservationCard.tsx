@@ -6,6 +6,7 @@ import {
   acceptReservation,
   completeReservation,
   rejectReservation,
+  ReservationApiError,
   type ReservationResponse,
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
@@ -26,7 +27,7 @@ export function ReservationCard({
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleStatusChange = async (
-    action: (id: number) => Promise<any>,
+    action: (id: number) => Promise<ReservationResponse>,
     label: string,
   ) => {
     if (!confirm(`예약을 ${label}하시겠습니까?`)) return;
@@ -34,8 +35,12 @@ export function ReservationCard({
     try {
       await action(reservation.id);
       onRefresh();
-    } catch (err: any) {
-      alert(err.message || "처리에 실패했습니다.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof ReservationApiError || error instanceof Error
+          ? error.message
+          : "처리에 실패했습니다.";
+      alert(message);
     } finally {
       setIsUpdating(false);
     }
@@ -120,13 +125,17 @@ export function ReservationCard({
         <div className="flex gap-2">
           {reservation.status === "COMPLETED" && (
             <Link
-              href={`/review/${reservation.id}`}
+              href={isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`}
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "text-xs h-8 border-[#c5c8ba] text-[#45483d] rounded-xl hover:border-[#4f6231] hover:text-[#4f6231]",
               )}
             >
-              리뷰 작성
+              {isFreelancer
+                ? "리뷰 확인하기"
+                : reservation.reviewId === null
+                  ? "리뷰 작성"
+                  : "리뷰 수정"}
             </Link>
           )}
           <Link

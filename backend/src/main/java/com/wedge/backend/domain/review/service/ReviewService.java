@@ -45,20 +45,58 @@ public class ReviewService {
         validateClientRole(member);
         validateRequest(request);
 
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+        Reservation reservation = findReservation(reservationId);
 
         validateReservationOwner(reservation, member);
         validateCompletedReservation(reservation);
 
-        Review review = Review.builder()
-                .member(member)
-                .freelancerProfile(reservation.getFreelancerProfile())
-                .rating(request.getRating())
-                .content(request.getContent().trim())
-                .build();
+        Review review = reviewRepository.findByReservationId(reservationId)
+                .orElseGet(() -> Review.builder()
+                        .member(member)
+                        .freelancerProfile(reservation.getFreelancerProfile())
+                        .reservation(reservation)
+                        .rating(request.getRating())
+                        .content(request.getContent().trim())
+                        .build());
+
+        review.update(request.getRating(), request.getContent().trim());
 
         return new ReviewResponseDto(reviewRepository.save(review));
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewResponseDto getReservationReview(Member member, Long reservationId) {
+        validateMember(member);
+        Reservation reservation = findReservation(reservationId);
+        validateReviewAccess(reservation, member);
+
+        Review review = reviewRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("등록된 리뷰가 없습니다."));
+
+        return new ReviewResponseDto(review);
+    }
+
+    @Transactional
+    public ReviewResponseDto updateReservationReview(Member member, Long reservationId, ReviewRequestDto request) {
+        validateMember(member);
+        validateClientRole(member);
+        validateRequest(request);
+
+        Reservation reservation = findReservation(reservationId);
+        validateReservationOwner(reservation, member);
+        validateCompletedReservation(reservation);
+
+        Review review = reviewRepository.findByReservationId(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("등록된 리뷰가 없습니다."));
+
+        review.update(request.getRating(), request.getContent().trim());
+
+        return new ReviewResponseDto(reviewRepository.save(review));
+    }
+
+    private Reservation findReservation(Long reservationId) {
+        return reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
     }
 
     private void validateMember(Member member) {
@@ -88,6 +126,14 @@ public class ReviewService {
     private void validateReservationOwner(Reservation reservation, Member member) {
         if (!reservation.getClient().getId().equals(member.getId())) {
             throw new IllegalStateException("본인의 예약에만 리뷰를 등록할 수 있습니다.");
+        }
+    }
+
+    private void validateReviewAccess(Reservation reservation, Member member) {
+        boolean isClient = reservation.getClient().getId().equals(member.getId());
+        boolean isFreelancer = reservation.getFreelancerProfile().getMember().getId().equals(member.getId());
+        if (!isClient && !isFreelancer) {
+            throw new IllegalStateException("리뷰 조회 권한이 없습니다.");
         }
     }
 

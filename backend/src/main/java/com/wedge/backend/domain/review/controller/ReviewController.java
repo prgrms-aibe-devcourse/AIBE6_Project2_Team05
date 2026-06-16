@@ -55,6 +55,30 @@ public class ReviewController {
         ));
     }
 
+    @Operation(summary = "예약 리뷰 조회", description = "예약에 등록된 리뷰를 조회합니다.")
+    @GetMapping("/v1/reservations/{reservationId}/reviews")
+    public ResponseEntity<ReviewResponseDto> getReservationReview(
+            Authentication authentication,
+            @PathVariable Long reservationId) {
+        return ResponseEntity.ok(reviewService.getReservationReview(
+                getAuthenticatedMember(authentication),
+                reservationId
+        ));
+    }
+
+    @Operation(summary = "리뷰 수정", description = "완료된 예약에 등록한 리뷰를 수정합니다.")
+    @PutMapping("/v1/reservations/{reservationId}/reviews")
+    public ResponseEntity<ReviewResponseDto> updateReview(
+            Authentication authentication,
+            @PathVariable Long reservationId,
+            @RequestBody ReviewRequestDto request) {
+        return ResponseEntity.ok(reviewService.updateReservationReview(
+                getAuthenticatedMember(authentication),
+                reservationId,
+                request
+        ));
+    }
+
     private Member getAuthenticatedMember(Authentication authentication) {
         if (authentication == null || authentication.getName() == null) {
             throw new IllegalArgumentException("인증 정보가 없습니다.");

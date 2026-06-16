@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -18,6 +18,48 @@ function getErrorMessage(error: unknown): string {
   return "리뷰 등록에 실패했습니다.";
 }
 
+type ReviewPayload = {
+  readonly id: number;
+  readonly rating: number;
+  readonly content: string;
+};
+
+function parseReviewPayload(value: unknown): ReviewPayload | null {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !("id" in value) ||
+    !("rating" in value) ||
+    !("content" in value) ||
+    typeof value.id !== "number" ||
+    typeof value.rating !== "number" ||
+    typeof value.content !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: value.id,
+    rating: value.rating,
+    content: value.content,
+  };
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  const payload: unknown = await response.json().catch(() => null);
+
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "message" in payload &&
+    typeof payload.message === "string"
+  ) {
+    return payload.message;
+  }
+
+  return "리뷰 등록에 실패했습니다.";
+}
+
 export default function ReviewPage() {
   const params = useParams<{ readonly id: string }>();
   const router = useRouter();
@@ -25,6 +67,8 @@ export default function ReviewPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [photos, setPhotos] = useState<string[]>([]);
+  const [reviewId, setReviewId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -37,13 +81,50 @@ export default function ReviewPage() {
     });
   };
 
+  const loadReview = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await authFetch(`/api/v1/reservations/${params.id}/reviews`, {
+        method: "GET",
+      });
+
+      if (response.status === 404 || response.status === 400) {
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const review = parseReviewPayload(await response.json());
+      if (review === null) {
+        throw new Error("리뷰 정보를 불러오지 못했습니다.");
+      }
+
+      setReviewId(review.id);
+      setRating(review.rating);
+      setReviewText(review.content);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [params.id]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadReview();
+  }, [loadReview]);
+
   const handleSubmitReview = async () => {
     setErrorMessage(null);
     setIsSubmitting(true);
 
     try {
       const response = await authFetch(`/api/v1/reservations/${params.id}/reviews`, {
-        method: "POST",
+        method: reviewId === null ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -53,17 +134,8 @@ export default function ReviewPage() {
         }),
       });
 
-      const payload: unknown = await response.json().catch(() => null);
-
       if (!response.ok) {
-        const message =
-          typeof payload === "object" &&
-          payload !== null &&
-          "message" in payload &&
-          typeof payload.message === "string"
-            ? payload.message
-            : "리뷰 등록에 실패했습니다.";
-        throw new Error(message);
+        throw new Error(await readErrorMessage(response));
       }
 
       router.push("/reservations");
@@ -136,7 +208,7 @@ export default function ReviewPage() {
         {/* Review Form */}
         <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-6">
           <h2 className="font-[var(--font-display)] text-xl font-semibold text-[#1b1c18]">
-            소중한 후기를 남겨주세요
+            {reviewId === null ? "소중한 후기를 남겨주세요" : "작성한 후기를 수정해주세요"}
           </h2>
 
           {errorMessage && (
@@ -232,10 +304,14 @@ export default function ReviewPage() {
           <div className="pt-2">
             <Button
               className="w-full h-12 bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl font-medium"
-              disabled={isSubmitting || rating === 0 || reviewText.trim().length < 10}
+              disabled={isLoading || isSubmitting || rating === 0 || reviewText.trim().length < 10}
               onClick={() => void handleSubmitReview()}
             >
-              {isSubmitting ? "등록 중..." : "리뷰 등록하기"}
+              {isSubmitting
+                ? "저장 중..."
+                : reviewId === null
+                  ? "리뷰 등록하기"
+                  : "리뷰 수정하기"}
             </Button>
             <p className="text-xs text-[#75786c] text-center mt-3">
               작성하신 리뷰는 해당 전문가의 프로필에 게재됩니다
