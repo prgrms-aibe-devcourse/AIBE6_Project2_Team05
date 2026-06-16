@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 public class ReviewResponseDto {
     private Long id;
+    private Long reservationId;
     private Long memberId;
     private String memberName;
     private Long freelancerProfileId; // 추가
@@ -15,6 +16,7 @@ public class ReviewResponseDto {
 
     public ReviewResponseDto(Review review) {
         this.id = review.getId();
+        this.reservationId = review.getReservation().getId();
         this.memberId = review.getMember().getId();
         this.memberName = review.getMember().getName();
         this.freelancerProfileId = review.getFreelancerProfile().getId(); // 추가

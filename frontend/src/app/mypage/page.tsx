@@ -17,12 +17,15 @@ import { authFetch } from "@/lib/authFetch";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type MemberRole = "CLIENT" | "FREELANCER";
+
 export default function MyPage() {
   const router = useRouter();
   const [profileImg, setProfileImg] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState<MemberRole | null>(null);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -49,6 +52,7 @@ export default function MyPage() {
         setName(data.name ?? "");
         setEmail(data.email ?? "");
         setPhone(data.phone ?? "");
+        setRole(data.role ?? null);
       } catch (error) {
         setErrorMessage(
           error instanceof Error
@@ -170,6 +174,7 @@ export default function MyPage() {
             name={name}
             email={email}
             profileImg={profileImg}
+            role={role}
             onLogout={handleLogout}
           />
 
