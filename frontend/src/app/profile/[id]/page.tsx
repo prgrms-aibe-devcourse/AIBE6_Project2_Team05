@@ -57,6 +57,7 @@ export default function ProfilePage({
   const { id } = use(params);
   const [bookmarked, setBookmarked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
   const [profile, setProfile] = useState<FreelancerProfile | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -96,6 +97,15 @@ export default function ProfilePage({
         setProfile(profileData);
         setPortfolios(portfolioData);
         setReviews(reviewData);
+
+        // 로그인 시 현재 유저 정보 가져오기
+        if (getAccessToken()) {
+          const meRes = await authFetch(`/api/v1/members/me`);
+          if (meRes.ok) {
+            const meData = await meRes.json();
+            setCurrentMemberId(meData.id);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
       } finally {
@@ -216,6 +226,17 @@ export default function ProfilePage({
                     />
                   </svg>
                 </button>
+                {currentMemberId === profile.memberId && (
+                  <Link
+                    href={`/freelancer/profile/edit/${id}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "border-[#6C814C] text-[#6C814C] hover:bg-[#f5f4ec] rounded-xl px-6",
+                    )}
+                  >
+                    프로필 수정
+                  </Link>
+                )}
                 <Link
                   href={`/reserve/${id}`}
                   className={cn(
