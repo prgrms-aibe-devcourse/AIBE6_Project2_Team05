@@ -1,27 +1,27 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Navbar from "@/components/Navbar";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 
-const filterChips = [
-  "전체", "헤어·메이크업", "스냅작가", "사회자", "축가", "드레스·정장", "하객알바"
-];
-const SORT_OPTIONS = [
-  { value: "ALL", label: "전체" },
-  { value: "NEW", label: "최신순" },
-  { value: "POPULAR", label: "인기순" },
-];
+type Category = {
+  id: number;
+  name: string;
+};
+
 type FreelancerProfile = {
   id: number;
   memberId: number;
@@ -35,6 +35,12 @@ type FreelancerProfile = {
   createdAt: string;
   updatedAt: string;
 };
+
+const SORT_OPTIONS = [
+  { value: "ALL", label: "전체" },
+  { value: "NEW", label: "최신순" },
+  { value: "POPULAR", label: "인기순" },
+];
 
 function SkeletonCard() {
   return (
@@ -54,7 +60,10 @@ function SkeletonCard() {
 }
 
 export default function SearchPage() {
-  const [activeChip, setActiveChip] = useState("전체");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
   const [sortType, setSortType] = useState("ALL");
   const [keyword, setKeyword] = useState("");
   const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
@@ -62,29 +71,45 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState<Set<number>>(new Set());
 
-  const fetchFreelancers = async () => {
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/categories`);
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("카테고리 목록 조회 실패", error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  const fetchFreelancers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (keyword) params.append("keyword", keyword);
       if (sortType !== "ALL") params.append("sortType", sortType);
+      if (selectedCategoryId !== null)
+        params.append("categoryId", String(selectedCategoryId));
 
       const res = await fetch(
-        `${API_BASE_URL}/api/freelancers?${params.toString()}`
+        `${API_BASE_URL}/api/freelancers?${params.toString()}`,
       );
       const data = await res.json();
-      setFreelancers(data.content);
-      setTotalElements(data.totalElements);
+      setFreelancers(data.content ?? []);
+      setTotalElements(data.totalElements ?? 0);
     } catch (error) {
       console.error("프리랜서 목록 조회 실패", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [keyword, sortType, selectedCategoryId]);
 
   useEffect(() => {
     fetchFreelancers();
-  }, [sortType]);
+  }, [fetchFreelancers]);
 
   const toggleBookmark = (id: number) => {
     setBookmarked((prev) => {
@@ -108,7 +133,6 @@ export default function SearchPage() {
           <p className="text-sm text-[#75786c]">
             당신의 특별한 기념일을 위한 엄선된 전문가들을 만나보세요
           </p>
-          {/* 키워드 검색 - shadcn Input + Button */}
           <div className="mt-4 flex gap-2">
             <Input
               value={keyword}
@@ -127,53 +151,74 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* 카테고리 필터 */}
       <div className="border-b border-[#efeee7] bg-white sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-1">
-            {filterChips.map((chip) => (
+            <button
+              onClick={() => setSelectedCategoryId(null)}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                selectedCategoryId === null
+                  ? "bg-[#4f6231] text-white"
+                  : "bg-[#f5f4ec] text-[#45483d] hover:bg-[#efeee7]"
+              }`}
+            >
+              전체
+            </button>
+            {categories.map((category) => (
               <button
-                key={chip}
-                onClick={() => setActiveChip(chip)}
+                key={category.id}
+                onClick={() => setSelectedCategoryId(category.id)}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeChip === chip
+                  selectedCategoryId === category.id
                     ? "bg-[#4f6231] text-white"
                     : "bg-[#f5f4ec] text-[#45483d] hover:bg-[#efeee7]"
                 }`}
               >
-                {chip}
+                {category.name}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Sort bar - shadcn Select */}
+      {/* 정렬 바 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full">
         <div className="flex items-center justify-between">
           <span className="text-sm text-[#75786c]">
-            총 <span className="font-medium text-[#1b1c18]">{totalElements}</span>명
+            총{" "}
+            <span className="font-medium text-[#1b1c18]">{totalElements}</span>
+            명
           </span>
-          <Select value={sortType} onValueChange={(value) => setSortType(value ?? "ALL")}>
-  <SelectTrigger className="w-32 rounded-xl border-[#c5c8ba]">
-    <SelectValue>
-      {SORT_OPTIONS.find((option) => option.value === sortType)?.label}
-    </SelectValue>
-  </SelectTrigger>
-  <SelectContent alignItemWithTrigger={false} side="bottom" sideOffset={5}>
-  {SORT_OPTIONS.map((option) => (
-    <SelectItem key={option.value} value={option.value}>
-      {option.label}
-    </SelectItem>
-  ))}
-</SelectContent>
-</Select>
+          <Select
+            value={sortType}
+            onValueChange={(value) => setSortType(value ?? "ALL")}
+          >
+            <SelectTrigger className="w-32 rounded-xl border-[#c5c8ba]">
+              <SelectValue>
+                {
+                  SORT_OPTIONS.find((option) => option.value === sortType)
+                    ?.label
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent
+              alignItemWithTrigger={false}
+              side="bottom"
+              sideOffset={5}
+            >
+              {SORT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {/* Grid */}
+      {/* 프리랜서 목록 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
-        {/* 로딩 - 스켈레톤 */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -185,7 +230,10 @@ export default function SearchPage() {
             <p className="text-[#75786c]">등록된 전문가가 없습니다.</p>
             <Button
               variant="outline"
-              onClick={() => { setKeyword(""); fetchFreelancers(); }}
+              onClick={() => {
+                setKeyword("");
+                setSelectedCategoryId(null);
+              }}
               className="border-[#4f6231] text-[#4f6231]"
             >
               전체 보기
@@ -210,32 +258,57 @@ export default function SearchPage() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
                     </svg>
                   </button>
                 </div>
                 <CardContent className="p-4">
-  <h3 className="font-semibold text-[#1b1c18] text-sm mb-0.5">{pro.memberName}</h3>
-  <p className="text-xs text-[#75786c] mb-2">{pro.title}</p>
-  <div className="flex items-center gap-1 mb-3">
-    <svg className="w-3 h-3 text-[#75786c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    <span className="text-xs text-[#75786c]">{pro.region}</span>
-  </div>
-  <div className="flex items-center justify-between">
-    <span className="text-sm font-semibold text-[#4f6231]">
-      {pro.price ? `₩${pro.price.toLocaleString()}~` : "협의"}
-    </span>
-    <Link
-      href={`/profile/${pro.id}`}
-      className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs h-8 border-[#4f6231] text-[#4f6231] hover:bg-[#4f6231] hover:text-white rounded-xl")}
-    >
-      프로필 보기
-    </Link>
-  </div>
-</CardContent>
+                  <h3 className="font-semibold text-[#1b1c18] text-sm mb-0.5">
+                    {pro.memberName}
+                  </h3>
+                  <p className="text-xs text-[#75786c] mb-2">{pro.title}</p>
+                  <div className="flex items-center gap-1 mb-3">
+                    <svg
+                      className="w-3 h-3 text-[#75786c]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span className="text-xs text-[#75786c]">{pro.region}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-[#4f6231]">
+                      {pro.price ? `₩${pro.price.toLocaleString()}~` : "협의"}
+                    </span>
+                    <Link
+                      href={`/profile/${pro.id}`}
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "sm" }),
+                        "text-xs h-8 border-[#4f6231] text-[#4f6231] hover:bg-[#4f6231] hover:text-white rounded-xl",
+                      )}
+                    >
+                      프로필 보기
+                    </Link>
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>

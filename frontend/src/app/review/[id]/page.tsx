@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function ReviewPage() {
   const [rating, setRating] = useState(0);
@@ -52,8 +52,18 @@ export default function ReviewPage() {
           href="/reservations"
           className="flex items-center gap-1 text-sm text-[#75786c] hover:text-[#45483d] mb-8"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           예약 내역으로
         </Link>
@@ -73,7 +83,9 @@ export default function ReviewPage() {
               <h3 className="font-semibold text-[#1b1c18] text-base mb-0.5">
                 Aurelia Estate Garden
               </h3>
-              <p className="text-xs text-[#75786c] mb-2">이벤트 베뉴 · 2024. 06. 14 방문</p>
+              <p className="text-xs text-[#75786c] mb-2">
+                이벤트 베뉴 · 2024. 06. 14 방문
+              </p>
               <div className="flex gap-4 text-xs text-[#45483d]">
                 <span>프리미엄 패키지</span>
                 <span className="text-[#4f6231] font-semibold">₩5,840,000</span>
@@ -116,7 +128,16 @@ export default function ReviewPage() {
               ))}
               {rating > 0 && (
                 <span className="text-sm text-[#45483d] ml-1">
-                  {["", "별로예요", "아쉬워요", "보통이에요", "좋아요", "최고예요"][rating]}
+                  {
+                    [
+                      "",
+                      "별로예요",
+                      "아쉬워요",
+                      "보통이에요",
+                      "좋아요",
+                      "최고예요",
+                    ][rating]
+                  }
                 </span>
               )}
             </div>
@@ -134,7 +155,9 @@ export default function ReviewPage() {
               className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] placeholder:text-[#75786c] resize-none min-h-[120px]"
               rows={5}
             />
-            <p className="text-xs text-[#75786c] text-right">{reviewText.length} / 1000</p>
+            <p className="text-xs text-[#75786c] text-right">
+              {reviewText.length} / 1000
+            </p>
           </div>
 
           {/* Photo Upload */}
@@ -144,13 +167,25 @@ export default function ReviewPage() {
             </Label>
             <label className="block cursor-pointer">
               <div className="border-2 border-dashed border-[#c5c8ba] rounded-xl p-6 text-center hover:border-[#4f6231] hover:bg-[#f5f4ec] transition-colors">
-                <svg className="w-8 h-8 text-[#75786c] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-8 h-8 text-[#75786c] mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 <p className="text-sm font-medium text-[#45483d] mb-1">
                   사진을 드래그하거나 클릭해서 업로드
                 </p>
-                <p className="text-xs text-[#75786c]">PNG, JPG, WEBP · 파일당 최대 10MB</p>
+                <p className="text-xs text-[#75786c]">
+                  PNG, JPG, WEBP · 파일당 최대 10MB
+                </p>
               </div>
               <input
                 type="file"
@@ -163,8 +198,17 @@ export default function ReviewPage() {
             {photos.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {photos.map((url, i) => (
-                  <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">
-                    <Image src={url} alt="" fill sizes="80px" className="object-cover" />
+                  <div
+                    key={i}
+                    className="relative w-20 h-20 rounded-lg overflow-hidden"
+                  >
+                    <Image
+                      src={url}
+                      alt=""
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
                   </div>
                 ))}
               </div>

@@ -54,7 +54,7 @@ public class BookmarkService {
 
     @Transactional(readOnly = true)
     public List<BookmarkResponse> getBookmarks(Long memberId) {
-        return bookmarkRepository.findAllByMemberIdWithProfile(memberId) // ✅ 교체
+        return bookmarkRepository.findAllByMemberIdWithProfile(memberId)
                 .stream()
                 .map(BookmarkResponse::from)
                 .toList();
