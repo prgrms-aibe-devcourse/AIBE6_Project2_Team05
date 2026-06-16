@@ -34,6 +34,9 @@ public class FreelancerProfile extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String introduction;
 
+    @Column(length = 255)
+    private String keywords;
+
     @Column(nullable = false, length = 50)
     private String region;
 
@@ -51,21 +54,23 @@ public class FreelancerProfile extends BaseTimeEntity {
 
     @Builder
     public FreelancerProfile(Member member, Category category, String title,
-                             String introduction, String region, Integer price, int careerYears) {
+                             String introduction, String keywords, String region, Integer price, int careerYears) {
         this.member = member;
         this.category = category;
         this.title = title;
         this.introduction = introduction;
+        this.keywords = keywords;
         this.region = region;
         this.price = price;
         this.careerYears = careerYears;
     }
 
     public void update(Category category, String title, String introduction,
-                       String region, Integer price, int careerYears) {
+                       String keywords, String region, Integer price, int careerYears) {
         this.category = category;
         this.title = title;
         this.introduction = introduction;
+        this.keywords = keywords;
         this.region = region;
         this.price = price;
         this.careerYears = careerYears;

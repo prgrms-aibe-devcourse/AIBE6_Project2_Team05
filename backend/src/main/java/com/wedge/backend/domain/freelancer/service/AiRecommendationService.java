@@ -26,7 +26,7 @@ public class AiRecommendationService {
 
     private final FreelancerProfileRepository freelancerProfileRepository;
     private final ObjectMapper objectMapper;
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient;
 
     @Value("${gemini.api-key}")
     private String apiKey;
