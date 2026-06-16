@@ -118,6 +118,30 @@ export default function FreelancerProfileForm({
   };
 
   const handleSubmit = () => {
+    if (!values.categoryId) {
+      alert("카테고리를 선택해주세요.");
+      return;
+    }
+    if (!values.title.trim()) {
+      alert("프로필 제목을 입력해주세요.");
+      return;
+    }
+    if (!values.introduction.trim()) {
+      alert("자기소개를 입력해주세요.");
+      return;
+    }
+    if (!values.region) {
+      alert("활동 지역을 선택해주세요.");
+      return;
+    }
+    if (!values.price) {
+      alert("기본 가격을 입력해주세요.");
+      return;
+    }
+    if (!values.careerYears) {
+      alert("경력을 입력해주세요.");
+      return;
+    }
     onSubmit(values, newPortfolios, deletedPortfolioIds);
   };
 

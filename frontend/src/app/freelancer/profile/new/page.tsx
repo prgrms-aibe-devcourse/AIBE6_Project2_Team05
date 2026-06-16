@@ -37,18 +37,6 @@ export default function FreelancerProfileNewPage() {
   ) => {
     setErrorMessage("");
 
-    if (
-      !values.categoryId ||
-      !values.title.trim() ||
-      !values.introduction.trim() ||
-      !values.region ||
-      !values.price ||
-      !values.careerYears
-    ) {
-      setErrorMessage("모든 항목을 입력해주세요.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -89,7 +77,12 @@ export default function FreelancerProfileNewPage() {
             method: "POST",
             body: formData,
           },
-        ).catch(() => console.warn(`포트폴리오 ${i + 1} 업로드 실패`));
+        ).catch(() => {
+          console.warn(`포트폴리오 ${i + 1} 업로드 실패`);
+          setErrorMessage(
+            `포트폴리오 ${i + 1}번 이미지 업로드에 실패했습니다. 수정 페이지에서 다시 시도해주세요.`,
+          );
+        });
       }
 
       router.push(`/profile/${profileId}`);

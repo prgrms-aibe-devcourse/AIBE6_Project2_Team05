@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FreelancerProfileForm, {
   ExistingPortfolio,
   NewPortfolioItem,
   ProfileFormValues,
 } from "@/components/freelancer/FreelancerProfileForm";
+import Navbar from "@/components/Navbar";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function FreelancerProfileEditPage() {
   const router = useRouter();
@@ -36,9 +36,7 @@ export default function FreelancerProfileEditPage() {
       try {
         const [profileRes, portfolioRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/freelancers/${id}`),
-          fetch(`${API_BASE_URL}/api/freelancers/${id}/portfolios`, {
-            headers: { Authorization: `Bearer ${getAccessToken()}` },
-          }),
+          authFetch(`${API_BASE_URL}/api/freelancers/${id}/portfolios`),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
@@ -76,19 +74,6 @@ export default function FreelancerProfileEditPage() {
     deletedPortfolioIds: number[],
   ) => {
     setErrorMessage("");
-
-    if (
-      !values.categoryId ||
-      !values.title.trim() ||
-      !values.introduction.trim() ||
-      !values.region ||
-      !values.price ||
-      !values.careerYears
-    ) {
-      setErrorMessage("모든 항목을 입력해주세요.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -116,9 +101,7 @@ export default function FreelancerProfileEditPage() {
       for (const portfolioId of deletedPortfolioIds) {
         await authFetch(
           `${API_BASE_URL}/api/freelancers/${id}/portfolios/${portfolioId}`,
-          {
-            method: "DELETE",
-          },
+          { method: "DELETE" },
         ).catch(() => console.warn(`포트폴리오 ${portfolioId} 삭제 실패`));
       }
 
@@ -133,7 +116,12 @@ export default function FreelancerProfileEditPage() {
         await authFetch(`${API_BASE_URL}/api/freelancers/${id}/portfolios`, {
           method: "POST",
           body: formData,
-        }).catch(() => console.warn(`포트폴리오 ${i + 1} 업로드 실패`));
+        }).catch(() => {
+          console.warn(`포트폴리오 ${i + 1} 업로드 실패`);
+          setErrorMessage(
+            `포트폴리오 ${i + 1}번 이미지 업로드에 실패했습니다. 수정 페이지에서 다시 시도해주세요.`,
+          );
+        });
       }
 
       router.push(`/profile/${id}`);
