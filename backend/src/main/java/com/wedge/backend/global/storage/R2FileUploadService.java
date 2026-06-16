@@ -16,7 +16,6 @@ import java.util.UUID;
 public class R2FileUploadService {
 
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner; // ✅ 싱글톤 빈 주입
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
