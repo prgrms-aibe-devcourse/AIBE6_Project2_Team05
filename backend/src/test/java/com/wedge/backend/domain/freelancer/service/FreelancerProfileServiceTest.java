@@ -197,4 +197,28 @@ class FreelancerProfileServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("삭제 권한이 없습니다.");
     }
+
+    // ===== 내 프로필 조회 =====
+
+    @Test
+    @DisplayName("내 프로필 조회 성공")
+    void getMyProfile_success() {
+        given(freelancerProfileRepository.findByMemberId(1L)).willReturn(Optional.of(profile));
+
+        FreelancerProfileResponseDto result = freelancerProfileService.getMyProfile(member);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTitle()).isEqualTo("테스트 타이틀");
+        assertThat(result.getRegion()).isEqualTo("서울");
+    }
+
+    @Test
+    @DisplayName("내 프로필 조회 실패 - 프로필 없음")
+    void getMyProfile_fail_notFound() {
+        given(freelancerProfileRepository.findByMemberId(1L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> freelancerProfileService.getMyProfile(member))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("프로필이 없습니다.");
+    }
 }
