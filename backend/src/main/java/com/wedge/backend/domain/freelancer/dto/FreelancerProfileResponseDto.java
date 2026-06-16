@@ -15,6 +15,7 @@ public class FreelancerProfileResponseDto {
     private String categoryName;
     private String title;
     private String introduction;
+    private String keywords;
     private String region;
     private Integer price;
     private int careerYears;
@@ -30,6 +31,7 @@ public class FreelancerProfileResponseDto {
         this.categoryName = profile.getCategory().getName();
         this.title = profile.getTitle();
         this.introduction = profile.getIntroduction();
+        this.keywords = profile.getKeywords();
         this.region = profile.getRegion();
         this.price = profile.getPrice();
         this.careerYears = profile.getCareerYears();
