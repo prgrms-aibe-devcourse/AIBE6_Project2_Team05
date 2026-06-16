@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE_URL } from "@/lib/auth";
 
 const filterChips = [
   "전체", "헤어·메이크업", "스냅작가", "사회자", "축가", "드레스·정장", "하객알바"
@@ -69,13 +70,12 @@ export default function SearchPage() {
       if (sortType !== "ALL") params.append("sortType", sortType);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/freelancers?${params.toString()}`
+        `${API_BASE_URL}/api/freelancers?${params.toString()}`
       );
       const data = await res.json();
       setFreelancers(data.content);
       setTotalElements(data.totalElements);
     } catch (error) {
-console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
       console.error("프리랜서 목록 조회 실패", error);
     } finally {
       setLoading(false);
