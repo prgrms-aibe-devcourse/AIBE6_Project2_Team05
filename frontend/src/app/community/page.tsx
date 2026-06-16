@@ -1,84 +1,105 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 
-const tabs = ["웨딩 후기", "꿀팁", "구인", "게시판", "재능기부"];
+type PostType = "WEDDING_REVIEW" | "TIP" | "BOARD";
 
-const posts = [
-  {
-    category: "웨딩 후기",
-    title: "빌라 아우라에서 찾은 평온함",
-    excerpt: "이탈리아 토스카나 빌라에서의 웨딩은 기대 이상이었어요. 올리브 나무 사이의 황혼 속 세레모니가 꿈만 같았습니다.",
-    author: "Elena Rossi",
-    initials: "EA",
-    img: "https://picsum.photos/seed/villa/600/400",
-  },
-  {
-    category: "꿀팁",
-    title: "식물 미니멀리즘의 미학",
-    excerpt: "웨딩 플라워를 최소화하면서도 최대의 임팩트를 주는 방법. 그린 위주의 보태니컬 스타일 가이드.",
-    author: "Marcus K.",
-    initials: "MK",
-    img: "https://picsum.photos/seed/botanic/600/400",
-  },
-  {
-    category: "재능기부",
-    title: "빛을 담다: 무료 필름 워크숍",
-    excerpt: "비영리 웨딩을 위한 무료 필름 포토그래피 워크숍입니다. 저소득층 예비 부부 3쌍 선발.",
-    author: "Sophia Owens",
-    initials: "SO",
-    img: "https://picsum.photos/seed/workshop/600/400",
-  },
-  {
-    category: "구인",
-    title: "스테이셔너리 아티스트 모집",
-    excerpt: "2024년 9월 가을 웨딩을 위한 캘리그래피 & 스테이셔너리 아티스트를 찾습니다. 경력자 우대.",
-    author: "Julian Hayes",
-    initials: "JH",
-    img: "https://picsum.photos/seed/stationery/600/400",
-  },
-  {
-    category: "꿀팁",
-    title: "웨딩 예산 절약의 기술",
-    excerpt: "평균 웨딩 비용이 5000만원을 넘는 요즘, 럭셔리한 느낌을 유지하면서도 합리적으로 준비하는 방법.",
-    author: "Anna Lee",
-    initials: "AL",
-    img: "https://picsum.photos/seed/budget/600/400",
-  },
-  {
-    category: "게시판",
-    title: "결혼 준비 D-6개월 체크리스트",
-    excerpt: "결혼식 6개월 전부터 시작해야 할 것들의 완벽한 타임라인. 놓치기 쉬운 항목들을 정리했어요.",
-    author: "David V.",
-    initials: "DV",
-    img: "https://picsum.photos/seed/checklist/600/400",
-  },
-];
-
-const popular = [
-  { title: "코모 호수에서의 드레스 선택기", comments: 32, img: "https://picsum.photos/seed/pop1/80/80" },
-  { title: "웨딩 촬영 전 알아야 할 것들", comments: 18, img: "https://picsum.photos/seed/pop2/80/80" },
-  { title: "플로럴 아치 DIY 완전 가이드", comments: 45, img: "https://picsum.photos/seed/pop3/80/80" },
-];
-
-const experts = [
-  { name: "Studio Aurelia", location: "Milan", img: "https://picsum.photos/seed/exp1/200/200" },
-  { name: "Green & Grace", location: "London", img: "https://picsum.photos/seed/exp2/200/200" },
-  { name: "Noir Lens", location: "New York", img: "https://picsum.photos/seed/exp3/200/200" },
-];
-
-const categoryColor: Record<string, string> = {
-  "웨딩 후기": "bg-[#d3ebac] text-[#4f6231]",
-  "꿀팁": "bg-[#f6d9d3] text-[#6f5a55]",
-  "재능기부": "bg-[#efeee7] text-[#45483d]",
-  "구인": "bg-[#f5f4ec] text-[#4f6231]",
-  "게시판": "bg-[#efeee7] text-[#45483d]",
+type Post = {
+  id: number;
+  memberId: number;
+  memberName: string;
+  title: string;
+  content: string;
+  type: PostType;
+  imageUrl: string | null;
+  createdAt: string;
 };
 
+const tabs: { label: string; type: PostType | null }[] = [
+  { label: "전체", type: null },
+  { label: "웨딩 후기", type: "WEDDING_REVIEW" },
+  { label: "꿀팁", type: "TIP" },
+  { label: "게시판", type: "BOARD" },
+];
+
+const typeLabel: Record<PostType, string> = {
+  WEDDING_REVIEW: "웨딩 후기",
+  TIP: "꿀팁",
+  BOARD: "게시판",
+};
+
+const typeColor: Record<PostType, string> = {
+  WEDDING_REVIEW: "bg-[#d3ebac] text-[#4f6231]",
+  TIP: "bg-[#f6d9d3] text-[#6f5a55]",
+  BOARD: "bg-[#efeee7] text-[#45483d]",
+};
+
+function PostSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-[#efeee7]">
+      <Skeleton className="h-4 w-20 mb-3 rounded-full" />
+      <Skeleton className="h-5 w-2/3 mb-2" />
+      <Skeleton className="h-4 w-full mb-1" />
+      <Skeleton className="h-4 w-4/5 mb-4" />
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-7 w-7 rounded-full" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+    </div>
+  );
+}
+
 export default function CommunityPage() {
+  const [activeType, setActiveType] = useState<PostType | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (activeType) params.append("type", activeType);
+        params.append("page", String(page));
+        params.append("size", "10");
+
+        const res = await fetch(`${API_BASE_URL}/api/v1/posts?${params.toString()}`);
+        const data = await res.json();
+        setPosts(data.content ?? []);
+        setTotalPages(data.totalPages ?? 0);
+      } catch (e) {
+        console.error("게시글 목록 조회 실패", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [activeType, page]);
+
+  const handleTabChange = (type: PostType | null) => {
+    setActiveType(type);
+    setPage(0);
+  };
+
+  const isLoggedIn = mounted && Boolean(getAccessToken());
+
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
@@ -93,131 +114,123 @@ export default function CommunityPage() {
             커뮤니티
           </h1>
           <p className="text-sm text-[#75786c] max-w-md mx-auto">
-            현대적인 커플과 전문가들이 지혜를 나누는 큐레이팅된 공간
+            현대적인 커플과 전문가들이 지혜를 나누는 공간
           </p>
         </div>
       </section>
 
       {/* Tabs */}
-      <div className="border-b border-[#efeee7] bg-white">
+      <div className="border-b border-[#efeee7] bg-white sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto py-3">
-            {tabs.map((tab, i) => (
+            {tabs.map((tab) => (
               <button
-                key={tab}
+                key={tab.label}
+                onClick={() => handleTabChange(tab.type)}
                 className={`shrink-0 px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                  i === 0
+                  activeType === tab.type
                     ? "bg-[#4f6231] text-white"
                     : "text-[#45483d] hover:bg-[#f5f4ec]"
                 }`}
               >
-                {tab}
+                {tab.label}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {posts.map((post, i) => (
-              <article
-                key={i}
-                className="bg-white rounded-2xl overflow-hidden border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all flex flex-col sm:flex-row"
-              >
-                <div className="relative sm:w-52 h-44 sm:h-auto shrink-0 overflow-hidden">
-                  <Image
-                    src={post.img}
-                    alt={post.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="p-5 flex flex-col justify-between">
-                  <div>
-                    <Badge
-                      className={`${categoryColor[post.category] || "bg-[#efeee7] text-[#45483d]"} border-0 text-xs mb-3`}
-                    >
-                      {post.category}
-                    </Badge>
-                    <h3 className="font-[var(--font-display)] font-semibold text-[#1b1c18] text-base mb-2 leading-snug">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-[#75786c] leading-relaxed line-clamp-2">
-                      {post.excerpt}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-4">
-                    <Avatar className="w-7 h-7">
-                      <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
-                        {post.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-[#75786c]">{post.author}</span>
-                  </div>
-                </div>
-              </article>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm text-[#75786c]">게시글 목록</p>
+          {isLoggedIn && (
+            <Link
+              href="/community/write"
+              className="text-sm font-medium text-white bg-[#4f6231] hover:bg-[#677b47] px-4 py-2 rounded-full transition-colors"
+            >
+              글쓰기
+            </Link>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <PostSkeleton key={i} />
             ))}
           </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Popular Posts */}
-            <div className="bg-white rounded-2xl border border-[#efeee7] p-5">
-              <h3 className="font-[var(--font-display)] text-base font-semibold text-[#1b1c18] mb-4">
-                인기 게시물
-              </h3>
-              <div className="space-y-4">
-                {popular.map((p, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                      <Image src={p.img} alt={p.title} fill sizes="48px" className="object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1b1c18] line-clamp-2 leading-snug mb-1">
-                        {p.title}
-                      </p>
-                      <p className="text-xs text-[#75786c]">댓글 {p.comments}개</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Featured Experts */}
-            <div className="bg-white rounded-2xl border border-[#efeee7] p-5">
-              <h3 className="font-[var(--font-display)] text-base font-semibold text-[#1b1c18] mb-4">
-                주목할 전문가
-              </h3>
-              <div className="space-y-4">
-                {experts.map((exp, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0">
-                      <Image src={exp.img} alt={exp.name} fill sizes="48px" className="object-cover" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-[#1b1c18]">{exp.name}</p>
-                      <p className="text-xs text-[#75786c]">{exp.location}</p>
-                    </div>
-                    <button className="ml-auto text-xs text-[#4f6231] font-medium hover:underline shrink-0">
-                      팔로우
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quote */}
-            <div className="bg-[#4f6231] rounded-2xl p-6 text-white">
-              <p className="font-[var(--font-display)] text-sm italic leading-relaxed">
-                &ldquo;Weddings shine brightest when the soul outshines the decorations.&rdquo;
-              </p>
-              <p className="text-xs text-[#d3ebac] mt-3">— Wedge Editorial</p>
-            </div>
+        ) : posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-[#75786c]">게시글이 없습니다.</p>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <Link key={post.id} href={`/community/${post.id}`}>
+                <article className="bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all cursor-pointer flex overflow-hidden">
+                  {post.imageUrl && (
+                    <div className="relative w-36 sm:w-48 shrink-0">
+                      <Image src={post.imageUrl} alt={post.title} fill className="object-cover" />
+                    </div>
+                  )}
+                  <div className="p-5 flex flex-col justify-between flex-1">
+                    <div>
+                      <Badge className={`${typeColor[post.type]} border-0 text-xs mb-3`}>
+                        {typeLabel[post.type]}
+                      </Badge>
+                      <h3 className="font-[var(--font-display)] font-semibold text-[#1b1c18] text-base mb-2 leading-snug">
+                        {post.title}
+                      </h3>
+                      <p className="text-sm text-[#75786c] leading-relaxed line-clamp-2">
+                        {post.content}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-7 h-7">
+                          <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
+                            {post.memberName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-[#75786c]">{post.memberName}</span>
+                      </div>
+                      <span className="text-xs text-[#75786c]">
+                        {new Date(post.createdAt).toLocaleDateString("ko-KR")}
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="border-[#c5c8ba]"
+            >
+              이전
+            </Button>
+            <span className="text-sm text-[#75786c] flex items-center px-3">
+              {page + 1} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="border-[#c5c8ba]"
+            >
+              다음
+            </Button>
+          </div>
+        )}
       </div>
 
       <Footer />
