@@ -4,35 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useRef, useState } from "react";
-
-export const CATEGORIES = [
-  { id: 1, name: "헤어/메이크업" },
-  { id: 2, name: "스냅 사진" },
-  { id: 3, name: "MC/사회자" },
-  { id: 4, name: "보컬" },
-  { id: 5, name: "드레스/수트 대여" },
-  { id: 6, name: "하객 엑스트라" },
-];
+import { API_BASE_URL } from "@/lib/auth";
+import { useEffect, useRef, useState } from "react";
 
 export const REGIONS = [
-  "서울",
-  "경기",
-  "인천",
-  "부산",
-  "대구",
-  "대전",
-  "광주",
-  "울산",
-  "세종",
-  "강원",
-  "충북",
-  "충남",
-  "전북",
-  "전남",
-  "경북",
-  "경남",
-  "제주",
+  "서울", "경기", "인천", "부산", "대구", "대전", "광주", "울산",
+  "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주",
 ];
 
 export interface ExistingPortfolio {
@@ -55,6 +32,11 @@ export interface ProfileFormValues {
   region: string;
   price: string;
   careerYears: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
 }
 
 interface FreelancerProfileFormProps {
@@ -82,15 +64,20 @@ export default function FreelancerProfileForm({
 }: FreelancerProfileFormProps) {
   const portfolioInputRef = useRef<HTMLInputElement>(null);
 
-  const [isHoverSubmit, setIsHoverSubmit] = useState(false);
-  const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(
-    null,
-  );
+  const [categories, setCategories] = useState<Category[]>([]);
   const [values, setValues] = useState<ProfileFormValues>(initialValues);
-  const [currentExisting, setCurrentExisting] =
-    useState<ExistingPortfolio[]>(existingPortfolios);
+  const [currentExisting, setCurrentExisting] = useState<ExistingPortfolio[]>(existingPortfolios);
   const [deletedPortfolioIds, setDeletedPortfolioIds] = useState<number[]>([]);
   const [newPortfolios, setNewPortfolios] = useState<NewPortfolioItem[]>([]);
+  const [isHoverSubmit, setIsHoverSubmit] = useState(false);
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/categories`)
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch(() => console.warn("카테고리 로딩 실패"));
+  }, []);
 
   const updateField = <K extends keyof ProfileFormValues>(
     key: K,
@@ -150,11 +137,9 @@ export default function FreelancerProfileForm({
 
         {/* 카테고리 */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-[#45483d]">
-            카테고리 *
-          </Label>
+          <Label className="text-sm font-medium text-[#45483d]">카테고리 *</Label>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
@@ -163,11 +148,7 @@ export default function FreelancerProfileForm({
                 onMouseLeave={() => setHoveredCategoryId(null)}
                 style={
                   values.categoryId === cat.id
-                    ? {
-                        backgroundColor:
-                          hoveredCategoryId === cat.id ? "#5a6d3e" : "#6C814C",
-                        color: "#ffffff",
-                      }
+                    ? { backgroundColor: hoveredCategoryId === cat.id ? "#5a6d3e" : "#6C814C", color: "#ffffff" }
                     : hoveredCategoryId === cat.id
                       ? { borderColor: "#6C814C" }
                       : {}
@@ -182,9 +163,7 @@ export default function FreelancerProfileForm({
 
         {/* 제목 */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-[#45483d]">
-            프로필 제목 *
-          </Label>
+          <Label className="text-sm font-medium text-[#45483d]">프로필 제목 *</Label>
           <Input
             value={values.title}
             onChange={(e) => updateField("title", e.target.value)}
@@ -195,9 +174,7 @@ export default function FreelancerProfileForm({
 
         {/* 소개 */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-[#45483d]">
-            자기소개 *
-          </Label>
+          <Label className="text-sm font-medium text-[#45483d]">자기소개 *</Label>
           <Textarea
             value={values.introduction}
             onChange={(e) => updateField("introduction", e.target.value)}
@@ -209,9 +186,7 @@ export default function FreelancerProfileForm({
 
         {/* 지역 */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium text-[#45483d]">
-            활동 지역 *
-          </Label>
+          <Label className="text-sm font-medium text-[#45483d]">활동 지역 *</Label>
           <select
             value={values.region}
             onChange={(e) => updateField("region", e.target.value)}
@@ -219,9 +194,7 @@ export default function FreelancerProfileForm({
           >
             <option value="">지역 선택</option>
             {REGIONS.map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
+              <option key={r} value={r}>{r}</option>
             ))}
           </select>
         </div>
@@ -229,9 +202,7 @@ export default function FreelancerProfileForm({
         {/* 가격 / 경력 */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-[#45483d]">
-              기본 가격 (원) *
-            </Label>
+            <Label className="text-sm font-medium text-[#45483d]">기본 가격 (원) *</Label>
             <Input
               type="number"
               value={values.price}
@@ -242,9 +213,7 @@ export default function FreelancerProfileForm({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-[#45483d]">
-              경력 (년) *
-            </Label>
+            <Label className="text-sm font-medium text-[#45483d]">경력 (년) *</Label>
             <Input
               type="number"
               value={values.careerYears}
@@ -260,9 +229,7 @@ export default function FreelancerProfileForm({
       {/* 포트폴리오 */}
       <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[#1b1c18] text-sm">
-            포트폴리오 이미지
-          </h2>
+          <h2 className="font-semibold text-[#1b1c18] text-sm">포트폴리오 이미지</h2>
           <Button
             type="button"
             size="sm"
@@ -273,9 +240,7 @@ export default function FreelancerProfileForm({
             + 이미지 추가
           </Button>
         </div>
-        <p className="text-xs text-[#75786c]">
-          JPG, PNG, WebP · 10MB 이하 · 최대 10장
-        </p>
+        <p className="text-xs text-[#75786c]">JPG, PNG, WebP · 10MB 이하 · 최대 10장</p>
 
         <input
           ref={portfolioInputRef}
@@ -292,33 +257,19 @@ export default function FreelancerProfileForm({
             onClick={() => portfolioInputRef.current?.click()}
             className="w-full h-40 border-2 border-dashed border-[#efeee7] rounded-xl flex flex-col items-center justify-center gap-2 text-[#75786c] hover:border-[#6C814C] transition-colors"
           >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span className="text-sm">클릭하여 이미지를 업로드하세요</span>
           </button>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {/* 기존 포트폴리오 (수정 모드) */}
             {currentExisting.map((item) => (
               <div key={`existing-${item.id}`} className="space-y-2">
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f4ec]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.imageUrl}
-                    alt={item.description || "포트폴리오"}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={item.imageUrl} alt={item.description || "포트폴리오"} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleExistingPortfolioDelete(item.id)}
@@ -327,26 +278,16 @@ export default function FreelancerProfileForm({
                     ✕
                   </button>
                 </div>
-                <p className="text-xs text-[#75786c] truncate px-1">
-                  {item.description || "설명 없음"}
-                </p>
+                <p className="text-xs text-[#75786c] truncate px-1">{item.description || "설명 없음"}</p>
               </div>
             ))}
-
-            {/* 새로 추가한 포트폴리오 */}
             {newPortfolios.map((item, index) => (
               <div key={`new-${index}`} className="space-y-2">
                 <div className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f4ec]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.preview}
-                    alt={`새 포트폴리오 ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={item.preview} alt={`새 포트폴리오 ${index + 1}`} className="w-full h-full object-cover" />
                   {mode === "edit" && (
-                    <div className="absolute top-2 left-2 bg-[#6C814C] text-white text-xs px-2 py-0.5 rounded-full">
-                      NEW
-                    </div>
+                    <div className="absolute top-2 left-2 bg-[#6C814C] text-white text-xs px-2 py-0.5 rounded-full">NEW</div>
                   )}
                   <button
                     type="button"
@@ -358,9 +299,7 @@ export default function FreelancerProfileForm({
                 </div>
                 <Input
                   value={item.description}
-                  onChange={(e) =>
-                    handleNewPortfolioDescChange(index, e.target.value)
-                  }
+                  onChange={(e) => handleNewPortfolioDescChange(index, e.target.value)}
                   placeholder="설명 (선택)"
                   className="h-9 text-xs bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C]"
                 />
@@ -393,12 +332,8 @@ export default function FreelancerProfileForm({
           onMouseLeave={() => setIsHoverSubmit(false)}
         >
           {isSubmitting
-            ? mode === "create"
-              ? "등록 중..."
-              : "저장 중..."
-            : mode === "create"
-              ? "프로필 등록"
-              : "저장하기"}
+            ? mode === "create" ? "등록 중..." : "저장 중..."
+            : mode === "create" ? "프로필 등록" : "저장하기"}
         </Button>
       </div>
     </div>
