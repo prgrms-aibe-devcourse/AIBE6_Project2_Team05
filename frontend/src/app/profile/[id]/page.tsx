@@ -82,10 +82,13 @@ export default function ProfilePage({
         setLoading(true);
         setError(null);
 
-        const [profileRes, portfolioRes, reviewRes] = await Promise.all([
+        const token = getAccessToken();
+
+        const [profileRes, portfolioRes, reviewRes, meRes] = await Promise.all([
           fetch(`/api/freelancers/${id}`),
           authFetch(`/api/freelancers/${id}/portfolios`),
           fetch(`/api/freelancers/${id}/reviews`),
+          token ? authFetch(`/api/v1/members/me`) : Promise.resolve(null),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
@@ -98,13 +101,9 @@ export default function ProfilePage({
         setPortfolios(portfolioData);
         setReviews(reviewData);
 
-        // 로그인 시 현재 유저 정보 가져오기
-        if (getAccessToken()) {
-          const meRes = await authFetch(`/api/v1/members/me`);
-          if (meRes.ok) {
-            const meData = await meRes.json();
-            setCurrentMemberId(meData.id);
-          }
+        if (meRes?.ok) {
+          const meData = await meRes.json();
+          setCurrentMemberId(meData.id);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
