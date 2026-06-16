@@ -18,7 +18,6 @@ public class FreelancerProfileService {
     private final FreelancerProfileRepository freelancerProfileRepository;
     private final CategoryRepository categoryRepository;
 
-    // 프로필 등록
     @Transactional
     public FreelancerProfileResponseDto createProfile(Member member, FreelancerProfileRequestDto request) {
         if (freelancerProfileRepository.existsByMemberId(member.getId())) {
@@ -38,7 +37,6 @@ public class FreelancerProfileService {
         return new FreelancerProfileResponseDto(freelancerProfileRepository.save(profile));
     }
 
-    // 프로필 조회
     @Transactional(readOnly = true)
     public FreelancerProfileResponseDto getProfile(Long profileId) {
         FreelancerProfile profile = freelancerProfileRepository.findById(profileId)
@@ -46,7 +44,13 @@ public class FreelancerProfileService {
         return new FreelancerProfileResponseDto(profile);
     }
 
-    // 프로필 수정
+    @Transactional(readOnly = true)
+    public FreelancerProfileResponseDto getMyProfile(Member member) {
+        FreelancerProfile profile = freelancerProfileRepository.findByMemberId(member.getId())
+                .orElseThrow(() -> new IllegalArgumentException("프로필이 없습니다."));
+        return new FreelancerProfileResponseDto(profile);
+    }
+
     @Transactional
     public FreelancerProfileResponseDto updateProfile(Long profileId, Member member, FreelancerProfileRequestDto request) {
         FreelancerProfile profile = freelancerProfileRepository.findById(profileId)
@@ -61,7 +65,6 @@ public class FreelancerProfileService {
         return new FreelancerProfileResponseDto(profile);
     }
 
-    // 프로필 삭제
     @Transactional
     public void deleteProfile(Long profileId, Member member) {
         FreelancerProfile profile = freelancerProfileRepository.findById(profileId)
@@ -72,7 +75,6 @@ public class FreelancerProfileService {
         freelancerProfileRepository.delete(profile);
     }
 
-    // 카테고리 조회 공통 메서드
     private Category findCategoryById(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다."));
