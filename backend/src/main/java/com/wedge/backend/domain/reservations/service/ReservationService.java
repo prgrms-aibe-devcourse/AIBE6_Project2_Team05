@@ -10,6 +10,7 @@ import com.wedge.backend.domain.reservations.dto.ReservationResponse;
 import com.wedge.backend.domain.reservations.entity.Reservation;
 import com.wedge.backend.domain.reservations.entity.ReservationStatus;
 import com.wedge.backend.domain.reservations.repository.ReservationRepository;
+import com.wedge.backend.domain.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final FreelancerProfileRepository freelancerProfileRepository;
+    private final ReviewRepository reviewRepository;
 
     // 회원 권한 검증 후 프리랜서 예약을 생성하고 저장
     @Transactional
@@ -56,7 +58,7 @@ public class ReservationService {
         }
 
         return reservations.stream()
-                .map(ReservationResponse::new)
+                .map(this::toReservationResponse)
                 .toList();
     }
 
@@ -65,7 +67,7 @@ public class ReservationService {
     public ReservationResponse getReservation(Long reservationId, Member member) {
         Reservation reservation = findReservation(reservationId);
         validateReservationAccess(reservation, member);
-        return new ReservationResponse(reservation);
+        return toReservationResponse(reservation);
     }
 
     // 예약자 권한과 취소 가능한 상태를 검증한 후 예약을 취소
@@ -75,7 +77,7 @@ public class ReservationService {
         validateClientOwner(reservation, member);
         validateStatus(reservation, ReservationStatus.REQUESTED, ReservationStatus.ACCEPTED);
         reservation.cancel(cancelReason);
-        return new ReservationResponse(reservation);
+        return toReservationResponse(reservation);
     }
 
     // 프리랜서 권한과 요청 상태를 검증한 후 예약을 수락
@@ -85,7 +87,7 @@ public class ReservationService {
         validateFreelancerOwner(reservation, member);
         validateStatus(reservation, ReservationStatus.REQUESTED);
         reservation.accept();
-        return new ReservationResponse(reservation);
+        return toReservationResponse(reservation);
     }
 
     // 프리랜서 권한과 요청 상태를 검증한 후 예약을 거절
@@ -95,7 +97,7 @@ public class ReservationService {
         validateFreelancerOwner(reservation, member);
         validateStatus(reservation, ReservationStatus.REQUESTED);
         reservation.reject();
-        return new ReservationResponse(reservation);
+        return toReservationResponse(reservation);
     }
 
     // 프리랜서 권한과 수락 상태를 검증한 후 예약을 완료 처리
@@ -105,7 +107,14 @@ public class ReservationService {
         validateFreelancerOwner(reservation, member);
         validateStatus(reservation, ReservationStatus.ACCEPTED);
         reservation.complete();
-        return new ReservationResponse(reservation);
+        return toReservationResponse(reservation);
+    }
+
+    private ReservationResponse toReservationResponse(Reservation reservation) {
+        Long reviewId = reviewRepository.findByReservationId(reservation.getId())
+                .map(review -> review.getId())
+                .orElse(null);
+        return new ReservationResponse(reservation, reviewId);
     }
 
     // 프리랜서 프로필 ID로 프로필을 조회하고 없으면 예외 처리

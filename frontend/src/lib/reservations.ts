@@ -26,6 +26,7 @@ export type ReservationResponse = {
   readonly reservationDate: string;
   readonly requestMessage: string;
   readonly status: ReservationStatus;
+  readonly reviewId: number | null;
   readonly cancelReason: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
