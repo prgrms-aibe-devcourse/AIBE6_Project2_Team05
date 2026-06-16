@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { authFetch } from "@/lib/authFetch";
+import {
+  buildReservationSummary,
+  ReviewBookingSummary,
+  type ReservationSummary,
+} from "@/components/review/ReviewBookingSummary";
+import {
+  fetchFreelancerProfile,
+  fetchReservationById,
+} from "@/lib/reservations";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -66,26 +75,29 @@ export default function ReviewPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
   const [reviewId, setReviewId] = useState<number | null>(null);
+  const [reservationSummary, setReservationSummary] =
+    useState<ReservationSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      const url = URL.createObjectURL(file);
-      setPhotos((prev) => [...prev, url]);
-    });
-  };
-
-  const loadReview = useCallback(async () => {
+  const loadReviewPage = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
+      const reservationId = Number(params.id);
+      if (!Number.isInteger(reservationId) || reservationId <= 0) {
+        throw new Error("예약 정보를 불러오지 못했습니다.");
+      }
+
+      const reservation = await fetchReservationById(reservationId);
+      const profile = await fetchFreelancerProfile(
+        reservation.freelancerProfileId,
+      );
+      setReservationSummary(buildReservationSummary(reservation, profile));
+
       const response = await authFetch(`/api/v1/reservations/${params.id}/reviews`, {
         method: "GET",
       });
@@ -115,8 +127,8 @@ export default function ReviewPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadReview();
-  }, [loadReview]);
+    void loadReviewPage();
+  }, [loadReviewPage]);
 
   const handleSubmitReview = async () => {
     setErrorMessage(null);
@@ -151,7 +163,6 @@ export default function ReviewPage() {
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
 
-      {/* Hero */}
       <div className="relative h-40 overflow-hidden">
         <Image
           src="https://picsum.photos/seed/reviewhero/1400/300"
@@ -170,7 +181,6 @@ export default function ReviewPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-        {/* Back */}
         <Link
           href="/reservations"
           className="flex items-center gap-1 text-sm text-[#75786c] hover:text-[#45483d] mb-8"
@@ -181,31 +191,8 @@ export default function ReviewPage() {
           예약 내역으로
         </Link>
 
-        {/* Booking Summary */}
-        <div className="bg-white rounded-2xl border border-[#efeee7] p-5 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
-              <Image
-                src="https://picsum.photos/seed/aurelia/200/200"
-                alt="Aurelia Estate Garden"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-[#1b1c18] text-base mb-0.5">
-                Aurelia Estate Garden
-              </h3>
-              <p className="text-xs text-[#75786c] mb-2">이벤트 베뉴 · 2024. 06. 14 방문</p>
-              <div className="flex gap-4 text-xs text-[#45483d]">
-                <span>프리미엄 패키지</span>
-                <span className="text-[#4f6231] font-semibold">₩5,840,000</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReviewBookingSummary summary={reservationSummary} />
 
-        {/* Review Form */}
         <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-6">
           <h2 className="font-[var(--font-display)] text-xl font-semibold text-[#1b1c18]">
             {reviewId === null ? "소중한 후기를 남겨주세요" : "작성한 후기를 수정해주세요"}
@@ -217,7 +204,6 @@ export default function ReviewPage() {
             </p>
           )}
 
-          {/* Star Rating */}
           <div className="space-y-2">
             <Label className="text-sm font-medium text-[#45483d]">
               전체 만족도
@@ -251,7 +237,6 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          {/* Review Text */}
           <div className="space-y-1.5">
             <Label className="text-sm font-medium text-[#45483d]">
               솔직한 후기를 남겨주세요
@@ -266,41 +251,6 @@ export default function ReviewPage() {
             <p className="text-xs text-[#75786c] text-right">{reviewText.length} / 1000</p>
           </div>
 
-          {/* Photo Upload */}
-          {/*<div className="space-y-2">*/}
-          {/*  <Label className="text-sm font-medium text-[#45483d]">*/}
-          {/*    웨딩 사진 첨부*/}
-          {/*  </Label>*/}
-          {/*  <label className="block cursor-pointer">*/}
-          {/*    <div className="border-2 border-dashed border-[#c5c8ba] rounded-xl p-6 text-center hover:border-[#4f6231] hover:bg-[#f5f4ec] transition-colors">*/}
-          {/*      <svg className="w-8 h-8 text-[#75786c] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">*/}
-          {/*        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />*/}
-          {/*      </svg>*/}
-          {/*      <p className="text-sm font-medium text-[#45483d] mb-1">*/}
-          {/*        사진을 드래그하거나 클릭해서 업로드*/}
-          {/*      </p>*/}
-          {/*      <p className="text-xs text-[#75786c]">PNG, JPG, WEBP · 파일당 최대 10MB</p>*/}
-          {/*    </div>*/}
-          {/*    <input*/}
-          {/*      type="file"*/}
-          {/*      accept="image/*"*/}
-          {/*      multiple*/}
-          {/*      className="hidden"*/}
-          {/*      onChange={handlePhotoUpload}*/}
-          {/*    />*/}
-          {/*  </label>*/}
-          {/*  {photos.length > 0 && (*/}
-          {/*    <div className="flex flex-wrap gap-2 mt-2">*/}
-          {/*      {photos.map((url, i) => (*/}
-          {/*        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden">*/}
-          {/*          <Image src={url} alt="" fill sizes="80px" className="object-cover" />*/}
-          {/*        </div>*/}
-          {/*      ))}*/}
-          {/*    </div>*/}
-          {/*  )}*/}
-          {/*</div>*/}
-
-          {/* Submit */}
           <div className="pt-2">
             <Button
               className="w-full h-12 bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl font-medium"
