@@ -83,7 +83,7 @@ export default function ProfilePage({
 
         const [profileRes, portfolioRes, reviewRes] = await Promise.all([
           fetch(`/api/freelancers/${id}`),
-          fetch(`/api/freelancers/${id}/portfolios`),
+          authFetch(`/api/freelancers/${id}/portfolios`),
           fetch(`/api/freelancers/${id}/reviews`),
         ]);
 
