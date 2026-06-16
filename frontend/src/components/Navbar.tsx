@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, clearAccessToken, createAuthHeaders, getAccessToken } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,6 +14,7 @@ export default function Navbar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const navLinks = [
     { href: "/search?category=photographer", label: "작가" },
@@ -23,6 +25,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsLoggedIn(Boolean(getAccessToken()));
+    setMounted(true);
   }, []);
 
   const handleLogout = async () => {
@@ -70,7 +73,12 @@ export default function Navbar() {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
-            {isLoggedIn ? (
+            {!mounted ? (
+              <>
+                <Skeleton className="h-7 w-20 rounded-full" />
+                <Skeleton className="h-7 w-24 rounded-full" />
+              </>
+            ) : isLoggedIn ? (
               <>
                 <Link
                   href="/mypage"
@@ -158,7 +166,12 @@ export default function Navbar() {
                   ))}
                 </nav>
                 <div className="flex flex-col gap-3 pt-4 border-t border-[#c5c8ba]">
-                  {isLoggedIn ? (
+                  {!mounted ? (
+                    <>
+                      <Skeleton className="h-9 w-full rounded-md" />
+                      <Skeleton className="h-9 w-full rounded-md" />
+                    </>
+                  ) : isLoggedIn ? (
                     <>
                       <Link
                         href="/mypage"
