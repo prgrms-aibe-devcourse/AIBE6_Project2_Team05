@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface Portfolio {
   id: number;
@@ -21,6 +22,7 @@ export default function PortfolioTab({
   profileId,
 }: PortfolioTabProps) {
   const router = useRouter();
+  const [selectedImage, setSelectedImage] = useState<Portfolio | null>(null);
 
   if (portfolios.length === 0) {
     return (
@@ -36,7 +38,8 @@ export default function PortfolioTab({
         {portfolios.map((portfolio) => (
           <div
             key={portfolio.id}
-            className="relative aspect-[4/3] rounded-xl overflow-hidden group"
+            className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer"
+            onClick={() => setSelectedImage(portfolio)}
           >
             <Image
               src={portfolio.imageUrl}
@@ -59,6 +62,39 @@ export default function PortfolioTab({
           >
             로그인하고 더보기
           </button>
+        </div>
+      )}
+
+      {/* 이미지 확대 모달 */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-10 right-0 text-white text-sm hover:text-[#c5c8ba]"
+            >
+              닫기 ✕
+            </button>
+            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden">
+              <Image
+                src={selectedImage.imageUrl}
+                alt={selectedImage.description || "포트폴리오"}
+                fill
+                className="object-contain"
+              />
+            </div>
+            {selectedImage.description && (
+              <p className="text-white text-sm text-center mt-3">
+                {selectedImage.description}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
