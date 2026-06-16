@@ -9,6 +9,8 @@ import com.wedge.backend.domain.recruit.entity.RecruitPost;
 import com.wedge.backend.domain.recruit.entity.RecruitStatus;
 import com.wedge.backend.domain.recruit.repository.RecruitPostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,20 @@ public class RecruitPostService {
 
     private final RecruitPostRepository recruitPostRepository;
     private final CategoryRepository categoryRepository;
+
+    @Transactional(readOnly = true)
+    public Page<RecruitPostResponse> getRecruitPosts(Long categoryId, String region,
+                                                      RecruitStatus status, Pageable pageable) {
+        return recruitPostRepository.findByFilters(categoryId, region, status, pageable)
+                .map(RecruitPostResponse::new);
+    }
+
+    @Transactional(readOnly = true)
+    public RecruitPostResponse getRecruitPost(Long postId) {
+        RecruitPost post = recruitPostRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 구인글입니다."));
+        return new RecruitPostResponse(post);
+    }
 
     @Transactional
     public Long createRecruitPost(Member member, RecruitPostRequest request) {

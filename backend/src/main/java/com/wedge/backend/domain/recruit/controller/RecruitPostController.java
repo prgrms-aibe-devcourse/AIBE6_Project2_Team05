@@ -10,6 +10,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +29,22 @@ public class RecruitPostController {
 
     private final RecruitPostService recruitPostService;
     private final MemberService memberService;
+
+    @GetMapping
+    @Operation(summary = "구인글 목록 조회", description = "카테고리·지역·상태 필터와 페이지네이션으로 구인글 목록을 조회합니다.")
+    public ResponseEntity<Page<RecruitPostResponse>> getRecruitPosts(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) RecruitStatus status,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(recruitPostService.getRecruitPosts(categoryId, region, status, pageable));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "구인글 상세 조회", description = "구인글 ID로 단건 조회합니다.")
+    public ResponseEntity<RecruitPostResponse> getRecruitPost(@PathVariable Long id) {
+        return ResponseEntity.ok(recruitPostService.getRecruitPost(id));
+    }
 
     @PostMapping
     @Operation(summary = "구인글 등록", description = "로그인한 회원이 구인글을 등록합니다.")

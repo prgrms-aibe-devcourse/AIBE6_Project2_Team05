@@ -9,6 +9,12 @@ const sidebarMenu = [
   { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks", active: false },
   { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews", active: false },
   { icon: "📝", label: "내 게시물", href: "/mypage/posts", active: false },
+  {
+    icon: "🎨",
+    label: "프로필 관리",
+    href: "/freelancer/profile/manage",
+    active: false,
+  },
 ];
 
 interface MySidebarProps {

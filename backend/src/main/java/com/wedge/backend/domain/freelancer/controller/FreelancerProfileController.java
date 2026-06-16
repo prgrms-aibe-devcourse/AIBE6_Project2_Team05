@@ -31,6 +31,12 @@ public class FreelancerProfileController {
         return ResponseEntity.ok(freelancerProfileService.createProfile(authUtil.getCurrentMember(), request));
     }
 
+    @Operation(summary = "내 프로필 조회", description = "로그인한 프리랜서 본인의 프로필을 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<FreelancerProfileResponseDto> getMyProfile() {
+        return ResponseEntity.ok(freelancerProfileService.getMyProfile(authUtil.getCurrentMember()));
+    }
+
     @Operation(summary = "프리랜서 프로필 조회", description = "profileId로 프리랜서 프로필을 조회합니다. 비로그인 사용자도 조회 가능합니다.")
     @GetMapping("/{profileId}")
     public ResponseEntity<FreelancerProfileResponseDto> getProfile(
