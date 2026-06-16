@@ -41,7 +41,7 @@ public class FreelancerSearchService {
 
         if (categoryId != null) {
             spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("categoryId"), categoryId));
+                    cb.equal(root.get("category").get("id"), categoryId));
         }
 
         if (region != null && !region.isBlank()) {
