@@ -1,7 +1,5 @@
 package com.wedge.backend.domain.review.controller;
 
-import com.wedge.backend.domain.member.entity.Member;
-import com.wedge.backend.domain.member.service.MemberService;
 import com.wedge.backend.domain.review.dto.ReviewRequestDto;
 import com.wedge.backend.domain.review.dto.ReviewResponseDto;
 import com.wedge.backend.domain.review.service.ReviewService;
@@ -27,7 +25,6 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final MemberService memberService;
 
     @Operation(summary = "리뷰 목록 조회", description = "프리랜서 프로필의 리뷰 목록을 조회합니다. 비로그인 사용자도 조회 가능합니다.")
     @GetMapping("/freelancers/{profileId}/reviews")
@@ -49,11 +46,8 @@ public class ReviewController {
             Authentication authentication,
             @PathVariable Long reservationId,
             @RequestBody ReviewRequestDto request) {
-        return ResponseEntity.ok(reviewService.createReview(
-                getAuthenticatedMember(authentication),
-                reservationId,
-                request
-        ));
+        Long memberId = Long.parseLong(authentication.getName());
+        return ResponseEntity.ok(reviewService.createReview(memberId, reservationId, request));
     }
 
     @Operation(summary = "예약 리뷰 조회", description = "예약에 등록된 리뷰를 조회합니다.")
@@ -61,10 +55,8 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDto> getReservationReview(
             Authentication authentication,
             @PathVariable Long reservationId) {
-        return ResponseEntity.ok(reviewService.getReservationReview(
-                getAuthenticatedMember(authentication),
-                reservationId
-        ));
+        Long memberId = Long.parseLong(authentication.getName());
+        return ResponseEntity.ok(reviewService.getReservationReview(memberId, reservationId));
     }
 
     @Operation(summary = "리뷰 수정", description = "완료된 예약에 등록한 리뷰를 수정합니다.")
@@ -73,17 +65,8 @@ public class ReviewController {
             Authentication authentication,
             @PathVariable Long reservationId,
             @RequestBody ReviewRequestDto request) {
-        return ResponseEntity.ok(reviewService.updateReservationReview(
-                getAuthenticatedMember(authentication),
-                reservationId,
-                request
-        ));
+        Long memberId = Long.parseLong(authentication.getName());
+        return ResponseEntity.ok(reviewService.updateReservationReview(memberId, reservationId, request));
     }
 
-    private Member getAuthenticatedMember(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new IllegalArgumentException("인증 정보가 없습니다.");
-        }
-        return memberService.getMember(Long.parseLong(authentication.getName()));
-    }
 }

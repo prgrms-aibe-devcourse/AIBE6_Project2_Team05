@@ -2,6 +2,7 @@ package com.wedge.backend.domain.review.service;
 
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.domain.member.entity.Role;
+import com.wedge.backend.domain.member.service.MemberService;
 import com.wedge.backend.domain.reservations.entity.Reservation;
 import com.wedge.backend.domain.reservations.entity.ReservationStatus;
 import com.wedge.backend.domain.reservations.repository.ReservationRepository;
@@ -22,6 +23,7 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
+    private final MemberService memberService;
 
     @Transactional(readOnly = true)
     public List<ReviewResponseDto> getReviews(Long freelancerProfileId) {
@@ -40,8 +42,9 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto createReview(Member member, Long reservationId, ReviewRequestDto request) {
-        validateMember(member);
+    public ReviewResponseDto createReview(Long memberId, Long reservationId, ReviewRequestDto request) {
+        Member member = memberService.getMember(memberId);
+
         validateClientRole(member);
         validateRequest(request);
 
@@ -65,8 +68,8 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewResponseDto getReservationReview(Member member, Long reservationId) {
-        validateMember(member);
+    public ReviewResponseDto getReservationReview(Long memberId, Long reservationId) {
+        Member member = memberService.getMember(memberId);
         Reservation reservation = findReservation(reservationId);
         validateReviewAccess(reservation, member);
 
@@ -77,8 +80,8 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto updateReservationReview(Member member, Long reservationId, ReviewRequestDto request) {
-        validateMember(member);
+    public ReviewResponseDto updateReservationReview(Long memberId, Long reservationId, ReviewRequestDto request) {
+        Member member = memberService.getMember(memberId);
         validateClientRole(member);
         validateRequest(request);
 
