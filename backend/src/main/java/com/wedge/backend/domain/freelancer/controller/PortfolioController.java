@@ -40,16 +40,7 @@ public class PortfolioController {
     public ResponseEntity<PortfolioResponseDto> createPortfolio(
             @PathVariable Long profileId,
             @RequestParam MultipartFile image,
-            @RequestParam(required = false) String description,
-            @RequestParam(defaultValue = "0") int sortOrder,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String client,
-            @RequestParam(required = false) String industry,
-            @RequestParam(required = false) String purpose) throws IOException {
-
-        PortfolioRequestDto dto = new PortfolioRequestDto(
-                description, sortOrder, startDate, endDate, client, industry, purpose);
+            @ModelAttribute PortfolioRequestDto dto) throws IOException {
         return ResponseEntity.ok(
                 portfolioService.createPortfolio(authUtil.getCurrentMember(), profileId, image, dto));
     }
@@ -80,16 +71,7 @@ public class PortfolioController {
             @PathVariable Long profileId,
             @PathVariable Long portfolioId,
             @RequestParam(required = false) MultipartFile image,
-            @RequestParam(required = false) String description,
-            @RequestParam(defaultValue = "0") int sortOrder,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String client,
-            @RequestParam(required = false) String industry,
-            @RequestParam(required = false) String purpose) throws IOException {
-
-        PortfolioRequestDto dto = new PortfolioRequestDto(
-                description, sortOrder, startDate, endDate, client, industry, purpose);
+            @ModelAttribute PortfolioRequestDto dto) throws IOException {
         return ResponseEntity.ok(
                 portfolioService.updatePortfolio(authUtil.getCurrentMember(), portfolioId, image, dto));
     }

@@ -94,7 +94,7 @@ public class PortfolioService {
                 .build();
 
         portfolioImageRepository.save(portfolioImage);
-        return new PortfolioResponseDto(portfolioRepository.findById(portfolioId).get());
+        return new PortfolioResponseDto(portfolio);
     }
 
     // 포트폴리오 추가 이미지 삭제

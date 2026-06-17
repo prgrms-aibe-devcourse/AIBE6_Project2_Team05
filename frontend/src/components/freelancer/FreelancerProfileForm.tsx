@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { API_BASE_URL } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { useEffect, useRef, useState } from "react";
+import PortfolioDetailForm from "./PortfolioDetailForm";
 
 export const REGIONS = [
   "서울",
@@ -100,22 +101,6 @@ interface FreelancerProfileFormProps {
   ) => void;
   onCancel: () => void;
 }
-
-const CalendarIcon = () => (
-  <svg
-    className="w-3.5 h-3.5 text-[#75786c] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);
 
 export default function FreelancerProfileForm({
   mode,
@@ -234,6 +219,10 @@ export default function FreelancerProfileForm({
     });
   };
 
+  const handleEditDetailChange = (key: string, value: string) => {
+    setEditingPortfolio((prev) => (prev ? { ...prev, [key]: value } : prev));
+  };
+
   const handleEditSave = async () => {
     if (!editingPortfolio) return;
     setIsSavingEdit(true);
@@ -257,7 +246,6 @@ export default function FreelancerProfileForm({
         { method: "PATCH", body: formData },
       ).catch(() => console.warn("포트폴리오 수정 실패"));
 
-      // 추가 이미지 업로드
       for (const img of editingPortfolio.newImages) {
         const imgFormData = new FormData();
         imgFormData.append("image", img.file);
@@ -561,103 +549,15 @@ export default function FreelancerProfileForm({
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs text-[#75786c]">
-                            시작일
-                          </Label>
-                          <div className="relative">
-                            <input
-                              type="date"
-                              value={editingPortfolio.startDate}
-                              onChange={(e) =>
-                                setEditingPortfolio((prev) =>
-                                  prev
-                                    ? { ...prev, startDate: e.target.value }
-                                    : prev,
-                                )
-                              }
-                              className="w-full h-9 px-3 pl-8 rounded-xl bg-white border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                            />
-                            <CalendarIcon />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-[#75786c]">
-                            종료일
-                          </Label>
-                          <div className="relative">
-                            <input
-                              type="date"
-                              value={editingPortfolio.endDate}
-                              onChange={(e) =>
-                                setEditingPortfolio((prev) =>
-                                  prev
-                                    ? { ...prev, endDate: e.target.value }
-                                    : prev,
-                                )
-                              }
-                              className="w-full h-9 px-3 pl-8 rounded-xl bg-white border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                            />
-                            <CalendarIcon />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-[#75786c]">
-                            클라이언트
-                          </Label>
-                          <Input
-                            value={editingPortfolio.client}
-                            onChange={(e) =>
-                              setEditingPortfolio((prev) =>
-                                prev
-                                  ? { ...prev, client: e.target.value }
-                                  : prev,
-                              )
-                            }
-                            placeholder="예: 신랑신부님"
-                            className="h-9 text-xs bg-white border-[#efeee7] focus-visible:ring-[#6C814C]"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs text-[#75786c]">업종</Label>
-                          <select
-                            value={editingPortfolio.industry}
-                            onChange={(e) =>
-                              setEditingPortfolio((prev) =>
-                                prev
-                                  ? { ...prev, industry: e.target.value }
-                                  : prev,
-                              )
-                            }
-                            className="w-full h-9 px-3 rounded-xl bg-white border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                          >
-                            <option value="">선택</option>
-                            {INDUSTRIES.map((ind) => (
-                              <option key={ind} value={ind}>
-                                {ind}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="space-y-1 col-span-2">
-                          <Label className="text-xs text-[#75786c]">
-                            목적별
-                          </Label>
-                          <Input
-                            value={editingPortfolio.purpose}
-                            onChange={(e) =>
-                              setEditingPortfolio((prev) =>
-                                prev
-                                  ? { ...prev, purpose: e.target.value }
-                                  : prev,
-                              )
-                            }
-                            placeholder="예: 웨딩"
-                            className="h-9 text-xs bg-white border-[#efeee7] focus-visible:ring-[#6C814C]"
-                          />
-                        </div>
-                      </div>
+                      <PortfolioDetailForm
+                        startDate={editingPortfolio.startDate}
+                        endDate={editingPortfolio.endDate}
+                        client={editingPortfolio.client}
+                        industry={editingPortfolio.industry}
+                        purpose={editingPortfolio.purpose}
+                        bgColor="bg-white"
+                        onChange={handleEditDetailChange}
+                      />
 
                       {/* 추가 이미지 */}
                       <div className="space-y-2">
@@ -771,80 +671,22 @@ export default function FreelancerProfileForm({
                 </div>
 
                 {expandedIndex === index && (
-                  <div className="px-4 pb-4 grid grid-cols-2 gap-3 border-t border-[#efeee7] pt-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#75786c]">시작일</Label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          value={item.startDate}
-                          onChange={(e) =>
-                            updateNewPortfolio(
-                              index,
-                              "startDate",
-                              e.target.value,
-                            )
-                          }
-                          className="w-full h-9 px-3 pl-8 rounded-xl bg-[#f5f4ec] border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                        />
-                        <CalendarIcon />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#75786c]">종료일</Label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          value={item.endDate}
-                          onChange={(e) =>
-                            updateNewPortfolio(index, "endDate", e.target.value)
-                          }
-                          className="w-full h-9 px-3 pl-8 rounded-xl bg-[#f5f4ec] border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                        />
-                        <CalendarIcon />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#75786c]">
-                        클라이언트
-                      </Label>
-                      <Input
-                        value={item.client}
-                        onChange={(e) =>
-                          updateNewPortfolio(index, "client", e.target.value)
-                        }
-                        placeholder="예: 신랑신부님"
-                        className="h-9 text-xs bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C]"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-[#75786c]">업종</Label>
-                      <select
-                        value={item.industry}
-                        onChange={(e) =>
-                          updateNewPortfolio(index, "industry", e.target.value)
-                        }
-                        className="w-full h-9 px-3 rounded-xl bg-[#f5f4ec] border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
-                      >
-                        <option value="">선택</option>
-                        {INDUSTRIES.map((ind) => (
-                          <option key={ind} value={ind}>
-                            {ind}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-1 col-span-2">
-                      <Label className="text-xs text-[#75786c]">목적별</Label>
-                      <Input
-                        value={item.purpose}
-                        onChange={(e) =>
-                          updateNewPortfolio(index, "purpose", e.target.value)
-                        }
-                        placeholder="예: 웨딩"
-                        className="h-9 text-xs bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C]"
-                      />
-                    </div>
+                  <div className="px-4 pb-4 border-t border-[#efeee7] pt-3">
+                    <PortfolioDetailForm
+                      startDate={item.startDate}
+                      endDate={item.endDate}
+                      client={item.client}
+                      industry={item.industry}
+                      purpose={item.purpose}
+                      bgColor="bg-[#f5f4ec]"
+                      onChange={(key, value) =>
+                        updateNewPortfolio(
+                          index,
+                          key as keyof NewPortfolioItem,
+                          value,
+                        )
+                      }
+                    />
                   </div>
                 )}
               </div>
