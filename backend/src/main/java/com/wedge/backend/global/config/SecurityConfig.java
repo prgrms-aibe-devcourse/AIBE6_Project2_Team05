@@ -50,6 +50,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/ws",
+                                "/ws/**",
                                 "/oauth2/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -84,6 +86,8 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/ws", config);
+        source.registerCorsConfiguration("/ws/**", config);
         return source;
     }
     @Bean
