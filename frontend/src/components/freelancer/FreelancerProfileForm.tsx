@@ -28,6 +28,15 @@ export const REGIONS = [
   "제주",
 ];
 
+export const INDUSTRIES = [
+  "헤어메이크업",
+  "스냅 사진",
+  "보컬리스트",
+  "드레스/수트",
+  "MC/사회자",
+  "하객 알바",
+];
+
 export interface ExistingPortfolio {
   id: number;
   imageUrl: string;
@@ -83,6 +92,7 @@ interface FreelancerProfileFormProps {
   existingPortfolios?: ExistingPortfolio[];
   isSubmitting: boolean;
   errorMessage: string;
+  profileId?: number;
   onSubmit: (
     values: ProfileFormValues,
     newPortfolios: NewPortfolioItem[],
@@ -113,6 +123,7 @@ export default function FreelancerProfileForm({
   existingPortfolios = [],
   isSubmitting,
   errorMessage,
+  profileId,
   onSubmit,
   onCancel,
 }: FreelancerProfileFormProps) {
@@ -242,15 +253,16 @@ export default function FreelancerProfileForm({
         formData.append("purpose", editingPortfolio.purpose);
 
       await authFetch(
-        `${API_BASE_URL}/api/freelancers/me/portfolios/${editingPortfolio.id}`,
+        `${API_BASE_URL}/api/freelancers/${profileId}/portfolios/${editingPortfolio.id}`,
         { method: "PATCH", body: formData },
       ).catch(() => console.warn("포트폴리오 수정 실패"));
 
+      // 추가 이미지 업로드
       for (const img of editingPortfolio.newImages) {
         const imgFormData = new FormData();
         imgFormData.append("image", img.file);
         await authFetch(
-          `${API_BASE_URL}/api/freelancers/me/portfolios/${editingPortfolio.id}/images`,
+          `${API_BASE_URL}/api/freelancers/${profileId}/portfolios/${editingPortfolio.id}/images`,
           { method: "POST", body: imgFormData },
         ).catch(() => console.warn("추가 이미지 업로드 실패"));
       }
@@ -609,7 +621,7 @@ export default function FreelancerProfileForm({
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-[#75786c]">업종</Label>
-                          <Input
+                          <select
                             value={editingPortfolio.industry}
                             onChange={(e) =>
                               setEditingPortfolio((prev) =>
@@ -618,9 +630,15 @@ export default function FreelancerProfileForm({
                                   : prev,
                               )
                             }
-                            placeholder="예: 일반·기타"
-                            className="h-9 text-xs bg-white border-[#efeee7] focus-visible:ring-[#6C814C]"
-                          />
+                            className="w-full h-9 px-3 rounded-xl bg-white border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
+                          >
+                            <option value="">선택</option>
+                            {INDUSTRIES.map((ind) => (
+                              <option key={ind} value={ind}>
+                                {ind}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div className="space-y-1 col-span-2">
                           <Label className="text-xs text-[#75786c]">
@@ -801,14 +819,20 @@ export default function FreelancerProfileForm({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-[#75786c]">업종</Label>
-                      <Input
+                      <select
                         value={item.industry}
                         onChange={(e) =>
                           updateNewPortfolio(index, "industry", e.target.value)
                         }
-                        placeholder="예: 일반·기타"
-                        className="h-9 text-xs bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C]"
-                      />
+                        className="w-full h-9 px-3 rounded-xl bg-[#f5f4ec] border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]"
+                      >
+                        <option value="">선택</option>
+                        {INDUSTRIES.map((ind) => (
+                          <option key={ind} value={ind}>
+                            {ind}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-1 col-span-2">
                       <Label className="text-xs text-[#75786c]">목적별</Label>

@@ -161,6 +161,7 @@ export default function FreelancerProfileEditPage() {
             existingPortfolios={existingPortfolios}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
+            profileId={Number(id)}
             onSubmit={handleSubmit}
             onCancel={() => router.push(`/profile/${id}`)}
           />

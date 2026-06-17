@@ -232,8 +232,15 @@ export default function PortfolioTab({
                             참여 기간
                           </p>
                           <p className="text-sm text-[#45483d]">
-                            {selectedPortfolio.startDate?.replace("-", "년 ")}월 - {selectedPortfolio.endDate?.replace("-", "년 ")}월
-                            {selectedPortfolio.endDate}
+                            {selectedPortfolio.startDate?.replace(
+                              /-(\d{2})-(\d{2})$/,
+                              "년 $1월 $2일",
+                            )}{" "}
+                            -{" "}
+                            {selectedPortfolio.endDate?.replace(
+                              /-(\d{2})-(\d{2})$/,
+                              "년 $1월 $2일",
+                            )}
                           </p>
                         </div>
                       )}
