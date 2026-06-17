@@ -1,10 +1,10 @@
 package com.wedge.backend.domain.freelancer.dto;
 
 import com.wedge.backend.domain.freelancer.entity.Portfolio;
+import com.wedge.backend.domain.freelancer.entity.PortfolioImage;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 public class PortfolioResponseDto {
@@ -32,7 +32,7 @@ public class PortfolioResponseDto {
         this.industry = portfolio.getIndustry();
         this.purpose = portfolio.getPurpose();
         this.images = portfolio.getImages().stream()
-                .map(img -> img.getImageUrl())
-                .collect(Collectors.toList());
+                .map(PortfolioImage::getImageUrl)
+                .toList();
     }
 }

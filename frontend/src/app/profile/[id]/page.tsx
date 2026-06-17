@@ -10,20 +10,23 @@ import ReviewTab from "@/components/profile/ReviewTab";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAccessToken } from "@/lib/auth";
+import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 
 interface FreelancerProfile {
   id: number;
   memberId: number;
+  memberName: string;
+  memberImageUrl: string;
   categoryId: number;
   categoryName: string;
   title: string;
   introduction: string;
+  keywords: string;
   region: string;
   price: number;
   careerYears: number;
@@ -61,6 +64,7 @@ export default function ProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
@@ -69,6 +73,9 @@ export default function ProfilePage({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string>("");
+
+  const isOwner = profile?.memberId === currentMemberId;
 
   const handleBookmark = async () => {
     try {
@@ -78,6 +85,30 @@ export default function ProfilePage({
     } catch (err) {
       console.error("북마크 오류:", err);
     }
+  };
+
+  const handleProfileImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await authFetch(`${API_BASE_URL}/api/v1/members/me/image`, {
+        method: "PATCH",
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileImageUrl(data.profileImageUrl);
+      }
+    } catch (err) {
+      console.error("프로필 이미지 업로드 오류:", err);
+    }
+    e.target.value = "";
   };
 
   useEffect(() => {
@@ -104,6 +135,7 @@ export default function ProfilePage({
         const reviewData = await reviewRes.json();
 
         setProfile(profileData);
+        setProfileImageUrl(profileData.memberImageUrl || "");
         setPortfolios(portfolioData);
         setReviews(reviewData);
 
@@ -124,32 +156,77 @@ export default function ProfilePage({
   if (loading) return <ProfileLoadingState />;
   if (error || !profile) return <ProfileErrorState error={error} />;
 
+  const coverImageUrl =
+    portfolios[0]?.imageUrl || "https://picsum.photos/seed/cover/1400/500";
+  const keywords =
+    profile.keywords
+      ?.split(",")
+      .map((k) => k.trim())
+      .filter(Boolean) || [];
+
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
 
       {/* Cover Image */}
       <div className="relative h-72 md:h-96 overflow-hidden">
-        <Image
-          src="https://picsum.photos/seed/cover/1400/500"
-          alt="Cover"
-          fill
-          className="object-cover"
-        />
+        <Image src={coverImageUrl} alt="Cover" fill className="object-cover" />
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
       {/* Profile Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-16 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-end gap-5 mb-6">
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg shrink-0">
-            <Image
-              src="https://picsum.photos/seed/elena/400/400"
-              alt={profile.title}
-              fill
-              className="object-cover"
-            />
+          {/* 프로필 사진 */}
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
+            <div className="w-full h-full rounded-2xl overflow-hidden border-4 border-white shadow-lg">
+              <Image
+                src={
+                  profileImageUrl || "https://picsum.photos/seed/elena/400/400"
+                }
+                alt={profile.memberName || profile.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+            {/* 본인일 때 카메라 아이콘 */}
+            {isOwner && (
+              <>
+                <button
+                  onClick={() => profileImageInputRef.current?.click()}
+                  className="absolute bottom-1 right-1 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-[#f5f4ec] transition-colors border border-[#efeee7]"
+                >
+                  <svg
+                    className="w-4 h-4 text-[#45483d]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </button>
+                <input
+                  ref={profileImageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleProfileImageChange}
+                />
+              </>
+            )}
           </div>
+
           <div className="flex-1">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -159,6 +236,9 @@ export default function ProfilePage({
                 <h1 className="font-[var(--font-display)] text-2xl sm:text-3xl font-semibold text-[#1b1c18]">
                   {profile.title}
                 </h1>
+                <p className="text-sm text-[#75786c] mt-0.5">
+                  {profile.memberName}
+                </p>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
@@ -207,6 +287,19 @@ export default function ProfilePage({
                     </span>
                   )}
                 </div>
+                {/* keywords 해시태그 */}
+                {keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {keywords.map((tag, i) => (
+                      <span
+                        key={i}
+                        className="text-xs px-2.5 py-1 bg-[#f5f4ec] text-[#4f6231] rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -231,7 +324,7 @@ export default function ProfilePage({
                     />
                   </svg>
                 </button>
-                {currentMemberId === profile.memberId && (
+                {isOwner && (
                   <Link
                     href={`/freelancer/profile/edit/${id}`}
                     className={cn(
