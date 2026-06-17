@@ -84,6 +84,7 @@ interface EditingPortfolio {
   client: string;
   industry: string;
   purpose: string;
+  existingImages: string[]; // ← 추가
   newImages: { file: File; preview: string }[];
 }
 
@@ -192,6 +193,7 @@ export default function FreelancerProfileForm({
       client: item.client || "",
       industry: item.industry || "",
       purpose: item.purpose || "",
+      existingImages: item.images || [], // ← 추가
       newImages: [],
     });
   };
@@ -573,29 +575,44 @@ export default function FreelancerProfileForm({
                             + 이미지 추가
                           </button>
                         </div>
-                        {editingPortfolio.newImages.length > 0 && (
-                          <div className="flex gap-2 flex-wrap">
-                            {editingPortfolio.newImages.map((img, i) => (
-                              <div
-                                key={i}
-                                className="relative w-16 h-16 rounded-lg overflow-hidden"
+                        <div className="flex gap-2 flex-wrap">
+                          {/* 기존 이미지 */}
+                          {editingPortfolio.existingImages.map((imgUrl, i) => (
+                            <div
+                              key={`existing-${i}`}
+                              className="relative w-16 h-16 rounded-lg overflow-hidden"
+                            >
+                              <img
+                                src={imgUrl}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
+                                기존
+                              </span>
+                            </div>
+                          ))}
+                          {/* 새로 추가한 이미지 */}
+                          {editingPortfolio.newImages.map((img, i) => (
+                            <div
+                              key={`new-${i}`}
+                              className="relative w-16 h-16 rounded-lg overflow-hidden"
+                            >
+                              <img
+                                src={img.preview}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleEditImageRemove(i)}
+                                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px]"
                               >
-                                <img
-                                  src={img.preview}
-                                  alt=""
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditImageRemove(i)}
-                                  className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center text-[10px]"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="flex justify-end gap-2 pt-1">

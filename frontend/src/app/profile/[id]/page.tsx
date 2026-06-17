@@ -273,6 +273,7 @@ export default function ProfilePage({
               portfolios={portfolios}
               isLoggedIn={isLoggedIn}
               profileId={id}
+              introduction={profile.introduction}
             />
           </TabsContent>
 

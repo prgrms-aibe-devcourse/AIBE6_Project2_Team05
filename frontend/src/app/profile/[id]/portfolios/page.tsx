@@ -1,9 +1,12 @@
 "use client";
 
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+import { getAccessToken } from "@/lib/auth";
+import { authFetch } from "@/lib/authFetch";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 
 interface Portfolio {
   id: number;
@@ -19,21 +22,15 @@ interface Portfolio {
   images?: string[];
 }
 
-interface PortfolioTabProps {
-  portfolios: Portfolio[];
-  isLoggedIn: boolean;
-  profileId: string;
-  introduction?: string;
-}
-
-export default function PortfolioTab({
-  portfolios,
-  isLoggedIn,
-  profileId,
-  introduction,
-}: PortfolioTabProps) {
-  const router = useRouter();
+export default function PortfoliosPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const selectedPortfolio =
     selectedIndex !== null ? portfolios[selectedIndex] : null;
@@ -44,97 +41,104 @@ export default function PortfolioTab({
     return { plain, tags };
   };
 
-  // 미리보기: 3개만 표시
-  const previewPortfolios = portfolios.slice(0, 3);
-
-  if (portfolios.length === 0) {
-    return (
-      <div className="text-center py-16 text-[#75786c]">
-        <p>등록된 포트폴리오가 없습니다.</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const token = getAccessToken();
+    const fetcher = token ? authFetch : fetch;
+    fetcher(`/api/freelancers/${id}/portfolios`)
+      .then((res) => res.json())
+      .then((data) => setPortfolios(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [id]);
 
   return (
-    <div>
-      {/* 포트폴리오 헤더 */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-[#1b1c18] text-base">
-          포트폴리오 ({portfolios.length})
-        </h2>
-        <Link
-          href={`/profile/${profileId}/portfolios`}
-          className="text-sm text-[#6C814C] hover:underline font-medium"
-        >
-          전체보기
-        </Link>
-      </div>
+    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
+      <Navbar />
 
-      {/* 포트폴리오 그리드 (3개) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        {previewPortfolios.map((portfolio, index) => {
-          const { plain, tags } = parseHashtags(portfolio.description || "");
-          return (
-            <div
-              key={portfolio.id}
-              className="group cursor-pointer"
-              onClick={() => setSelectedIndex(index)}
-            >
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
-                <Image
-                  src={portfolio.imageUrl}
-                  alt={plain || "포트폴리오"}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    자세히 보기
-                  </span>
-                </div>
-              </div>
-              {plain && (
-                <p className="text-sm font-medium text-[#1b1c18] truncate">
-                  {plain}
-                </p>
-              )}
-              {tags.length > 0 && (
-                <p className="text-xs text-[#75786c] truncate mt-0.5">
-                  {tags.join(" ")}
-                </p>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {!isLoggedIn && portfolios.length === 3 && (
-        <div className="text-center py-8">
-          <p className="text-sm text-[#75786c] mb-3">
-            로그인하면 모든 포트폴리오를 볼 수 있어요
-          </p>
-          <button
-            onClick={() => router.push(`/login?redirect=/profile/${profileId}`)}
-            className="bg-[#4f6231] text-white px-6 py-2.5 rounded-xl text-sm hover:bg-[#677b47] transition-colors"
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        {/* 헤더 */}
+        <div className="flex items-center gap-3 mb-8">
+          <Link
+            href={`/profile/${id}`}
+            className="text-sm text-[#75786c] hover:text-[#1b1c18] flex items-center gap-1"
           >
-            로그인하고 더보기
-          </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            프로필로 돌아가기
+          </Link>
         </div>
-      )}
 
-      {/* 서비스 설명 */}
-      {introduction && (
-        <div className="mt-8 border-t border-[#efeee7] pt-8">
-          <h2 className="font-semibold text-[#1b1c18] text-base mb-4">
-            서비스 설명
-          </h2>
-          <div className="bg-white rounded-2xl border border-[#efeee7] p-6">
-            <p className="text-sm text-[#45483d] leading-relaxed whitespace-pre-wrap">
-              {introduction}
-            </p>
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="font-semibold text-[#1b1c18] text-xl">
+            포트폴리오 {!loading && `(${portfolios.length})`}
+          </h1>
         </div>
-      )}
+
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[...Array(6)].map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[4/3] rounded-xl bg-[#efeee7] animate-pulse"
+              />
+            ))}
+          </div>
+        ) : portfolios.length === 0 ? (
+          <div className="text-center py-16 text-[#75786c]">
+            <p>등록된 포트폴리오가 없습니다.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {portfolios.map((portfolio, index) => {
+              const { plain, tags } = parseHashtags(
+                portfolio.description || "",
+              );
+              return (
+                <div
+                  key={portfolio.id}
+                  className="group cursor-pointer"
+                  onClick={() => setSelectedIndex(index)}
+                >
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                    <Image
+                      src={portfolio.imageUrl}
+                      alt={plain || "포트폴리오"}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        자세히 보기
+                      </span>
+                    </div>
+                  </div>
+                  {plain && (
+                    <p className="text-sm font-medium text-[#1b1c18] truncate">
+                      {plain}
+                    </p>
+                  )}
+                  {tags.length > 0 && (
+                    <p className="text-xs text-[#75786c] truncate mt-0.5">
+                      {tags.join(" ")}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* 팝업 */}
       {selectedPortfolio && selectedIndex !== null && (
@@ -152,7 +156,7 @@ export default function PortfolioTab({
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#efeee7] sticky top-0 bg-white z-10">
                 <button
                   onClick={() => setSelectedIndex(null)}
-                  className="text-[#75786c] hover:text-[#1b1c18] transition-colors"
+                  className="text-[#75786c] hover:text-[#1b1c18]"
                 >
                   <svg
                     className="w-5 h-5"
@@ -360,6 +364,8 @@ export default function PortfolioTab({
           </div>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }
