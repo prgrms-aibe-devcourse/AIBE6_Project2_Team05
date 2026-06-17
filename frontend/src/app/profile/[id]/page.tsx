@@ -46,7 +46,7 @@ interface Portfolio {
   client?: string;
   industry?: string;
   purpose?: string;
-  images?: string[];
+  images?: { id: number; imageUrl: string }[];
 }
 
 interface Review {

@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
+interface ImageDto {
+  id: number;
+  imageUrl: string;
+}
+
 interface Portfolio {
   id: number;
   freelancerProfileId: number;
@@ -16,7 +21,7 @@ interface Portfolio {
   client?: string;
   industry?: string;
   purpose?: string;
-  images?: string[];
+  images?: ImageDto[];
 }
 
 interface PortfolioTabProps {
@@ -78,7 +83,6 @@ export default function PortfolioTab({
 
       {/* 포트폴리오 가로 슬라이드 */}
       <div className="relative">
-        {/* 왼쪽 버튼 */}
         {portfolios.length > 3 && (
           <button
             onClick={scrollLeft}
@@ -100,10 +104,9 @@ export default function PortfolioTab({
           </button>
         )}
 
-        {/* 슬라이드 컨테이너 */}
         <div
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+          className="flex gap-3 overflow-x-auto scroll-smooth pb-2"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {portfolios.map((portfolio, index) => {
@@ -111,8 +114,8 @@ export default function PortfolioTab({
             return (
               <div
                 key={portfolio.id}
-                className="group cursor-pointer shrink-0 w-[calc(33.333%-8px)]"
-                style={{ minWidth: "280px" }}
+                className="group cursor-pointer shrink-0"
+                style={{ minWidth: "280px", width: "calc(33.333% - 8px)" }}
                 onClick={() => setSelectedIndex(index)}
               >
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
@@ -143,7 +146,6 @@ export default function PortfolioTab({
           })}
         </div>
 
-        {/* 오른쪽 버튼 */}
         {portfolios.length > 3 && (
           <button
             onClick={scrollRight}
@@ -404,11 +406,11 @@ export default function PortfolioTab({
               />
               {selectedPortfolio.images &&
                 selectedPortfolio.images.length > 0 &&
-                selectedPortfolio.images.map((imgUrl, i) => (
+                selectedPortfolio.images.map((img, i) => (
                   <div key={i}>
-                    <div className="h-6 bg-[#ffffff]" />
+                    <div className="h-6 bg-white" />
                     <img
-                      src={imgUrl}
+                      src={img.imageUrl}
                       alt={`포트폴리오 이미지 ${i + 1}`}
                       className="w-full h-auto block"
                     />

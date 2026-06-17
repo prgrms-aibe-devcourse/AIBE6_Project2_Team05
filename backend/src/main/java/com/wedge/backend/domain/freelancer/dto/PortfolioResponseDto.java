@@ -18,7 +18,18 @@ public class PortfolioResponseDto {
     private String client;
     private String industry;
     private String purpose;
-    private List<String> images;
+    private List<ImageDto> images;
+
+    @Getter
+    public static class ImageDto {
+        private Long id;
+        private String imageUrl;
+
+        public ImageDto(PortfolioImage image) {
+            this.id = image.getId();
+            this.imageUrl = image.getImageUrl();
+        }
+    }
 
     public PortfolioResponseDto(Portfolio portfolio) {
         this.id = portfolio.getId();
@@ -32,7 +43,7 @@ public class PortfolioResponseDto {
         this.industry = portfolio.getIndustry();
         this.purpose = portfolio.getPurpose();
         this.images = portfolio.getImages().stream()
-                .map(PortfolioImage::getImageUrl)
+                .map(ImageDto::new)
                 .toList();
     }
 }
