@@ -253,7 +253,7 @@ export default function ProfilePage({
         {/* Tabs */}
         <Tabs defaultValue="portfolio" className="w-full">
           <TabsList className="bg-transparent border-b border-[#efeee7] rounded-none p-0 h-auto gap-0 mb-8 w-full justify-start">
-            {["portfolio", "reviews", "about"].map((tab) => (
+            {["portfolio", "about", "reviews"].map((tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab}
@@ -261,9 +261,9 @@ export default function ProfilePage({
               >
                 {tab === "portfolio"
                   ? "포트폴리오"
-                  : tab === "reviews"
-                    ? "리뷰"
-                    : "소개"}
+                  : tab === "about"
+                    ? "전문가 정보"
+                    : "리뷰"}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -276,12 +276,12 @@ export default function ProfilePage({
             />
           </TabsContent>
 
-          <TabsContent value="reviews" className="mt-0">
-            <ReviewTab reviews={reviews} />
-          </TabsContent>
-
           <TabsContent value="about" className="mt-0">
             <AboutTab profile={profile} reviewCount={profile.reviewCount} />
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-0">
+            <ReviewTab reviews={reviews} />
           </TabsContent>
         </Tabs>
       </div>

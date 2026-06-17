@@ -11,7 +11,7 @@ const sidebarMenu = [
   { icon: "📝", label: "내 게시물", href: "/mypage/posts", active: false },
   {
     icon: "🎨",
-    label: "프로필 관리",
+    label: "포트폴리오 관리",
     href: "/freelancer/profile/manage",
     active: false,
   },
@@ -75,7 +75,7 @@ export default function MySidebar({
             .filter(
               (item) =>
                 (item.href !== "/mypage/reviews" &&
-                  item.href !== "/freelancer/profile/manage") ||
+                  item.href !== "/mypage/portfolio") ||
                 role === "FREELANCER",
             )
             .map((item) => (

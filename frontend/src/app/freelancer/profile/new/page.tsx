@@ -70,6 +70,11 @@ export default function FreelancerProfileNewPage() {
         formData.append("image", item.file);
         if (item.description) formData.append("description", item.description);
         formData.append("sortOrder", String(i));
+        if (item.startDate) formData.append("startDate", item.startDate);
+        if (item.endDate) formData.append("endDate", item.endDate);
+        if (item.client) formData.append("client", item.client);
+        if (item.industry) formData.append("industry", item.industry);
+        if (item.purpose) formData.append("purpose", item.purpose);
 
         await authFetch(
           `${API_BASE_URL}/api/freelancers/${profileId}/portfolios`,
