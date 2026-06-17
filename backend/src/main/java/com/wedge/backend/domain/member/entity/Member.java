@@ -41,6 +41,9 @@ public class Member extends BaseTimeEntity {
     @Column(length = 255)
     private String providerId;
 
+    @Column(name = "profile_image_url", length = 1000)
+    private String profileImageUrl;
+
     @Builder
     public Member(String email, String password, String name, String phone,
                   Role role, Provider provider, String providerId) {
@@ -57,6 +60,10 @@ public class Member extends BaseTimeEntity {
     public void updateProfile(String name, String phone) {
         this.name = name;
         this.phone = phone;
+    }
+
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public void updatePassword(String encodedPassword) {

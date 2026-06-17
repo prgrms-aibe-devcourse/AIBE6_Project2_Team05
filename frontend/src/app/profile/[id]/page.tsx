@@ -57,6 +57,7 @@ export default function ProfilePage({
   const { id } = use(params);
   const [bookmarked, setBookmarked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
   const [profile, setProfile] = useState<FreelancerProfile | null>(null);
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -81,10 +82,13 @@ export default function ProfilePage({
         setLoading(true);
         setError(null);
 
-        const [profileRes, portfolioRes, reviewRes] = await Promise.all([
+        const token = getAccessToken();
+
+        const [profileRes, portfolioRes, reviewRes, meRes] = await Promise.all([
           fetch(`/api/freelancers/${id}`),
-          fetch(`/api/freelancers/${id}/portfolios`),
+          authFetch(`/api/freelancers/${id}/portfolios`),
           fetch(`/api/freelancers/${id}/reviews`),
+          token ? authFetch(`/api/v1/members/me`) : Promise.resolve(null),
         ]);
 
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
@@ -96,6 +100,11 @@ export default function ProfilePage({
         setProfile(profileData);
         setPortfolios(portfolioData);
         setReviews(reviewData);
+
+        if (meRes?.ok) {
+          const meData = await meRes.json();
+          setCurrentMemberId(meData.id);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
       } finally {
@@ -216,6 +225,17 @@ export default function ProfilePage({
                     />
                   </svg>
                 </button>
+                {currentMemberId === profile.memberId && (
+                  <Link
+                    href={`/freelancer/profile/edit/${id}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "border-[#6C814C] text-[#6C814C] hover:bg-[#f5f4ec] rounded-xl px-6",
+                    )}
+                  >
+                    프로필 수정
+                  </Link>
+                )}
                 <Link
                   href={`/reserve/${id}`}
                   className={cn(

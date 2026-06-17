@@ -1,7 +1,7 @@
 package com.wedge.backend.domain.freelancer.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.wedge.backend.domain.freelancer.dto.AiRecommendationResponse;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
@@ -26,7 +26,7 @@ public class AiRecommendationService {
 
     private final FreelancerProfileRepository freelancerProfileRepository;
     private final ObjectMapper objectMapper;
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient;
 
     @Value("${gemini.api-key}")
     private String apiKey;

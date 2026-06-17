@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class PortfolioRequestDto {
     private String description;
     private int sortOrder;
+
 }

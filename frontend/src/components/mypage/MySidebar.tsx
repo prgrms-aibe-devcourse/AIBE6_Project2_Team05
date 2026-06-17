@@ -9,13 +9,26 @@ const sidebarMenu = [
   { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks", active: false },
   { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews", active: false },
   { icon: "📝", label: "내 게시물", href: "/mypage/posts", active: false },
+  {
+    icon: "🎨",
+    label: "프로필 관리",
+    href: "/freelancer/profile/manage",
+    active: false,
+  },
 ];
+
+type MemberRole = "CLIENT" | "FREELANCER";
+
+const ROLE_LABEL: Record<MemberRole, string> = {
+  CLIENT: "예비부부",
+  FREELANCER: "프리랜서",
+};
 
 interface MySidebarProps {
   name: string;
   email: string;
   profileImg: string | null;
-  role: "CLIENT" | "FREELANCER" | null;
+  role: MemberRole | null;
   onLogout: () => void;
 }
 
@@ -49,6 +62,11 @@ export default function MySidebar({
             <div>
               <p className="font-semibold text-[#1b1c18] text-sm">{name}</p>
               <p className="text-xs text-[#75786c]">{email}</p>
+              {role && (
+                <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#e8f5d0] text-[#4f6231]">
+                  {ROLE_LABEL[role]}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -56,7 +74,9 @@ export default function MySidebar({
           {sidebarMenu
             .filter(
               (item) =>
-                item.href !== "/mypage/reviews" || role === "FREELANCER",
+                (item.href !== "/mypage/reviews" &&
+                  item.href !== "/freelancer/profile/manage") ||
+                role === "FREELANCER",
             )
             .map((item) => (
               <Link
