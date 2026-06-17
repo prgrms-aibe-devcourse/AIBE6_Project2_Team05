@@ -27,6 +27,21 @@ export default function FreelancerProfileEditPage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    if (isLoading) return;
+    if (
+      typeof window !== "undefined" &&
+      window.location.hash === "#portfolio"
+    ) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("portfolio");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+        history.replaceState(null, "", window.location.pathname);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
     if (!getAccessToken()) {
       router.push(`/login?redirect=/freelancer/profile/edit/${id}`);
       return;

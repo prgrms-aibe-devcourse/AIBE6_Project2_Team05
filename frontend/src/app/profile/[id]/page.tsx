@@ -38,6 +38,12 @@ interface Portfolio {
   imageUrl: string;
   description: string;
   sortOrder: number;
+  startDate?: string;
+  endDate?: string;
+  client?: string;
+  industry?: string;
+  purpose?: string;
+  images?: string[];
 }
 
 interface Review {

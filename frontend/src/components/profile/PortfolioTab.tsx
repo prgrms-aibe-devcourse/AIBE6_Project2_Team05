@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface Portfolio {
   id: number;
@@ -33,6 +33,7 @@ export default function PortfolioTab({
   introduction,
 }: PortfolioTabProps) {
   const router = useRouter();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const selectedPortfolio =
@@ -44,8 +45,13 @@ export default function PortfolioTab({
     return { plain, tags };
   };
 
-  // 미리보기: 3개만 표시
-  const previewPortfolios = portfolios.slice(0, 3);
+  const scrollLeft = () => {
+    scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" });
+  };
+
+  const scrollRight = () => {
+    scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" });
+  };
 
   if (portfolios.length === 0) {
     return (
@@ -70,45 +76,97 @@ export default function PortfolioTab({
         </Link>
       </div>
 
-      {/* 포트폴리오 그리드 (3개) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        {previewPortfolios.map((portfolio, index) => {
-          const { plain, tags } = parseHashtags(portfolio.description || "");
-          return (
-            <div
-              key={portfolio.id}
-              className="group cursor-pointer"
-              onClick={() => setSelectedIndex(index)}
+      {/* 포트폴리오 가로 슬라이드 */}
+      <div className="relative">
+        {/* 왼쪽 버튼 */}
+        {portfolios.length > 3 && (
+          <button
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-8 h-8 bg-white border border-[#efeee7] rounded-full shadow flex items-center justify-center hover:bg-[#f5f4ec] transition-colors"
+          >
+            <svg
+              className="w-4 h-4 text-[#45483d]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
-                <Image
-                  src={portfolio.imageUrl}
-                  alt={plain || "포트폴리오"}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                    자세히 보기
-                  </span>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* 슬라이드 컨테이너 */}
+        <div
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {portfolios.map((portfolio, index) => {
+            const { plain, tags } = parseHashtags(portfolio.description || "");
+            return (
+              <div
+                key={portfolio.id}
+                className="group cursor-pointer shrink-0 w-[calc(33.333%-8px)]"
+                style={{ minWidth: "280px" }}
+                onClick={() => setSelectedIndex(index)}
+              >
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                  <Image
+                    src={portfolio.imageUrl}
+                    alt={plain || "포트폴리오"}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                    <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                      자세히 보기
+                    </span>
+                  </div>
                 </div>
+                {plain && (
+                  <p className="text-sm font-medium text-[#1b1c18] truncate">
+                    {plain}
+                  </p>
+                )}
+                {tags.length > 0 && (
+                  <p className="text-xs text-[#75786c] truncate mt-0.5">
+                    {tags.join(" ")}
+                  </p>
+                )}
               </div>
-              {plain && (
-                <p className="text-sm font-medium text-[#1b1c18] truncate">
-                  {plain}
-                </p>
-              )}
-              {tags.length > 0 && (
-                <p className="text-xs text-[#75786c] truncate mt-0.5">
-                  {tags.join(" ")}
-                </p>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* 오른쪽 버튼 */}
+        {portfolios.length > 3 && (
+          <button
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-8 h-8 bg-white border border-[#efeee7] rounded-full shadow flex items-center justify-center hover:bg-[#f5f4ec] transition-colors"
+          >
+            <svg
+              className="w-4 h-4 text-[#45483d]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {!isLoggedIn && portfolios.length === 3 && (
+      {!isLoggedIn && portfolios.length >= 3 && (
         <div className="text-center py-8">
           <p className="text-sm text-[#75786c] mb-3">
             로그인하면 모든 포트폴리오를 볼 수 있어요

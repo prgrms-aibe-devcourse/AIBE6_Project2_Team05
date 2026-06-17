@@ -1,5 +1,4 @@
 interface FreelancerProfile {
-  introduction: string;
   careerYears: number;
   region: string;
   price: number;
@@ -43,14 +42,6 @@ export default function AboutTab({ profile, reviewCount }: AboutTabProps) {
             <p className="text-xs text-[#75786c] mt-0.5">찜</p>
           </div>
         </div>
-      </div>
-
-      {/* 소개 */}
-      <div className="mb-6">
-        <h2 className="font-semibold text-[#1b1c18] text-base mb-2">소개</h2>
-        <p className="text-sm text-[#45483d] leading-relaxed">
-          {profile.introduction || "소개글이 없습니다."}
-        </p>
       </div>
 
       {/* 기본 정보 */}

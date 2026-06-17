@@ -22,6 +22,15 @@ interface Portfolio {
   images?: string[];
 }
 
+interface FreelancerInfo {
+  title: string;
+  memberId: number;
+  averageRating: number;
+  reviewCount: number;
+  categoryName: string;
+  region: string;
+}
+
 export default function PortfoliosPage({
   params,
 }: {
@@ -31,9 +40,13 @@ export default function PortfoliosPage({
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [freelancer, setFreelancer] = useState<FreelancerInfo | null>(null);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
 
   const selectedPortfolio =
     selectedIndex !== null ? portfolios[selectedIndex] : null;
+
+  const isOwner = freelancer?.memberId === currentMemberId;
 
   const parseHashtags = (text: string) => {
     const tags = text.match(/#[\w가-힣]+/g) || [];
@@ -44,9 +57,31 @@ export default function PortfoliosPage({
   useEffect(() => {
     const token = getAccessToken();
     const fetcher = token ? authFetch : fetch;
-    fetcher(`/api/freelancers/${id}/portfolios`)
-      .then((res) => res.json())
-      .then((data) => setPortfolios(data))
+
+    Promise.all([
+      fetch(`/api/freelancers/${id}`),
+      fetcher(`/api/freelancers/${id}/portfolios`),
+      token ? authFetch(`/api/v1/members/me`) : Promise.resolve(null),
+    ])
+      .then(([profileRes, portfolioRes, meRes]) =>
+        Promise.all([
+          profileRes.json(),
+          portfolioRes.json(),
+          meRes ? meRes.json() : Promise.resolve(null),
+        ]),
+      )
+      .then(([profileData, portfolioData, meData]) => {
+        setFreelancer({
+          title: profileData.title,
+          memberId: profileData.memberId,
+          averageRating: profileData.averageRating,
+          reviewCount: profileData.reviewCount,
+          categoryName: profileData.categoryName,
+          region: profileData.region,
+        });
+        setPortfolios(portfolioData);
+        if (meData) setCurrentMemberId(meData.id);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [id]);
@@ -55,12 +90,12 @@ export default function PortfoliosPage({
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        {/* 헤더 */}
-        <div className="flex items-center gap-3 mb-8">
+      {/* 프리랜서 배너 */}
+      <div className="bg-white border-b border-[#efeee7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <Link
             href={`/profile/${id}`}
-            className="text-sm text-[#75786c] hover:text-[#1b1c18] flex items-center gap-1"
+            className="text-sm text-[#75786c] hover:text-[#1b1c18] flex items-center gap-1 mb-4"
           >
             <svg
               className="w-4 h-4"
@@ -77,12 +112,79 @@ export default function PortfoliosPage({
             </svg>
             프로필로 돌아가기
           </Link>
-        </div>
 
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-semibold text-[#1b1c18] text-xl">
+          <div className="flex items-center gap-4">
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#efeee7] shrink-0">
+              <Image
+                src="https://picsum.photos/seed/elena/400/400"
+                alt={freelancer?.title || "프리랜서"}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div>
+              {freelancer?.categoryName && (
+                <span className="text-xs px-2 py-0.5 bg-[#f5f4ec] text-[#45483d] rounded-full mb-1 inline-block">
+                  {freelancer.categoryName}
+                </span>
+              )}
+              <h1 className="font-semibold text-[#1b1c18] text-lg">
+                {freelancer?.title || ""}
+              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`w-3.5 h-3.5 fill-current ${
+                        i < Math.round(freelancer?.averageRating ?? 0)
+                          ? "text-[#f59e0b]"
+                          : "text-[#d1d5db]"
+                      }`}
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                  <span className="text-xs text-[#45483d] ml-1">
+                    {freelancer?.averageRating.toFixed(1)} (
+                    {freelancer?.reviewCount} 리뷰)
+                  </span>
+                </div>
+                {freelancer?.region && (
+                  <span className="text-xs text-[#75786c]">
+                    · {freelancer.region}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 본인일 때만 수정 버튼 노출 */}
+            {isOwner && (
+              <div className="ml-auto flex gap-2">
+                <Link
+                  href={`/freelancer/profile/edit/${id}`}
+                  className="text-sm px-4 py-2 border border-[#c5c8ba] text-[#45483d] rounded-xl hover:bg-[#f5f4ec] transition-colors"
+                >
+                  프로필 수정
+                </Link>
+                <Link
+                  href={`/freelancer/profile/edit/${id}#portfolio`}
+                  className="text-sm px-4 py-2 border border-[#6C814C] text-[#6C814C] rounded-xl hover:bg-[#f5f4ec] transition-colors"
+                >
+                  포트폴리오 수정
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="mb-6">
+          <h2 className="font-semibold text-[#1b1c18] text-base">
             포트폴리오 {!loading && `(${portfolios.length})`}
-          </h1>
+          </h2>
         </div>
 
         {loading ? (
@@ -151,7 +253,6 @@ export default function PortfoliosPage({
             style={{ maxWidth: "960px", height: "90vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 좌측: 정보 패널 */}
             <div className="w-80 shrink-0 flex flex-col border-r border-[#efeee7] h-full overflow-y-auto">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#efeee7] sticky top-0 bg-white z-10">
                 <button
@@ -341,7 +442,6 @@ export default function PortfoliosPage({
               </div>
             </div>
 
-            {/* 우측: 이미지 세로 스크롤 */}
             <div className="flex-1 overflow-y-auto bg-[#1b1c18]">
               <img
                 src={selectedPortfolio.imageUrl}

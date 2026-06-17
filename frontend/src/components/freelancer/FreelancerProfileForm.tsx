@@ -319,7 +319,7 @@ export default function FreelancerProfileForm({
       )}
 
       {/* 기본 정보 */}
-      <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-4">
         <h2 className="font-semibold text-[#1b1c18] text-sm">기본 정보</h2>
 
         <div className="space-y-2">
@@ -427,7 +427,10 @@ export default function FreelancerProfileForm({
       </div>
 
       {/* 포트폴리오 */}
-      <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-4">
+      <div
+        id="portfolio"
+        className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-4"
+      >
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[#1b1c18] text-sm">포트폴리오</h2>
           <Button
