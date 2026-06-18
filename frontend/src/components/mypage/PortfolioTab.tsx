@@ -76,7 +76,6 @@ export default function PortfolioTab({
     e.target.value = "";
   };
 
-  // 드래그앤드롭
   const addFiles = (files: File[]) => {
     const imageFiles = files.filter((f) => f.type.startsWith("image/"));
     const newItems: NewPortfolioItem[] = imageFiles.map((file) => ({
@@ -123,7 +122,6 @@ export default function PortfolioTab({
     });
   };
 
-  // 삭제 confirm 추가
   const handleExistingPortfolioDelete = (portfolioId: number) => {
     if (
       !window.confirm(
@@ -434,7 +432,7 @@ export default function PortfolioTab({
         </p>
 
         {!hasPortfolios ? (
-          // 드래그앤드롭 영역
+          // 포트폴리오 없을 때: 드래그앤드롭 큰 영역
           <button
             type="button"
             onClick={() => portfolioInputRef.current?.click()}
@@ -468,39 +466,8 @@ export default function PortfolioTab({
             </span>
           </button>
         ) : (
+          // 포트폴리오 있을 때: 버튼으로만 추가
           <div className="flex flex-col gap-3">
-            {/* 드래그앤드롭 영역 (포트폴리오 있을 때도 표시) */}
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`w-full h-16 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm
-                ${
-                  isDragging
-                    ? "border-[#6C814C] bg-[#f0f4eb] text-[#6C814C]"
-                    : "border-[#efeee7] text-[#75786c] hover:border-[#6C814C]"
-                }`}
-              onClick={() => portfolioInputRef.current?.click()}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              {isDragging
-                ? "여기에 놓으세요"
-                : "이미지를 드래그하거나 클릭해서 추가"}
-            </div>
-
-            {/* 기존 포트폴리오 카드 - 썸네일 확대 + hover 효과 */}
             {currentExisting.map((item) => (
               <div
                 key={`existing-${item.id}`}
@@ -549,7 +516,6 @@ export default function PortfolioTab({
               </div>
             ))}
 
-            {/* 새 포트폴리오 카드 */}
             {newPortfolios.map((item, index) => (
               <div
                 key={`new-${index}`}
@@ -618,27 +584,6 @@ export default function PortfolioTab({
             ))}
           </div>
         )}
-      </div>
-
-      {/* 하단 저장/취소 버튼 */}
-      <div className="flex justify-end gap-3 mt-5">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="border-[#c5c8ba] text-[#45483d] rounded-xl"
-        >
-          취소
-        </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          style={{ backgroundColor: "#6C814C", color: "#ffffff" }}
-          className="rounded-xl px-8 hover:opacity-90"
-        >
-          {isSubmitting ? "저장 중..." : "저장하기"}
-        </Button>
       </div>
 
       {/* 포트폴리오 수정 모달 */}
