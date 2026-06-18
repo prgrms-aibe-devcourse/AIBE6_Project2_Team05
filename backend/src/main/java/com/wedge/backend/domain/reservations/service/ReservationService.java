@@ -1,6 +1,7 @@
 // 예약 생성, 목록 조회 및 상태 변경 비즈니스 로직
 package com.wedge.backend.domain.reservations.service;
 
+import com.wedge.backend.domain.chat.service.ChatService;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import com.wedge.backend.domain.member.entity.Member;
@@ -24,6 +25,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final FreelancerProfileRepository freelancerProfileRepository;
     private final ReviewRepository reviewRepository;
+    private final ChatService chatService;
 
     // 회원 권한 검증 후 프리랜서 예약을 생성하고 저장
     @Transactional
@@ -77,6 +79,7 @@ public class ReservationService {
         validateClientOwner(reservation, member);
         validateStatus(reservation, ReservationStatus.REQUESTED, ReservationStatus.ACCEPTED);
         reservation.cancel(cancelReason);
+        chatService.deactivateRoomByReservationId(reservation.getId());
         return toReservationResponse(reservation);
     }
 
