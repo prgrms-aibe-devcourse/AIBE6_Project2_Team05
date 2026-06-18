@@ -34,7 +34,7 @@ export default function MySidebar({
     { icon: "📅", label: "예약 내역", href: "/reservations" },
     { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
     { icon: "⭐", label: "리뷰 내역", href: "/mypage?tab=reviews" },
-    { icon: "📝", label: "내 게시물", href: "/mypage/posts" },
+    { icon: "📝", label: "내 구인글", href: "/mypage/posts" },
     { icon: "📩", label: "내 제안서", href: "/mypage/proposals" },
     ...(role === "FREELANCER" && freelancerProfileId
       ? [

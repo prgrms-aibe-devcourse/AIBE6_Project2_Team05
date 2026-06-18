@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MySidebar from "@/components/mypage/MySidebar";
+import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -15,6 +12,9 @@ import {
   getAccessToken,
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type ProposalStatus = "SUBMITTED" | "ACCEPTED" | "REJECTED";
 
@@ -36,6 +36,12 @@ const STATUS_STYLE: Record<
   SUBMITTED: { label: "검토 중", className: "bg-[#fff4cc] text-[#8a6d00]" },
   ACCEPTED: { label: "수락됨", className: "bg-[#d3ebac] text-[#4f6231]" },
   REJECTED: { label: "거절됨", className: "bg-[#f6d9d3] text-[#6f5a55]" },
+};
+
+const STATUS_DESC: Record<ProposalStatus, string> = {
+  SUBMITTED: "구인글 작성자가 검토 중입니다.",
+  ACCEPTED: "제안이 수락되어 예약이 연결되었습니다.",
+  REJECTED: "아쉽게도 이번 제안은 수락되지 않았습니다.",
 };
 
 type MemberRole = "CLIENT" | "FREELANCER";
@@ -124,9 +130,14 @@ export default function MyProposalsPage() {
           />
 
           <main className="flex-1 space-y-6">
-            <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
-              내 제안서
-            </h1>
+            <div className="flex items-center justify-between">
+              <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
+                내 제안서
+              </h1>
+              <span className="text-xs text-[#75786c]">
+                총 {proposals.length}건
+              </span>
+            </div>
 
             {loading ? (
               <div className="space-y-4">
@@ -155,37 +166,66 @@ export default function MyProposalsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {proposals.map((proposal) => (
-                  <div
-                    key={proposal.id}
-                    className="bg-white rounded-2xl border border-[#efeee7] p-6"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <Badge
-                        className={`border-0 text-xs ${STATUS_STYLE[proposal.status].className}`}
-                      >
-                        {STATUS_STYLE[proposal.status].label}
-                      </Badge>
-                      <span className="text-xs text-[#75786c]">
-                        {new Date(proposal.createdAt).toLocaleDateString(
-                          "ko-KR",
+                {proposals.map((proposal) => {
+                  const style = STATUS_STYLE[proposal.status];
+                  return (
+                    <div
+                      key={proposal.id}
+                      className="bg-white rounded-2xl border border-[#efeee7] p-5 hover:shadow-md hover:border-[#c5c8ba] transition-all"
+                    >
+                      {/* 상단: 상태 + 날짜 */}
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge
+                          className={`border-0 text-xs ${style.className}`}
+                        >
+                          {style.label}
+                        </Badge>
+                        <span className="text-xs text-[#75786c]">
+                          {new Date(proposal.createdAt).toLocaleDateString(
+                            "ko-KR",
+                          )}
+                        </span>
+                      </div>
+
+                      {/* 상태 설명 */}
+                      <p className="text-xs text-[#75786c] mb-3">
+                        {STATUS_DESC[proposal.status]}
+                      </p>
+
+                      {/* 제안 내용 */}
+                      <p className="text-sm text-[#45483d] whitespace-pre-wrap mb-4 line-clamp-3 leading-relaxed">
+                        {proposal.content}
+                      </p>
+
+                      {/* 하단: 가격 + 지역 */}
+                      <div className="flex items-center gap-4 pt-3 border-t border-[#efeee7]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-[#75786c]">
+                            제안 가격
+                          </span>
+                          <span className="text-sm font-semibold text-[#1b1c18]">
+                            {proposal.price != null
+                              ? `${proposal.price.toLocaleString()}원`
+                              : "협의"}
+                          </span>
+                        </div>
+                        {proposal.region && (
+                          <>
+                            <span className="text-[#efeee7]">|</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-[#75786c]">
+                                지역
+                              </span>
+                              <span className="text-sm text-[#45483d]">
+                                {proposal.region}
+                              </span>
+                            </div>
+                          </>
                         )}
-                      </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-[#45483d] whitespace-pre-wrap mb-3 line-clamp-3">
-                      {proposal.content}
-                    </p>
-                    <div className="flex gap-4 text-xs text-[#75786c]">
-                      <span>
-                        제안 가격:{" "}
-                        {proposal.price != null
-                          ? `${proposal.price.toLocaleString()}원`
-                          : "협의"}
-                      </span>
-                      {proposal.region && <span>지역: {proposal.region}</span>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </main>
