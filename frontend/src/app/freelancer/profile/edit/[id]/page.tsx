@@ -2,8 +2,6 @@
 
 import Footer from "@/components/Footer";
 import FreelancerProfileForm, {
-  ExistingPortfolio,
-  NewPortfolioItem,
   ProfileFormValues,
 } from "@/components/freelancer/FreelancerProfileForm";
 import Navbar from "@/components/Navbar";
@@ -19,27 +17,9 @@ export default function FreelancerProfileEditPage() {
   const [initialValues, setInitialValues] = useState<ProfileFormValues | null>(
     null,
   );
-  const [existingPortfolios, setExistingPortfolios] = useState<
-    ExistingPortfolio[]
-  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    if (isLoading) return;
-    if (
-      typeof window !== "undefined" &&
-      window.location.hash === "#portfolio"
-    ) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById("portfolio");
-        if (el) el.scrollIntoView({ behavior: "smooth" });
-        history.replaceState(null, "", window.location.pathname);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -49,13 +29,8 @@ export default function FreelancerProfileEditPage() {
 
     const fetchProfile = async () => {
       try {
-        const [profileRes, portfolioRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/freelancers/${id}`),
-          authFetch(`${API_BASE_URL}/api/freelancers/${id}/portfolios`),
-        ]);
-
+        const profileRes = await fetch(`${API_BASE_URL}/api/freelancers/${id}`);
         if (!profileRes.ok) throw new Error("프로필을 불러올 수 없습니다.");
-
         const profileData = await profileRes.json();
         setInitialValues({
           categoryId: profileData.categoryId,
@@ -65,10 +40,6 @@ export default function FreelancerProfileEditPage() {
           price: String(profileData.price ?? ""),
           careerYears: String(profileData.careerYears ?? ""),
         });
-
-        if (portfolioRes.ok) {
-          setExistingPortfolios(await portfolioRes.json());
-        }
       } catch (error) {
         setErrorMessage(
           error instanceof Error
@@ -83,14 +54,9 @@ export default function FreelancerProfileEditPage() {
     void fetchProfile();
   }, [id, router]);
 
-  const handleSubmit = async (
-    values: ProfileFormValues,
-    newPortfolios: NewPortfolioItem[],
-    deletedPortfolioIds: number[],
-  ) => {
+  const handleSubmit = async (values: ProfileFormValues) => {
     setErrorMessage("");
     setIsSubmitting(true);
-
     try {
       const profileRes = await authFetch(
         `${API_BASE_URL}/api/freelancers/${id}`,
@@ -107,43 +73,10 @@ export default function FreelancerProfileEditPage() {
           }),
         },
       );
-
       if (!profileRes.ok) {
         const data = await profileRes.json().catch(() => null);
         throw new Error(data?.message ?? "프로필 수정에 실패했습니다.");
       }
-
-      for (const portfolioId of deletedPortfolioIds) {
-        await authFetch(
-          `${API_BASE_URL}/api/freelancers/${id}/portfolios/${portfolioId}`,
-          { method: "DELETE" },
-        ).catch(() => console.warn(`포트폴리오 ${portfolioId} 삭제 실패`));
-      }
-
-      const startOrder = existingPortfolios.length - deletedPortfolioIds.length;
-      for (let i = 0; i < newPortfolios.length; i++) {
-        const item = newPortfolios[i];
-        const formData = new FormData();
-        formData.append("image", item.file);
-        if (item.description) formData.append("description", item.description);
-        formData.append("sortOrder", String(startOrder + i));
-        if (item.startDate) formData.append("startDate", item.startDate);
-        if (item.endDate) formData.append("endDate", item.endDate);
-        if (item.client) formData.append("client", item.client);
-        if (item.industry) formData.append("industry", item.industry);
-        if (item.purpose) formData.append("purpose", item.purpose);
-
-        await authFetch(`${API_BASE_URL}/api/freelancers/${id}/portfolios`, {
-          method: "POST",
-          body: formData,
-        }).catch(() => {
-          console.warn(`포트폴리오 ${i + 1} 업로드 실패`);
-          setErrorMessage(
-            `포트폴리오 ${i + 1}번 이미지 업로드에 실패했습니다. 수정 페이지에서 다시 시도해주세요.`,
-          );
-        });
-      }
-
       router.push(`/profile/${id}`);
     } catch (error) {
       setErrorMessage(
@@ -173,10 +106,8 @@ export default function FreelancerProfileEditPage() {
           <FreelancerProfileForm
             mode="edit"
             initialValues={initialValues}
-            existingPortfolios={existingPortfolios}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
-            profileId={Number(id)}
             onSubmit={handleSubmit}
             onCancel={() => router.push(`/profile/${id}`)}
           />

@@ -100,8 +100,18 @@ export default function PortfoliosPage({
             href={`/profile/${id}`}
             className="text-sm text-[#75786c] hover:text-[#1b1c18] flex items-center gap-1 mb-4"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             프로필로 돌아가기
           </Link>
@@ -121,7 +131,9 @@ export default function PortfoliosPage({
                   {freelancer.categoryName}
                 </span>
               )}
-              <h1 className="font-semibold text-[#1b1c18] text-lg">{freelancer?.title || ""}</h1>
+              <h1 className="font-semibold text-[#1b1c18] text-lg">
+                {freelancer?.title || ""}
+              </h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
@@ -134,29 +146,26 @@ export default function PortfoliosPage({
                     </svg>
                   ))}
                   <span className="text-xs text-[#45483d] ml-1">
-                    {freelancer?.averageRating.toFixed(1)} ({freelancer?.reviewCount} 리뷰)
+                    {freelancer?.averageRating.toFixed(1)} (
+                    {freelancer?.reviewCount} 리뷰)
                   </span>
                 </div>
                 {freelancer?.region && (
-                  <span className="text-xs text-[#75786c]">· {freelancer.region}</span>
+                  <span className="text-xs text-[#75786c]">
+                    · {freelancer.region}
+                  </span>
                 )}
               </div>
             </div>
 
             {isOwner && (
-              <div className="ml-auto flex gap-2">
+              <div className="ml-auto">
                 <Link
-                  href={`/freelancer/profile/edit/${id}`}
-                  className="text-sm px-4 py-2 border border-[#c5c8ba] text-[#45483d] rounded-xl hover:bg-[#f5f4ec] transition-colors"
-                >
-                  프로필 수정
-                </Link>
-                <a
-                  href={`/freelancer/profile/edit/${id}#portfolio`}
+                  href={`/freelancer/profile/edit/${id}/portfolios`}
                   className="text-sm px-4 py-2 border border-[#6C814C] text-[#6C814C] rounded-xl hover:bg-[#f5f4ec] transition-colors"
                 >
                   포트폴리오 수정
-                </a>
+                </Link>
               </div>
             )}
           </div>
@@ -173,7 +182,10 @@ export default function PortfoliosPage({
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[4/3] rounded-xl bg-[#efeee7] animate-pulse" />
+              <div
+                key={i}
+                className="aspect-[4/3] rounded-xl bg-[#efeee7] animate-pulse"
+              />
             ))}
           </div>
         ) : portfolios.length === 0 ? (
@@ -183,7 +195,9 @@ export default function PortfoliosPage({
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {portfolios.map((portfolio, index) => {
-              const { plain, tags } = parseHashtags(portfolio.description || "");
+              const { plain, tags } = parseHashtags(
+                portfolio.description || "",
+              );
               return (
                 <div
                   key={portfolio.id}
@@ -203,8 +217,16 @@ export default function PortfoliosPage({
                       </span>
                     </div>
                   </div>
-                  {plain && <p className="text-sm font-medium text-[#1b1c18] truncate">{plain}</p>}
-                  {tags.length > 0 && <p className="text-xs text-[#75786c] truncate mt-0.5">{tags.join(" ")}</p>}
+                  {plain && (
+                    <p className="text-sm font-medium text-[#1b1c18] truncate">
+                      {plain}
+                    </p>
+                  )}
+                  {tags.length > 0 && (
+                    <p className="text-xs text-[#75786c] truncate mt-0.5">
+                      {tags.join(" ")}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -225,17 +247,34 @@ export default function PortfoliosPage({
           >
             <div className="w-80 shrink-0 flex flex-col border-r border-[#efeee7] h-full overflow-y-auto">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#efeee7] sticky top-0 bg-white z-10">
-                <button onClick={() => setSelectedIndex(null)} className="text-[#75786c] hover:text-[#1b1c18]">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <button
+                  onClick={() => setSelectedIndex(null)}
+                  className="text-[#75786c] hover:text-[#1b1c18]"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
-                <span className="text-xs text-[#75786c]">{selectedIndex + 1} / {portfolios.length}</span>
+                <span className="text-xs text-[#75786c]">
+                  {selectedIndex + 1} / {portfolios.length}
+                </span>
               </div>
 
               <div className="p-5 flex flex-col gap-5">
                 {(() => {
-                  const { plain, tags } = parseHashtags(selectedPortfolio.description || "");
+                  const { plain, tags } = parseHashtags(
+                    selectedPortfolio.description || "",
+                  );
                   return (
                     <>
                       <h3 className="font-semibold text-[#1b1c18] text-base leading-snug">
@@ -244,14 +283,34 @@ export default function PortfoliosPage({
 
                       <div className="flex gap-2">
                         <button className="flex items-center gap-1.5 px-4 py-2 border border-[#c5c8ba] rounded-xl text-sm text-[#45483d] hover:border-[#4f6231] hover:text-[#4f6231] transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
                           </svg>
                           찜하기
                         </button>
                         <button className="flex items-center gap-1.5 px-4 py-2 border border-[#c5c8ba] rounded-xl text-sm text-[#45483d] hover:border-[#4f6231] hover:text-[#4f6231] transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                            />
                           </svg>
                           공유하기
                         </button>
@@ -260,7 +319,12 @@ export default function PortfoliosPage({
                       {tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
                           {tags.map((tag, i) => (
-                            <span key={i} className="text-xs px-3 py-1.5 bg-[#f5f4ec] text-[#4f6231] rounded-full">{tag}</span>
+                            <span
+                              key={i}
+                              className="text-xs px-3 py-1.5 bg-[#f5f4ec] text-[#4f6231] rounded-full"
+                            >
+                              {tag}
+                            </span>
                           ))}
                         </div>
                       )}
@@ -269,48 +333,72 @@ export default function PortfoliosPage({
 
                       {plain && (
                         <div>
-                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">프로젝트 설명</p>
-                          <p className="text-sm text-[#45483d] leading-relaxed">{plain}</p>
+                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                            프로젝트 설명
+                          </p>
+                          <p className="text-sm text-[#45483d] leading-relaxed">
+                            {plain}
+                          </p>
                         </div>
                       )}
 
-                      {(selectedPortfolio.startDate || selectedPortfolio.endDate) && (
+                      {(selectedPortfolio.startDate ||
+                        selectedPortfolio.endDate) && (
                         <div>
-                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">참여 기간</p>
+                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                            참여 기간
+                          </p>
                           <p className="text-sm text-[#45483d]">
-                            {selectedPortfolio.startDate} - {selectedPortfolio.endDate}
+                            {selectedPortfolio.startDate} -{" "}
+                            {selectedPortfolio.endDate}
                           </p>
                         </div>
                       )}
 
                       {selectedPortfolio.client && (
                         <div>
-                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">클라이언트</p>
-                          <p className="text-sm text-[#45483d]">{selectedPortfolio.client}</p>
+                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                            클라이언트
+                          </p>
+                          <p className="text-sm text-[#45483d]">
+                            {selectedPortfolio.client}
+                          </p>
                         </div>
                       )}
 
                       {selectedPortfolio.industry && (
                         <div>
-                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">업종</p>
-                          <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">{selectedPortfolio.industry}</span>
+                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                            업종
+                          </p>
+                          <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">
+                            {selectedPortfolio.industry}
+                          </span>
                         </div>
                       )}
 
                       {selectedPortfolio.purpose && (
                         <div>
-                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">목적별</p>
-                          <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">{selectedPortfolio.purpose}</span>
+                          <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                            목적별
+                          </p>
+                          <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">
+                            {selectedPortfolio.purpose}
+                          </span>
                         </div>
                       )}
 
                       <div className="border-t border-[#efeee7]" />
 
                       <div>
-                        <p className="text-xs font-medium text-[#75786c] mb-3">다른 포트폴리오</p>
+                        <p className="text-xs font-medium text-[#75786c] mb-3">
+                          다른 포트폴리오
+                        </p>
                         <div className="flex flex-col gap-2">
                           {portfolios.map((p, i) => {
-                            const { plain: t } = parseHashtags(p.description || "");
+                            const { plain: t } = parseHashtags(
+                              p.description || "",
+                            );
                             return (
                               <button
                                 key={p.id}
@@ -318,7 +406,12 @@ export default function PortfoliosPage({
                                 className={`flex items-center gap-3 p-2 rounded-xl text-left transition-colors w-full ${i === selectedIndex ? "bg-[#f5f4ec] ring-1 ring-[#4f6231]" : "hover:bg-[#f9f8f4]"}`}
                               >
                                 <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0">
-                                  <Image src={p.imageUrl} alt={t || "포트폴리오"} fill className="object-cover" />
+                                  <Image
+                                    src={p.imageUrl}
+                                    alt={t || "포트폴리오"}
+                                    fill
+                                    className="object-cover"
+                                  />
                                 </div>
                                 <p className="text-xs text-[#1b1c18] line-clamp-2 flex-1">
                                   {t || `포트폴리오 ${i + 1}`}
@@ -336,12 +429,21 @@ export default function PortfoliosPage({
 
             {/* 우측: 이미지 세로 스크롤 */}
             <div className="flex-1 overflow-y-auto bg-[#1b1c18]">
-              <img src={selectedPortfolio.imageUrl} alt={selectedPortfolio.description || "포트폴리오"} className="w-full h-auto block" />
-              {selectedPortfolio.images && selectedPortfolio.images.length > 0 &&
+              <img
+                src={selectedPortfolio.imageUrl}
+                alt={selectedPortfolio.description || "포트폴리오"}
+                className="w-full h-auto block"
+              />
+              {selectedPortfolio.images &&
+                selectedPortfolio.images.length > 0 &&
                 selectedPortfolio.images.map((img, i) => (
                   <div key={i}>
                     <div className="h-6 bg-white" />
-                    <img src={img.imageUrl} alt={`포트폴리오 이미지 ${i + 1}`} className="w-full h-auto block" />
+                    <img
+                      src={img.imageUrl}
+                      alt={`포트폴리오 이미지 ${i + 1}`}
+                      className="w-full h-auto block"
+                    />
                   </div>
                 ))}
             </div>
