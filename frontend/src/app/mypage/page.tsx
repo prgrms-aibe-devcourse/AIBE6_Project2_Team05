@@ -2,13 +2,13 @@
 
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import BasicInfoForm from "@/components/mypage/BasicInfoForm";
-import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
 import MySidebar from "@/components/mypage/MySidebar";
-import PortfolioTab from "@/components/mypage/PortfolioTab";
 import ProfileImageUpload from "@/components/mypage/ProfileImageUpload";
 import SecurityForm from "@/components/mypage/SecurityForm";
+import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
+import PortfolioTab from "@/components/mypage/PortfolioTab";
+import ReviewTab from "@/components/mypage/ReviewTab";
 import { Button } from "@/components/ui/button";
 import {
   API_BASE_URL,
@@ -17,11 +17,12 @@ import {
   getAccessToken,
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
+import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type MemberRole = "CLIENT" | "FREELANCER";
-type ActiveTab = "info" | "profile" | "portfolio";
+type ActiveTab = "info" | "profile" | "portfolio" | "reviews";
 
 export default function MyPage() {
   const router = useRouter();
@@ -45,11 +46,11 @@ export default function MyPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // URL 쿼리 파라미터로 탭 초기값 설정
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "profile") setActiveTab("profile");
     else if (tab === "portfolio") setActiveTab("portfolio");
+    else if (tab === "reviews") setActiveTab("reviews");
   }, [searchParams]);
 
   useEffect(() => {
@@ -295,6 +296,14 @@ export default function MyPage() {
                   setActiveTab("info");
                 }}
                 onCancel={() => setActiveTab("info")}
+              />
+            )}
+
+            {/* 리뷰 내역 탭 */}
+            {activeTab === "reviews" && (
+              <ReviewTab
+                freelancerProfileId={freelancerProfileId}
+                role={role}
               />
             )}
           </main>

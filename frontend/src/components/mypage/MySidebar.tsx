@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type MemberRole = "CLIENT" | "FREELANCER";
-type ActiveTab = "info" | "profile" | "portfolio";
+type ActiveTab = "info" | "profile" | "portfolio" | "reviews";
 
 const ROLE_LABEL: Record<MemberRole, string> = {
   CLIENT: "예비부부",
@@ -36,18 +36,23 @@ export default function MySidebar({
     { icon: "👤", label: "회원 정보 수정", href: "/mypage" },
     { icon: "📅", label: "예약 내역", href: "/reservations" },
     { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
-    { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews" },
     { icon: "📝", label: "내 게시물", href: "/mypage/posts" },
     { icon: "📩", label: "내 제안서", href: "/mypage/proposals" },
   ];
 
-  const freelancerMenu: { icon: string; label: string; tab: ActiveTab }[] =
-    role === "FREELANCER" && freelancerProfileId
+  const tabMenu: { icon: string; label: string; tab: ActiveTab }[] = [
+    { icon: "⭐", label: "리뷰 내역", tab: "reviews" },
+    ...(role === "FREELANCER" && freelancerProfileId
       ? [
-          { icon: "🎨", label: "프로필 수정", tab: "profile" },
-          { icon: "🖼️", label: "포트폴리오 수정", tab: "portfolio" },
+          { icon: "🎨", label: "프로필 수정", tab: "profile" as ActiveTab },
+          {
+            icon: "🖼️",
+            label: "포트폴리오 수정",
+            tab: "portfolio" as ActiveTab,
+          },
         ]
-      : [];
+      : []),
+  ];
 
   return (
     <aside className="lg:w-64 shrink-0">
@@ -95,7 +100,7 @@ export default function MySidebar({
               {item.label}
             </Link>
           ))}
-          {freelancerMenu.map((item) => (
+          {tabMenu.map((item) => (
             <button
               key={item.label}
               onClick={() => onTabChange?.(item.tab)}
