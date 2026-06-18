@@ -13,14 +13,33 @@ import { Separator } from "@/components/ui/separator";
 import {
   createReservation,
   fetchFreelancerProfile,
+  ReservationApiError,
   type FreelancerProfileResponse,
 } from "@/lib/reservations";
 import { FreelancerCard } from "./_components/FreelancerCard";
+
+function getTodayDateString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getCurrentTimeString(): string {
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
 
 export default function ReservePage() {
   const params = useParams();
   const router = useRouter();
   const freelancerId = Number(params.id);
+  const minReservationDate = getTodayDateString();
 
   const [profile, setProfile] = useState<FreelancerProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,32 +50,53 @@ export default function ReservePage() {
   const [notes, setNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // 날짜가 바뀔 때 오늘 날짜인데 선택된 시간이 과거라면 에러 메시지를 미리 띄워 UX 개선
+  useEffect(() => {
+    if (date === minReservationDate && time < getCurrentTimeString()) {
+      setErrorMessage("과거 시간은 선택할 수 없습니다. 시간을 확인해주세요.");
+    } else {
+      setErrorMessage(null);
+    }
+  }, [date, time, minReservationDate]);
+
   useEffect(() => {
     if (isNaN(freelancerId)) return;
 
     fetchFreelancerProfile(freelancerId)
-      .then(setProfile)
-      .catch((err) => {
-        console.error(err);
-        setErrorMessage("프리랜서 정보를 불러오는데 실패했습니다.");
-      })
-      .finally(() => setLoading(false));
+        .then(setProfile)
+        .catch((err) => {
+          console.error(err);
+          setErrorMessage("프리랜서 정보를 불러오는데 실패했습니다.");
+        })
+        .finally(() => setLoading(false));
   }, [freelancerId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     if (!date) {
-      alert("예식 날짜를 선택해주세요.");
+      setErrorMessage("예식 날짜를 선택해주세요.");
+      return;
+    }
+
+    if (date < minReservationDate) {
+      setErrorMessage("지난 날짜로는 예약을 신청할 수 없습니다.");
+      return;
+    }
+
+    // 변수 선언 단일화 및 시간 검증
+    const reservationDateTime = `${date}T${time}:00`;
+    const selectedDateTime = new Date(reservationDateTime);
+
+    if (selectedDateTime.getTime() < Date.now()) {
+      setErrorMessage("지난 시간으로는 예약을 신청할 수 없습니다.");
       return;
     }
 
     setSubmitting(true);
-    setErrorMessage(null);
 
     try {
-      // ISO 형식으로 날짜와 시간 결합 (예: 2026-06-20T14:00:00)
-      const reservationDateTime = `${date}T${time}:00`;
-      
       await createReservation({
         freelancerProfileId: freelancerId,
         reservationDate: reservationDateTime,
@@ -65,9 +105,13 @@ export default function ReservePage() {
 
       alert("예약 신청이 완료되었습니다!");
       router.push("/reservations");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err.message || "예약 신청 중 오류가 발생했습니다.");
+      setErrorMessage(
+          err instanceof ReservationApiError || err instanceof Error
+              ? err.message
+              : "예약 신청 중 오류가 발생했습니다."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -114,6 +158,8 @@ export default function ReservePage() {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
+                        // TO-BE (실시간 유틸 함수 결과를 바로 바인딩하거나, 오늘 날짜일 때만 현재 시간 제한)
+                      min={date === minReservationDate ? getCurrentTimeString() : undefined}
                       required
                       className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] pl-10"
                     />
@@ -132,6 +178,7 @@ export default function ReservePage() {
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
+                      min={date === minReservationDate ? getCurrentTimeString() : undefined}
                       required
                       className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] pl-10"
                     />
