@@ -103,7 +103,7 @@ class MemberDeleteTest {
         String refreshToken = loginResult.getResponse().getCookie("refreshToken").getValue();
 
         Long memberId = memberRepository.findByEmail(email).orElseThrow().getId();
-        assertThat(refreshTokenRepository.findByMemberId(memberId)).isPresent();
+        assertThat(refreshTokenRepository.findById(memberId)).isPresent();
 
         // 탈퇴
         mockMvc.perform(delete("/api/v1/members/me")
@@ -111,7 +111,7 @@ class MemberDeleteTest {
                 .andExpect(status().isNoContent());
 
         // refresh token이 즉시 삭제됨
-        assertThat(refreshTokenRepository.findByMemberId(memberId)).isEmpty();
+        assertThat(refreshTokenRepository.findById(memberId)).isEmpty();
 
         // 탈퇴 후 refresh 시도 -> 더 이상 유효하지 않음 (재발급으로 서비스 계속 이용 불가)
         mockMvc.perform(post("/api/v1/auth/refresh")
@@ -146,7 +146,7 @@ class MemberDeleteTest {
         // withdrawMyAccount API를 거치지 않고 다른 경로(관리자 등)로 상태만 DELETED가 된 상황을 가정
         member.withdraw();
         memberRepository.save(member);
-        assertThat(refreshTokenRepository.findByMemberId(member.getId())).isPresent();
+        assertThat(refreshTokenRepository.findById(member.getId())).isPresent();
 
         // refresh token이 DB에 남아있더라도 탈퇴 회원의 재발급은 차단된다 (423 Locked)
         mockMvc.perform(post("/api/v1/auth/refresh")
@@ -154,7 +154,7 @@ class MemberDeleteTest {
                 .andExpect(status().isLocked());
 
         // 차단과 동시에 잔존 refresh token도 정리된다
-        assertThat(refreshTokenRepository.findByMemberId(member.getId())).isEmpty();
+        assertThat(refreshTokenRepository.findById(member.getId())).isEmpty();
     }
 
     @Test
