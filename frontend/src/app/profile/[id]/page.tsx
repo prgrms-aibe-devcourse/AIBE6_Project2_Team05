@@ -10,12 +10,12 @@ import ReviewTab from "@/components/profile/ReviewTab";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { API_BASE_URL, getAccessToken } from "@/lib/auth";
+import { getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 interface FreelancerProfile {
   id: number;
@@ -64,7 +64,6 @@ export default function ProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const profileImageInputRef = useRef<HTMLInputElement>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
@@ -85,30 +84,6 @@ export default function ProfilePage({
     } catch (err) {
       console.error("북마크 오류:", err);
     }
-  };
-
-  const handleProfileImageChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("image", file);
-
-    try {
-      const res = await authFetch(`${API_BASE_URL}/api/v1/members/me/image`, {
-        method: "PATCH",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setProfileImageUrl(data.profileImageUrl);
-      }
-    } catch (err) {
-      console.error("프로필 이미지 업로드 오류:", err);
-    }
-    e.target.value = "";
   };
 
   useEffect(() => {
@@ -186,45 +161,9 @@ export default function ProfilePage({
                 }
                 alt={profile.memberName || profile.title}
                 fill
-                className="object-cover"
+                className="object-cover rounded-2xl"
               />
             </div>
-            {/* 본인일 때 카메라 아이콘 */}
-            {isOwner && (
-              <>
-                <button
-                  onClick={() => profileImageInputRef.current?.click()}
-                  className="absolute bottom-1 right-1 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-[#f5f4ec] transition-colors border border-[#efeee7]"
-                >
-                  <svg
-                    className="w-4 h-4 text-[#45483d]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </button>
-                <input
-                  ref={profileImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleProfileImageChange}
-                />
-              </>
-            )}
           </div>
 
           <div className="flex-1">
@@ -287,7 +226,6 @@ export default function ProfilePage({
                     </span>
                   )}
                 </div>
-                {/* keywords 해시태그 */}
                 {keywords.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {keywords.map((tag, i) => (
