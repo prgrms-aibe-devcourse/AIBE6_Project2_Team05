@@ -1,21 +1,17 @@
 package com.wedge.backend.domain.freelancer.service;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import com.wedge.backend.domain.freelancer.dto.AiRecommendationResponse;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,13 +22,7 @@ public class AiRecommendationService {
 
     private final FreelancerProfileRepository freelancerProfileRepository;
     private final ObjectMapper objectMapper;
-    private final RestClient restClient;
-
-    @Value("${gemini.api-key}")
-    private String apiKey;
-
-    @Value("${gemini.url}")
-    private String geminiUrl;
+    private final ChatClient chatClient;
 
     public List<AiRecommendationResponse> getRecommendations() {
 
@@ -40,6 +30,7 @@ public class AiRecommendationService {
         if (profiles.isEmpty()) {
             return List.of();
         }
+
         Collections.shuffle(profiles);
         List<FreelancerProfile> candidates = profiles.stream().limit(30).toList();
 
@@ -64,45 +55,33 @@ public class AiRecommendationService {
                 %s
                 """.formatted(profileText);
 
-        Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of("parts", List.of(
-                                Map.of("text", prompt)
-                        ))
-                )
-        );
+        try {
+            String response = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
 
-        String response = restClient
-                .post()
-                .uri(geminiUrl + "?key=" + apiKey)
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
+            return parseResponse(response, candidates);
 
-        return parseResponse(response, candidates);
+        } catch (Exception e) {
+            log.error("ChatGPT API 호출 실패: {}", e.getMessage());
+            return List.of();
+        }
     }
 
     private List<AiRecommendationResponse> parseResponse(
             String response, List<FreelancerProfile> candidates) {
         try {
-            JsonNode root = objectMapper.readTree(response);
-            String text = root
-                    .path("candidates").get(0)
-                    .path("content")
-                    .path("parts").get(0)
-                    .path("text")
-                    .asText();
-
-            int start = text.indexOf("[");
-            int end = text.lastIndexOf("]") + 1;
+            // JSON 배열 추출
+            int start = response.indexOf("[");
+            int end = response.lastIndexOf("]") + 1;
             if (start == -1 || end == 0) {
-                log.warn("Gemini 응답에서 JSON 배열을 찾을 수 없습니다.");
+                log.warn("응답에서 JSON 배열을 찾을 수 없습니다.");
                 return List.of();
             }
-            text = text.substring(start, end);
+            String json = response.substring(start, end);
 
-            JsonNode recommendations = objectMapper.readTree(text);
+            JsonNode recommendations = objectMapper.readTree(json);
 
             Map<Long, FreelancerProfile> profileMap = candidates.stream()
                     .collect(Collectors.toMap(FreelancerProfile::getId, p -> p));
@@ -119,7 +98,7 @@ public class AiRecommendationService {
             return result;
 
         } catch (Exception e) {
-            log.error("Gemini 응답 파싱 실패: {}", e.getMessage());
+            log.error("응답 파싱 실패: {}", e.getMessage());
             return List.of();
         }
     }

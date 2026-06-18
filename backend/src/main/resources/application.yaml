@@ -43,7 +43,12 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
-
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
 jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
@@ -63,10 +68,6 @@ cloud:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
-
-gemini:
-  api-key: ${GEMINI_API_KEY}
-  url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 
 server:
   tomcat:

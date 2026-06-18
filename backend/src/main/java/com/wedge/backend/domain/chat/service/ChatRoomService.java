@@ -20,8 +20,8 @@ public class ChatRoomService {
     public ChatRoom createOrGetRoom(Long reservationId, Long currentMemberId) {
         Reservation reservation = findReservation(reservationId);
         validateReservationParticipant(reservation, currentMemberId);
-
-        return chatRoomRepository.findByReservationId(reservationId)
+        // 예약 1건당 채팅방은 1개만 유지하므로, 기존 방이 있으면 재사용하고 없으면 생성
+        return chatRoomRepository.findByReservation_Id(reservationId)
                 .orElseGet(() -> chatRoomRepository.save(ChatRoom.create(
                         reservation,
                         reservation.getClient(),

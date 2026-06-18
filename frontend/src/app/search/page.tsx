@@ -15,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // ✅ 추가
+import { Suspense, useCallback, useEffect, useState } from "react";
 
 type Category = {
   id: number;
@@ -59,10 +60,14 @@ function SkeletonCard() {
   );
 }
 
-export default function SearchPage() {
+function SearchPageInner() {
+  const searchParams = useSearchParams();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
-    null,
+    searchParams.get("categoryId")
+      ? Number(searchParams.get("categoryId"))
+      : null,
   );
   const [sortType, setSortType] = useState("ALL");
   const [keyword, setKeyword] = useState("");
@@ -75,7 +80,6 @@ export default function SearchPage() {
     const loadCategories = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/categories`);
-
         const data = await res.json();
         setCategories(data);
       } catch (error) {
@@ -317,5 +321,19 @@ export default function SearchPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen bg-[#fbf9f2]">
+          <Navbar />
+        </div>
+      }
+    >
+      <SearchPageInner />
+    </Suspense>
   );
 }

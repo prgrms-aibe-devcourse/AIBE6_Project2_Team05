@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { createChatRoom } from "@/lib/chat";
 import {
   acceptReservation,
   cancelReservation,
@@ -18,6 +19,10 @@ import {
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
 import { createAuthHeaders } from "@/lib/auth";
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function ReservationDetailPage({
   params,
@@ -32,9 +37,10 @@ export default function ReservationDetailPage({
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [chatStarting, setChatStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -50,19 +56,22 @@ export default function ReservationDetailPage({
         const meData = await meRes.json();
         setUserRole(meData.role);
       }
-    } catch (err: any) {
-      setError(err.message || "정보를 불러오지 못했습니다.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "정보를 불러오지 못했습니다."));
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    void loadData();
   }, [reservationId]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadData]);
+
   const handleStatusChange = async (
-    action: (id: number) => Promise<any>,
+    action: (id: number) => Promise<unknown>,
     label: string
   ) => {
     if (!confirm(`예약을 ${label}하시겠습니까?`)) return;
@@ -70,10 +79,22 @@ export default function ReservationDetailPage({
     try {
       await action(reservationId);
       await loadData();
-    } catch (err: any) {
-      alert(err.message || "처리에 실패했습니다.");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "처리에 실패했습니다."));
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleOpenChat = async () => {
+    setChatStarting(true);
+    try {
+      const chatRoom = await createChatRoom({ reservationId });
+      router.push(`/chat/${chatRoom.id}`);
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "채팅방을 열지 못했습니다."));
+    } finally {
+      setChatStarting(false);
     }
   };
 
@@ -188,6 +209,14 @@ export default function ReservationDetailPage({
 
           {/* Action Buttons */}
           <div className="bg-[#f5f4ec] px-8 py-6 flex flex-wrap gap-3 justify-end">
+            <Button
+              disabled={updating || chatStarting}
+              className="bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl px-8"
+              onClick={handleOpenChat}
+            >
+              {chatStarting ? "채팅방 여는 중..." : "실시간 채팅하기"}
+            </Button>
+
             {!isFreelancer && (reservation.status === "REQUESTED" || reservation.status === "ACCEPTED") && (
               <Button
                 variant="outline"
