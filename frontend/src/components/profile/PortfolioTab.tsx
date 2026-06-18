@@ -208,11 +208,11 @@ export default function PortfolioTab({
             onClick={(e) => e.stopPropagation()}
           >
             {/* 좌측: 정보 패널 */}
-            <div className="w-80 shrink-0 flex flex-col border-r border-[#efeee7] h-full overflow-y-auto">
+            <div className="w-80 shrink-0 border-r border-[#efeee7] overflow-y-auto flex flex-col">
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#efeee7] sticky top-0 bg-white z-10">
                 <button
                   onClick={() => setSelectedIndex(null)}
-                  className="text-[#75786c] hover:text-[#1b1c18] transition-colors"
+                  className="text-[#75786c] hover:text-[#1b1c18]"
                 >
                   <svg
                     className="w-5 h-5"
