@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
-    Page<ChatMessage> findByRoomId(Long roomId, Pageable pageable);
+    Page<ChatMessage> findByRoom_Id(Long roomId, Pageable pageable);
 
-    List<ChatMessage> findByRoomIdAndReceiverIdAndReadAtIsNull(Long roomId, Long receiverId);
+    List<ChatMessage> findByRoom_IdAndReceiver_IdAndReadAtIsNull(Long roomId, Long receiverId);
 }
