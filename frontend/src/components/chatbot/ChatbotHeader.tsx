@@ -14,7 +14,7 @@ export function ChatbotHeader({ onClose }: Props) {
         <div>
           <p className="text-sm font-semibold text-[#1b1c18]">웨리</p>
           <p className="text-xs text-[#75786c]">
-            3가지 질문으로 웨딩 견적을 뽑아드려요
+            3가지 질문으로 웨딩 견적을 알려 드려요
           </p>
         </div>
       </div>

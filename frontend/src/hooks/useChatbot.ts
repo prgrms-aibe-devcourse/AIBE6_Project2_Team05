@@ -1,4 +1,3 @@
-// src/hooks/useChatbot.ts
 import { INITIAL_BOT_MESSAGE, TURN_CONFIGS } from "@/constants/chatbot";
 import type {
   ChatMessage,
@@ -40,8 +39,11 @@ export function useChatbot() {
     setIsLoading(false);
   };
 
-  const sendMessage = async (userInput: string) => {
-    setMessages((prev) => [...prev, { role: "user", content: userInput }]);
+  const sendMessage = async (userInput: string, displayText?: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: displayText ?? userInput }, // ← 표시는 label로
+    ]);
     setIsLoading(true);
 
     try {

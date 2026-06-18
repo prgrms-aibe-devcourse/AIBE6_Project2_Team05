@@ -15,6 +15,7 @@ public class BookmarkResponse {
     private final String region;
     private final Integer price;
     private final LocalDateTime createdAt;
+    private final Long categoryId;
 
     private BookmarkResponse(Bookmark bookmark) {
         this.id = bookmark.getId();
@@ -24,6 +25,7 @@ public class BookmarkResponse {
         this.region = bookmark.getFreelancerProfile().getRegion();
         this.price = bookmark.getFreelancerProfile().getPrice();
         this.createdAt = bookmark.getCreatedAt();
+        this.categoryId = bookmark.getFreelancerProfile().getCategory().getId();
     }
 
     public static BookmarkResponse from(Bookmark bookmark) {
