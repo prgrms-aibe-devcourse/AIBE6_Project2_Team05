@@ -2,7 +2,7 @@
 
 import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
 import { ArrowLeft, RefreshCw, Send } from "lucide-react";
-import { use, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -332,6 +332,23 @@ export default function ChatRoomPage({
     sendMessage(content);
   };
 
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const content = input.trim();
+    if (!content || content.length > 1000 || !canSend) {
+      return;
+    }
+
+    setInput("");
+    publishTyping(false);
+    sendMessage(content);
+  };
+
   const retryPendingMessage = (pending: PendingMessage) => {
     clearPendingTimer(pending.key);
     setPendingMessages((current) => current.filter((item) => item.key !== pending.key));
@@ -469,6 +486,7 @@ export default function ChatRoomPage({
               <textarea
                 value={input}
                 onChange={(event) => handleInputChange(event.target.value)}
+                onKeyDown={handleInputKeyDown}
                 disabled={!room?.isActive}
                 maxLength={1000}
                 rows={1}
