@@ -48,36 +48,66 @@ export default function MySidebar({
       : []),
   ];
 
+  const profileContent = (
+    <div className="flex items-center gap-3">
+      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#d3ebac]">
+        {profileImg ? (
+          <Image
+            src={profileImg}
+            alt=""
+            fill
+            sizes="48px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[#4f6231] font-bold text-lg">
+            {name.charAt(0)}
+          </div>
+        )}
+      </div>
+      <div>
+        <div className="flex items-center gap-1">
+          <p className="font-semibold text-[#1b1c18] text-sm">{name}</p>
+          {role === "FREELANCER" && freelancerProfileId && (
+            <svg
+              className="w-3 h-3 text-[#4f6231]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          )}
+        </div>
+        <p className="text-xs text-[#75786c]">{email}</p>
+        {role && (
+          <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#e8f5d0] text-[#4f6231]">
+            {ROLE_LABEL[role]}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <aside className="lg:w-64 shrink-0">
       <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden">
         <div className="p-5 border-b border-[#efeee7]">
-          <div className="flex items-center gap-3">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#d3ebac]">
-              {profileImg ? (
-                <Image
-                  src={profileImg}
-                  alt=""
-                  fill
-                  sizes="48px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[#4f6231] font-bold text-lg">
-                  {name.charAt(0)}
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="font-semibold text-[#1b1c18] text-sm">{name}</p>
-              <p className="text-xs text-[#75786c]">{email}</p>
-              {role && (
-                <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#e8f5d0] text-[#4f6231]">
-                  {ROLE_LABEL[role]}
-                </span>
-              )}
-            </div>
-          </div>
+          {role === "FREELANCER" && freelancerProfileId ? (
+            <Link
+              href={`/profile/${freelancerProfileId}`}
+              className="block hover:opacity-80 transition-opacity"
+            >
+              {profileContent}
+            </Link>
+          ) : (
+            profileContent
+          )}
         </div>
         <nav className="p-2">
           {allMenu.map((item) => (
