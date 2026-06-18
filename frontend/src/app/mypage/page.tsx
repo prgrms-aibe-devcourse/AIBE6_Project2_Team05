@@ -26,6 +26,9 @@ export default function MyPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<MemberRole | null>(null);
+  const [freelancerProfileId, setFreelancerProfileId] = useState<number | null>(
+    null,
+  );
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -54,6 +57,20 @@ export default function MyPage() {
         setPhone(data.phone ?? "");
         setProfileImg(data.profileImageUrl ?? null);
         setRole(data.role ?? null);
+
+        if (data.role === "FREELANCER") {
+          try {
+            const profileRes = await authFetch(
+              `${API_BASE_URL}/api/freelancers/me`,
+            );
+            if (profileRes.ok) {
+              const profileData = await profileRes.json();
+              setFreelancerProfileId(profileData.id);
+            }
+          } catch {
+            // profileId 없으면 무시
+          }
+        }
       } catch (error) {
         setErrorMessage(
           error instanceof Error
@@ -176,6 +193,7 @@ export default function MyPage() {
             email={email}
             profileImg={profileImg}
             role={role}
+            freelancerProfileId={freelancerProfileId}
             onLogout={handleLogout}
           />
 
@@ -224,7 +242,6 @@ export default function MyPage() {
               }}
             />
 
-            {/* Danger Zone */}
             <div className="bg-white rounded-2xl border border-red-100 p-6">
               <h2 className="font-semibold text-[#1b1c18] text-sm mb-1">
                 계정 삭제

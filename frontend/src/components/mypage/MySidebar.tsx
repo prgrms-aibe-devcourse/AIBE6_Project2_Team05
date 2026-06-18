@@ -3,20 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const sidebarMenu = [
-  { icon: "👤", label: "회원 정보 수정", href: "/mypage", active: true },
-  { icon: "📅", label: "예약 내역", href: "/reservations", active: false },
-  { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks", active: false },
-  { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews", active: false },
-  { icon: "📝", label: "내 게시물", href: "/mypage/posts", active: false },
-  {
-    icon: "🎨",
-    label: "포트폴리오 관리",
-    href: "/freelancer/profile/manage",
-    active: false,
-  },
-];
-
 type MemberRole = "CLIENT" | "FREELANCER";
 
 const ROLE_LABEL: Record<MemberRole, string> = {
@@ -29,6 +15,7 @@ interface MySidebarProps {
   email: string;
   profileImg: string | null;
   role: MemberRole | null;
+  freelancerProfileId?: number | null;
   onLogout: () => void;
 }
 
@@ -37,8 +24,35 @@ export default function MySidebar({
   email,
   profileImg,
   role,
+  freelancerProfileId,
   onLogout,
 }: MySidebarProps) {
+  const baseMenu = [
+    { icon: "👤", label: "회원 정보 수정", href: "/mypage" },
+    { icon: "📅", label: "예약 내역", href: "/reservations" },
+    { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
+    { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews" },
+    { icon: "📝", label: "내 게시물", href: "/mypage/posts" },
+  ];
+
+  const freelancerMenu =
+    role === "FREELANCER" && freelancerProfileId
+      ? [
+          {
+            icon: "🎨",
+            label: "프로필 수정",
+            href: `/freelancer/profile/edit/${freelancerProfileId}`,
+          },
+          {
+            icon: "🖼️",
+            label: "포트폴리오 수정",
+            href: `/freelancer/profile/edit/${freelancerProfileId}/portfolios`,
+          },
+        ]
+      : [];
+
+  const sidebarMenu = [...baseMenu, ...freelancerMenu];
+
   return (
     <aside className="lg:w-64 shrink-0">
       <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden">
@@ -71,27 +85,16 @@ export default function MySidebar({
           </div>
         </div>
         <nav className="p-2">
-          {sidebarMenu
-            .filter(
-              (item) =>
-                (item.href !== "/mypage/reviews" &&
-                  item.href !== "/mypage/portfolio") ||
-                role === "FREELANCER",
-            )
-            .map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors ${
-                  item.active
-                    ? "bg-[#f5f4ec] text-[#4f6231] font-medium"
-                    : "text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231]"
-                }`}
-              >
-                <span>{item.icon}</span>
-                {item.label}
-              </Link>
-            ))}
+          {sidebarMenu.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231]"
+            >
+              <span>{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
         </nav>
         <div className="p-2 border-t border-[#efeee7]">
           <button
