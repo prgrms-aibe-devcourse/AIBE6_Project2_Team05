@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { createAuthHeaders } from "@/lib/auth";
+import { createAuthHeaders, getAccessToken } from "@/lib/auth";
 import {
   fetchReservations,
   ReservationApiError,
@@ -22,10 +23,18 @@ function getErrorMessage(error: unknown): string {
 }
 
 export default function ReservationsPage() {
+  const router = useRouter();
+  const hasAccessToken = getAccessToken() !== null;
   const [reservations, setReservations] = useState<readonly ReservationResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasAccessToken) {
+      router.replace("/login?redirect=%2Freservations");
+    }
+  }, [hasAccessToken, router]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -52,8 +61,17 @@ export default function ReservationsPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    if (!hasAccessToken) return;
+    const timer = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [hasAccessToken, loadData]);
+
+  if (!hasAccessToken) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">

@@ -10,9 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { getAccessToken } from "@/lib/auth";
 import {
   createReservation,
   fetchFreelancerProfile,
+  ReservationApiError,
   type FreelancerProfileResponse,
 } from "@/lib/reservations";
 import { FreelancerCard } from "./_components/FreelancerCard";
@@ -21,6 +23,8 @@ export default function ReservePage() {
   const params = useParams();
   const router = useRouter();
   const freelancerId = Number(params.id);
+  const redirectPath = `/reserve/${params.id}`;
+  const hasAccessToken = getAccessToken() !== null;
 
   const [profile, setProfile] = useState<FreelancerProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +34,13 @@ export default function ReservePage() {
   const [time, setTime] = useState("12:00");
   const [notes, setNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasAccessToken) {
+      router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+      return;
+    }
+  }, [hasAccessToken, redirectPath, router]);
 
   useEffect(() => {
     if (isNaN(freelancerId)) return;
@@ -45,6 +56,10 @@ export default function ReservePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!hasAccessToken) {
+      router.replace(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+      return;
+    }
     if (!date) {
       alert("예식 날짜를 선택해주세요.");
       return;
@@ -65,13 +80,21 @@ export default function ReservePage() {
 
       alert("예약 신청이 완료되었습니다!");
       router.push("/reservations");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err.message || "예약 신청 중 오류가 발생했습니다.");
+      if (err instanceof ReservationApiError || err instanceof Error) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage("예약 신청 중 오류가 발생했습니다.");
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (!hasAccessToken) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
