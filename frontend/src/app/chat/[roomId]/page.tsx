@@ -58,6 +58,7 @@ export default function ChatRoomPage({
   const typingSubRef = useRef<StompSubscription | null>(null);
   const reconnectAttemptRef = useRef(0);
   const shouldReconnectRef = useRef(false);
+  const suppressReconnectRef = useRef(false);
   const refreshTimerRef = useRef<number | null>(null);
   const typingThrottleRef = useRef(0);
   const typingIdleTimerRef = useRef<number | null>(null);
@@ -65,7 +66,8 @@ export default function ChatRoomPage({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = Boolean(room?.isActive) && connectionState === "연결됨";
-
+  const isReconnectBusy =
+    connectionState === "연결 중" || connectionState.startsWith("재연결 중");
   const sortedMessages = useMemo(
     () =>
       [...messages].sort((a, b) => {
@@ -174,6 +176,7 @@ export default function ChatRoomPage({
       }
     }
 
+    suppressReconnectRef.current = true;
     disconnectStomp();
     shouldReconnectRef.current = true;
     setConnectionState("연결 중");
@@ -185,6 +188,7 @@ export default function ChatRoomPage({
       },
       reconnectDelay: 0,
       onConnect: () => {
+        suppressReconnectRef.current = false;
         reconnectAttemptRef.current = 0;
         setConnectionState("연결됨");
         messageSubRef.current = client.subscribe("/user/queue/messages", (message: IMessage) => {
@@ -198,10 +202,16 @@ export default function ChatRoomPage({
         });
       },
       onStompError: (frame) => {
+        suppressReconnectRef.current = false;
         setConnectionState("연결 실패");
         setStatusMessage(frame.headers.message ?? "채팅 연결에 실패했습니다.");
       },
       onWebSocketClose: () => {
+        if (suppressReconnectRef.current) {
+          suppressReconnectRef.current = false;
+          return;
+        }
+
         if (!shouldReconnectRef.current) return;
 
         const attempt = reconnectAttemptRef.current + 1;
@@ -365,12 +375,13 @@ export default function ChatRoomPage({
           </div>
 
           <button
-            type="button"
-            onClick={() => void connectStomp()}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#c5c8ba] bg-white text-[#45483d] hover:bg-[#f5f4ec]"
-            aria-label="재연결"
+              type="button"
+              onClick={() => void connectStomp()}
+              disabled={isReconnectBusy}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#c5c8ba] bg-white text-[#45483d] hover:bg-[#f5f4ec] disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="재연결"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${isReconnectBusy ? "animate-spin" : ""}`} />
           </button>
         </div>
 
