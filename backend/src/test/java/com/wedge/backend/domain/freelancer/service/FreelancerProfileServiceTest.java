@@ -9,6 +9,7 @@ import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepositor
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.domain.member.entity.Provider;
 import com.wedge.backend.domain.member.entity.Role;
+import com.wedge.backend.global.exception.FreelancerNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -138,7 +139,7 @@ class FreelancerProfileServiceTest {
         given(freelancerProfileRepository.findById(999L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> freelancerProfileService.getProfile(999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(FreelancerNotFoundException.class)
                 .hasMessage("프로필을 찾을 수 없습니다.");
     }
 
@@ -184,7 +185,7 @@ class FreelancerProfileServiceTest {
         given(freelancerProfileRepository.findById(999L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> freelancerProfileService.deleteProfile(999L, member))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(FreelancerNotFoundException.class)
                 .hasMessage("프로필을 찾을 수 없습니다.");
     }
 

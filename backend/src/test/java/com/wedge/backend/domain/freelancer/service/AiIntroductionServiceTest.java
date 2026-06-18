@@ -1,58 +1,46 @@
 package com.wedge.backend.domain.freelancer.service;
 
-import tools.jackson.databind.ObjectMapper;
 import com.wedge.backend.domain.freelancer.dto.IntroductionGenerateRequest;
 import com.wedge.backend.domain.freelancer.dto.IntroductionGenerateResponse;
 import com.wedge.backend.global.exception.AiGenerationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestClient;
-
-import java.util.Map;
+import org.springframework.ai.chat.client.ChatClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AiIntroductionServiceTest {
 
     @Mock
-    private RestClient restClient;
+    private ChatClient chatClient;
 
-    @Spy
-    private AiIntroductionService aiIntroductionService =
-            new AiIntroductionService(new ObjectMapper(), restClient);
+    @Mock
+    private ChatClient.Builder chatClientBuilder;
+
+    @InjectMocks
+    private AiIntroductionService aiIntroductionService;
 
     @Test
     @DisplayName("정상적인 요청 시 소개글이 생성된다")
-    void generateIntroduction_success() throws Exception {
+    void generateIntroduction_success() {
         // given
         IntroductionGenerateRequest request = createRequest("웨딩 촬영", "자연스러운,따뜻한,감성적");
 
-        String geminiResponse = """
-                {
-                  "candidates": [
-                    {
-                      "content": {
-                        "parts": [
-                          {
-                            "text": "저는 웨딩 촬영 전문가입니다."
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-                """;
+        ChatClient.ChatClientRequestSpec requestSpec = org.mockito.Mockito.mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec callResponseSpec = org.mockito.Mockito.mock(ChatClient.CallResponseSpec.class);
 
-        doReturn(geminiResponse).when(aiIntroductionService).callGeminiApi(any());
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(any(String.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callResponseSpec);
+        when(callResponseSpec.content()).thenReturn("저는 웨딩 촬영 전문가입니다.");
 
         // when
         IntroductionGenerateResponse response = aiIntroductionService.generateIntroduction(request);
@@ -67,23 +55,13 @@ class AiIntroductionServiceTest {
         // given
         IntroductionGenerateRequest request = createRequest("웨딩 촬영", "자연스러운");
 
-        String geminiResponse = """
-                {
-                  "candidates": [
-                    {
-                      "content": {
-                        "parts": [
-                          {
-                            "text": ""
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-                """;
+        ChatClient.ChatClientRequestSpec requestSpec = org.mockito.Mockito.mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec callResponseSpec = org.mockito.Mockito.mock(ChatClient.CallResponseSpec.class);
 
-        doReturn(geminiResponse).when(aiIntroductionService).callGeminiApi(any());
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(any(String.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callResponseSpec);
+        when(callResponseSpec.content()).thenReturn("");
 
         // when & then
         assertThatThrownBy(() -> aiIntroductionService.generateIntroduction(request))
@@ -97,8 +75,11 @@ class AiIntroductionServiceTest {
         // given
         IntroductionGenerateRequest request = createRequest("웨딩 촬영", "자연스러운");
 
-        doThrow(new RuntimeException("API 호출 실패"))
-                .when(aiIntroductionService).callGeminiApi(any());
+        ChatClient.ChatClientRequestSpec requestSpec = org.mockito.Mockito.mock(ChatClient.ChatClientRequestSpec.class);
+
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(any(String.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenThrow(new RuntimeException("API 호출 실패"));
 
         // when & then
         assertThatThrownBy(() -> aiIntroductionService.generateIntroduction(request))

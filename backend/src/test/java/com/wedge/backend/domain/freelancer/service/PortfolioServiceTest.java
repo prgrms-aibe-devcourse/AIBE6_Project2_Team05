@@ -242,4 +242,41 @@ class PortfolioServiceTest {
 
         assertThat(result).hasSize(4);
     }
+
+    // ===== 포트폴리오 수정 =====
+
+    @Test
+    @DisplayName("포트폴리오 수정 성공")
+    void updatePortfolio_success() throws IOException {
+        given(portfolioRepository.findById(1L)).willReturn(Optional.of(portfolio));
+
+        PortfolioResponseDto result = portfolioService.updatePortfolio(member, 1L, null, requestDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getDescription()).isEqualTo("테스트 포트폴리오");
+    }
+
+    @Test
+    @DisplayName("포트폴리오 수정 실패 - 포트폴리오 없음")
+    void updatePortfolio_fail_notFound() {
+        MockMultipartFile image = new MockMultipartFile(
+                "image", "test.png", "image/png", new byte[100]);
+        given(portfolioRepository.findById(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> portfolioService.updatePortfolio(member, 999L, image, requestDto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("포트폴리오를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("포트폴리오 수정 실패 - 권한 없음")
+    void updatePortfolio_fail_noPermission() {
+        MockMultipartFile image = new MockMultipartFile(
+                "image", "test.png", "image/png", new byte[100]);
+        given(portfolioRepository.findById(1L)).willReturn(Optional.of(portfolio));
+
+        assertThatThrownBy(() -> portfolioService.updatePortfolio(otherMember, 1L, image, requestDto))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("수정 권한이 없습니다.");
+    }
 }
