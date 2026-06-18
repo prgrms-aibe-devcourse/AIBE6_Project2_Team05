@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/contexts/UserContext";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type PostType = "WEDDING_REVIEW" | "TIP" | "BOARD";
 
@@ -17,6 +18,7 @@ type Post = {
   id: number;
   memberId: number;
   memberName: string;
+  memberImageUrl?: string | null;
   title: string;
   content: string;
   type: PostType;
@@ -58,7 +60,30 @@ function PostSkeleton() {
   );
 }
 
+function MemberAvatar({
+  post,
+  currentUser,
+}: {
+  post: Post;
+  currentUser: { id: number; profileImageUrl: string | null } | null;
+}) {
+  // 백엔드에서 memberImageUrl 오면 사용, 아니면 본인 글일 때 Context 이미지 사용
+  const imageUrl =
+    post.memberImageUrl ||
+    (currentUser?.id === post.memberId ? currentUser?.profileImageUrl : null);
+
+  return (
+    <Avatar className="w-7 h-7">
+      {imageUrl && <AvatarImage src={imageUrl} alt={post.memberName} />}
+      <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
+        {post.memberName.charAt(0)}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
 export default function CommunityPage() {
+  const { user } = useUser();
   const [activeType, setActiveType] = useState<PostType | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,8 +103,9 @@ export default function CommunityPage() {
         if (activeType) params.append("type", activeType);
         params.append("page", String(page));
         params.append("size", "10");
-
-        const res = await fetch(`${API_BASE_URL}/api/v1/posts?${params.toString()}`);
+        const res = await fetch(
+          `${API_BASE_URL}/api/v1/posts?${params.toString()}`,
+        );
         const data = await res.json();
         setPosts(data.content ?? []);
         setTotalPages(data.totalPages ?? 0);
@@ -89,7 +115,6 @@ export default function CommunityPage() {
         setLoading(false);
       }
     };
-
     fetchPosts();
   }, [activeType, page]);
 
@@ -104,7 +129,6 @@ export default function CommunityPage() {
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
 
-      {/* Hero */}
       <section className="bg-[#f5f4ec] py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs font-medium tracking-widest uppercase text-[#6f5a55] mb-3">
@@ -119,7 +143,6 @@ export default function CommunityPage() {
         </div>
       </section>
 
-      {/* Tabs */}
       <div className="border-b border-[#efeee7] bg-white sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-1 overflow-x-auto py-3">
@@ -140,7 +163,6 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-[#75786c]">게시글 목록</p>
@@ -171,12 +193,19 @@ export default function CommunityPage() {
                 <article className="bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all cursor-pointer flex overflow-hidden">
                   {post.imageUrl && (
                     <div className="relative w-36 sm:w-48 shrink-0">
-                      <Image src={post.imageUrl} alt={post.title} fill className="object-cover" />
+                      <Image
+                        src={post.imageUrl}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                   )}
                   <div className="p-5 flex flex-col justify-between flex-1">
                     <div>
-                      <Badge className={`${typeColor[post.type]} border-0 text-xs mb-3`}>
+                      <Badge
+                        className={`${typeColor[post.type]} border-0 text-xs mb-3`}
+                      >
                         {typeLabel[post.type]}
                       </Badge>
                       <h3 className="font-[var(--font-display)] font-semibold text-[#1b1c18] text-base mb-2 leading-snug">
@@ -188,12 +217,10 @@ export default function CommunityPage() {
                     </div>
                     <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center gap-2">
-                        <Avatar className="w-7 h-7">
-                          <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
-                            {post.memberName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-[#75786c]">{post.memberName}</span>
+                        <MemberAvatar post={post} currentUser={user} />
+                        <span className="text-xs text-[#75786c]">
+                          {post.memberName}
+                        </span>
                       </div>
                       <span className="text-xs text-[#75786c]">
                         {new Date(post.createdAt).toLocaleDateString("ko-KR")}

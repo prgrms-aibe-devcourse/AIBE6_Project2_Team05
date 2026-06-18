@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
+import { UserProvider } from "@/contexts/UserContext";
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -32,8 +33,10 @@ export default function RootLayout({
       className={`${playfairDisplay.variable} ${beVietnamPro.variable} antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#fbf9f2] text-[#1b1c18]">
-        {children}
-        <ChatbotWidget />
+        <UserProvider>
+          {children}
+          <ChatbotWidget />
+        </UserProvider>
       </body>
     </html>
   );

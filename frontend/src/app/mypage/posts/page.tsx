@@ -5,6 +5,7 @@ import MySidebar from "@/components/mypage/MySidebar";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/contexts/UserContext";
 import {
   API_BASE_URL,
   clearAccessToken,
@@ -29,19 +30,11 @@ type RecruitPost = {
   createdAt: string;
 };
 
-type MemberRole = "CLIENT" | "FREELANCER";
-
 export default function MyPostsPage() {
   const router = useRouter();
+  const { clearUser } = useUser();
   const [posts, setPosts] = useState<RecruitPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [profileImg, setProfileImg] = useState<string | null>(null);
-  const [role, setRole] = useState<MemberRole | null>(null);
-  const [freelancerProfileId, setFreelancerProfileId] = useState<number | null>(
-    null,
-  );
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -49,30 +42,6 @@ export default function MyPostsPage() {
       router.push("/login");
       return;
     }
-
-    const fetchMe = async () => {
-      try {
-        const res = await authFetch(`${API_BASE_URL}/api/v1/members/me`);
-        if (res.ok) {
-          const data = await res.json();
-          setName(data.name ?? "");
-          setEmail(data.email ?? "");
-          setProfileImg(data.profileImageUrl ?? null);
-          setRole(data.role ?? null);
-          if (data.role === "FREELANCER") {
-            try {
-              const profileRes = await authFetch(
-                `${API_BASE_URL}/api/freelancers/me`,
-              );
-              if (profileRes.ok) {
-                const profileData = await profileRes.json();
-                setFreelancerProfileId(profileData.id);
-              }
-            } catch {}
-          }
-        }
-      } catch {}
-    };
 
     const fetchPosts = async () => {
       try {
@@ -83,8 +52,6 @@ export default function MyPostsPage() {
         setLoading(false);
       }
     };
-
-    fetchMe();
     fetchPosts();
   }, [router]);
 
@@ -95,6 +62,7 @@ export default function MyPostsPage() {
       headers: { ...createAuthHeaders() },
     }).catch(() => {});
     clearAccessToken();
+    clearUser();
     router.push("/login");
     router.refresh();
   };
@@ -122,13 +90,15 @@ export default function MyPostsPage() {
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/v1/jobs/${post.id}/status?status=${newStatus}`,
-        { method: "PATCH", headers: createAuthHeaders() },
+        {
+          method: "PATCH",
+          headers: createAuthHeaders(),
+        },
       );
-      if (res.ok) {
+      if (res.ok)
         setPosts((prev) =>
           prev.map((p) => (p.id === post.id ? { ...p, status: newStatus } : p)),
         );
-      }
     } catch {}
   };
 
@@ -137,15 +107,7 @@ export default function MyPostsPage() {
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
-          <MySidebar
-            name={name}
-            email={email}
-            profileImg={profileImg}
-            role={role}
-            freelancerProfileId={freelancerProfileId}
-            onLogout={handleLogout}
-          />
-
+          <MySidebar onLogout={handleLogout} />
           <main className="flex-1 space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
@@ -158,7 +120,6 @@ export default function MyPostsPage() {
                 + 새 구인글 작성
               </Link>
             </div>
-
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -190,18 +151,13 @@ export default function MyPostsPage() {
                   <Link key={post.id} href={`/jobs/${post.id}`}>
                     <div className="bg-white rounded-2xl border border-[#efeee7] p-5 hover:shadow-md hover:border-[#c5c8ba] transition-all cursor-pointer">
                       <div className="flex items-start justify-between gap-4">
-                        {/* 좌측: 내용 */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <Badge className="bg-[#d3ebac] text-[#4f6231] border-0 text-xs">
                               {post.categoryName}
                             </Badge>
                             <Badge
-                              className={`border-0 text-xs ${
-                                post.status === "OPEN"
-                                  ? "bg-[#f6d9d3] text-[#6f5a55]"
-                                  : "bg-[#efeee7] text-[#75786c]"
-                              }`}
+                              className={`border-0 text-xs ${post.status === "OPEN" ? "bg-[#f6d9d3] text-[#6f5a55]" : "bg-[#efeee7] text-[#75786c]"}`}
                             >
                               {post.status === "OPEN" ? "모집 중" : "마감"}
                             </Badge>
@@ -235,8 +191,6 @@ export default function MyPostsPage() {
                             </span>
                           </div>
                         </div>
-
-                        {/* 우측: 액션 버튼 */}
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             onClick={(e) => {
@@ -250,11 +204,7 @@ export default function MyPostsPage() {
                           </button>
                           <button
                             onClick={(e) => handleStatusChange(e, post)}
-                            className={`text-xs px-3 py-1.5 border rounded-lg transition-colors ${
-                              post.status === "OPEN"
-                                ? "border-[#c5c8ba] text-[#45483d] hover:bg-[#f5f4ec]"
-                                : "border-[#4f6231] text-[#4f6231] hover:bg-[#f0f4eb]"
-                            }`}
+                            className={`text-xs px-3 py-1.5 border rounded-lg transition-colors ${post.status === "OPEN" ? "border-[#c5c8ba] text-[#45483d] hover:bg-[#f5f4ec]" : "border-[#4f6231] text-[#4f6231] hover:bg-[#f0f4eb]"}`}
                           >
                             {post.status === "OPEN" ? "마감" : "재오픈"}
                           </button>

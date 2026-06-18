@@ -2,10 +2,11 @@
 
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/contexts/UserContext";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ type RecruitPost = {
   id: number;
   memberId: number;
   memberName: string;
+  memberImageUrl?: string | null;
   title: string;
   content: string;
   categoryId: number;
@@ -45,7 +47,28 @@ function JobSkeleton() {
   );
 }
 
+function MemberAvatar({
+  post,
+  currentUser,
+}: {
+  post: RecruitPost;
+  currentUser: { id: number; profileImageUrl: string | null } | null;
+}) {
+  const imageUrl =
+    post.memberImageUrl ||
+    (currentUser?.id === post.memberId ? currentUser?.profileImageUrl : null);
+  return (
+    <Avatar className="w-7 h-7">
+      {imageUrl && <AvatarImage src={imageUrl} alt={post.memberName} />}
+      <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
+        {post.memberName.charAt(0)}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
 export default function JobsPage() {
+  const { user } = useUser(); // ✅ 추가
   const [categories, setCategories] = useState<Category[]>([]);
   const [posts, setPosts] = useState<RecruitPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -308,11 +331,7 @@ export default function JobsPage() {
                   </p>
                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#efeee7]">
                     <div className="flex items-center gap-2">
-                      <Avatar className="w-7 h-7">
-                        <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
-                          {post.memberName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <MemberAvatar post={post} currentUser={user} />{" "}
                       <span className="text-xs text-[#75786c]">
                         {post.memberName}
                       </span>
@@ -358,6 +377,7 @@ export default function JobsPage() {
           </div>
         )}
       </div>
+
       <Footer />
     </div>
   );

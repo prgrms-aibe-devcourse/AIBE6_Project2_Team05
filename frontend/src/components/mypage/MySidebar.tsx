@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@/contexts/UserContext";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -11,24 +12,18 @@ const ROLE_LABEL: Record<MemberRole, string> = {
 };
 
 interface MySidebarProps {
-  name: string;
-  email: string;
-  profileImg: string | null;
-  role: MemberRole | null;
-  freelancerProfileId?: number | null;
-  activeTab?: string;
   onLogout: () => void;
 }
 
-export default function MySidebar({
-  name,
-  email,
-  profileImg,
-  role,
-  freelancerProfileId,
-  activeTab,
-  onLogout,
-}: MySidebarProps) {
+export default function MySidebar({ onLogout }: MySidebarProps) {
+  const { user } = useUser();
+
+  const name = user?.name ?? "";
+  const email = user?.email ?? "";
+  const profileImg = user?.profileImageUrl ?? null;
+  const role = user?.role ?? null;
+  const freelancerProfileId = user?.freelancerProfileId ?? null;
+
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
     { icon: "📅", label: "예약 내역", href: "/reservations" },
@@ -114,11 +109,7 @@ export default function MySidebar({
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231] ${
-                activeTab && item.href.includes(`tab=${activeTab}`)
-                  ? "bg-[#f5f4ec] text-[#4f6231] font-medium"
-                  : ""
-              }`}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231]"
             >
               <span>{item.icon}</span>
               {item.label}

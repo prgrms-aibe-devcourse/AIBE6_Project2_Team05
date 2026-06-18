@@ -5,6 +5,7 @@ import MySidebar from "@/components/mypage/MySidebar";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/contexts/UserContext";
 import {
   API_BASE_URL,
   clearAccessToken,
@@ -20,8 +21,6 @@ type ProposalStatus = "SUBMITTED" | "ACCEPTED" | "REJECTED";
 
 type Proposal = {
   id: number;
-  freelancerProfileId: number;
-  freelancerName: string;
   content: string;
   price: number | null;
   region: string | null;
@@ -44,49 +43,17 @@ const STATUS_DESC: Record<ProposalStatus, string> = {
   REJECTED: "아쉽게도 이번 제안은 수락되지 않았습니다.",
 };
 
-type MemberRole = "CLIENT" | "FREELANCER";
-
 export default function MyProposalsPage() {
   const router = useRouter();
+  const { clearUser } = useUser();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [profileImg, setProfileImg] = useState<string | null>(null);
-  const [role, setRole] = useState<MemberRole | null>(null);
-  const [freelancerProfileId, setFreelancerProfileId] = useState<number | null>(
-    null,
-  );
 
   useEffect(() => {
     if (!getAccessToken()) {
       router.push("/login");
       return;
     }
-
-    const fetchMe = async () => {
-      try {
-        const res = await authFetch(`${API_BASE_URL}/api/v1/members/me`);
-        if (res.ok) {
-          const data = await res.json();
-          setName(data.name ?? "");
-          setEmail(data.email ?? "");
-          setProfileImg(data.profileImageUrl ?? null);
-          setRole(data.role ?? null);
-          if (data.role === "FREELANCER") {
-            try {
-              const profileRes = await authFetch(
-                `${API_BASE_URL}/api/freelancers/me`,
-              );
-              if (profileRes.ok) {
-                const profileData = await profileRes.json();
-                setFreelancerProfileId(profileData.id);
-              }
-            } catch {}
-          }
-        }
-      } catch {}
-    };
 
     const fetchProposals = async () => {
       try {
@@ -99,8 +66,6 @@ export default function MyProposalsPage() {
         setLoading(false);
       }
     };
-
-    fetchMe();
     fetchProposals();
   }, [router]);
 
@@ -111,6 +76,7 @@ export default function MyProposalsPage() {
       headers: { ...createAuthHeaders() },
     }).catch(() => {});
     clearAccessToken();
+    clearUser();
     router.push("/login");
     router.refresh();
   };
@@ -120,15 +86,7 @@ export default function MyProposalsPage() {
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
-          <MySidebar
-            name={name}
-            email={email}
-            profileImg={profileImg}
-            role={role}
-            freelancerProfileId={freelancerProfileId}
-            onLogout={handleLogout}
-          />
-
+          <MySidebar onLogout={handleLogout} />
           <main className="flex-1 space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
@@ -138,7 +96,6 @@ export default function MyProposalsPage() {
                 총 {proposals.length}건
               </span>
             </div>
-
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
@@ -173,7 +130,6 @@ export default function MyProposalsPage() {
                       key={proposal.id}
                       className="bg-white rounded-2xl border border-[#efeee7] p-5 hover:shadow-md hover:border-[#c5c8ba] transition-all"
                     >
-                      {/* 상단: 상태 + 날짜 */}
                       <div className="flex items-center justify-between mb-3">
                         <Badge
                           className={`border-0 text-xs ${style.className}`}
@@ -186,18 +142,12 @@ export default function MyProposalsPage() {
                           )}
                         </span>
                       </div>
-
-                      {/* 상태 설명 */}
                       <p className="text-xs text-[#75786c] mb-3">
                         {STATUS_DESC[proposal.status]}
                       </p>
-
-                      {/* 제안 내용 */}
                       <p className="text-sm text-[#45483d] whitespace-pre-wrap mb-4 line-clamp-3 leading-relaxed">
                         {proposal.content}
                       </p>
-
-                      {/* 하단: 가격 + 지역 */}
                       <div className="flex items-center gap-4 pt-3 border-t border-[#efeee7]">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs text-[#75786c]">

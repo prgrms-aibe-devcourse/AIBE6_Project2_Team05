@@ -15,25 +15,19 @@ import {
   getAccessToken,
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
+import { useUser } from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type MemberRole = "CLIENT" | "FREELANCER";
 type ActiveTab = "info" | "profile" | "portfolio" | "reviews";
 
 export default function MyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, isLoading: userLoading, refreshUser, clearUser } = useUser();
   const [activeTab, setActiveTab] = useState<ActiveTab>("info");
 
-  const [profileImg, setProfileImg] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<MemberRole | null>(null);
-  const [freelancerProfileId, setFreelancerProfileId] = useState<number | null>(
-    null,
-  );
   const [profileInitialValues, setProfileInitialValues] =
     useState<ProfileFormValues | null>(null);
   const [currentPw, setCurrentPw] = useState("");
@@ -42,13 +36,15 @@ export default function MyPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [localProfileImg, setLocalProfileImg] = useState<string | null>(null);
+  const [localName, setLocalName] = useState("");
 
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "profile") setActiveTab("profile");
     else if (tab === "portfolio") setActiveTab("portfolio");
     else if (tab === "reviews") setActiveTab("reviews");
-    else if (tab === "info") setActiveTab("info");
+    else setActiveTab("info");
   }, [searchParams]);
 
   useEffect(() => {
@@ -65,11 +61,9 @@ export default function MyPage() {
         if (!response.ok)
           throw new Error(data?.message ?? "회원 정보를 불러오지 못했습니다.");
 
-        setName(data.name ?? "");
-        setEmail(data.email ?? "");
+        setLocalName(data.name ?? "");
         setPhone(data.phone ?? "");
-        setProfileImg(data.profileImageUrl ?? null);
-        setRole(data.role ?? null);
+        setLocalProfileImg(data.profileImageUrl ?? null);
 
         if (data.role === "FREELANCER") {
           try {
@@ -78,7 +72,6 @@ export default function MyPage() {
             );
             if (profileRes.ok) {
               const profileData = await profileRes.json();
-              setFreelancerProfileId(profileData.id);
               setProfileInitialValues({
                 categoryId: profileData.categoryId,
                 title: profileData.title ?? "",
@@ -123,7 +116,7 @@ export default function MyPage() {
     }
     try {
       const body: { name: string; phone: string; password?: string } = {
-        name,
+        name: localName,
         phone,
       };
       if (newPw) body.password = newPw;
@@ -135,12 +128,13 @@ export default function MyPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok)
         throw new Error(data?.message ?? "회원 정보 수정에 실패했습니다.");
-      setName(data.name ?? "");
+      setLocalName(data.name ?? "");
       setPhone(data.phone ?? "");
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
       setSuccessMessage("회원 정보가 저장되었습니다.");
+      await refreshUser(); // Context 업데이트
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -165,6 +159,7 @@ export default function MyPage() {
         credentials: "include",
       }).catch(() => {});
       clearAccessToken();
+      clearUser();
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -181,11 +176,12 @@ export default function MyPage() {
       headers: { ...createAuthHeaders() },
     }).catch(() => {});
     clearAccessToken();
+    clearUser();
     router.push("/login");
     router.refresh();
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] text-[#45483d]">
         회원 정보를 불러오는 중입니다...
@@ -198,31 +194,25 @@ export default function MyPage() {
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
-          <MySidebar
-            name={name}
-            email={email}
-            profileImg={profileImg}
-            role={role}
-            freelancerProfileId={freelancerProfileId}
-            activeTab={activeTab}
-            onLogout={handleLogout}
-          />
-
+          <MySidebar onLogout={handleLogout} />
           <main className="flex-1 space-y-6">
             {activeTab === "info" && (
               <InfoTab
-                name={name}
-                email={email}
+                name={localName}
+                email={user?.email ?? ""}
                 phone={phone}
-                profileImg={profileImg}
+                profileImg={localProfileImg}
                 currentPw={currentPw}
                 newPw={newPw}
                 confirmPw={confirmPw}
                 errorMessage={errorMessage}
                 successMessage={successMessage}
-                onNameChange={setName}
+                onNameChange={setLocalName}
                 onPhoneChange={setPhone}
-                onProfileImgChange={setProfileImg}
+                onProfileImgChange={(img) => {
+                  setLocalProfileImg(img);
+                  refreshUser();
+                }}
                 onCurrentPwChange={setCurrentPw}
                 onNewPwChange={setNewPw}
                 onConfirmPwChange={setConfirmPw}
@@ -235,12 +225,11 @@ export default function MyPage() {
                 onWithdraw={handleWithdraw}
               />
             )}
-
             {activeTab === "profile" &&
-              freelancerProfileId &&
+              user?.freelancerProfileId &&
               profileInitialValues && (
                 <FreelancerProfileTab
-                  freelancerProfileId={freelancerProfileId}
+                  freelancerProfileId={user.freelancerProfileId}
                   initialValues={profileInitialValues}
                   onSuccess={() => {
                     setSuccessMessage("프로필이 저장되었습니다.");
@@ -249,10 +238,9 @@ export default function MyPage() {
                   onCancel={() => setActiveTab("info")}
                 />
               )}
-
-            {activeTab === "portfolio" && freelancerProfileId && (
+            {activeTab === "portfolio" && user?.freelancerProfileId && (
               <PortfolioTab
-                freelancerProfileId={freelancerProfileId}
+                freelancerProfileId={user.freelancerProfileId}
                 onSuccess={() => {
                   setSuccessMessage("포트폴리오가 저장되었습니다.");
                   setActiveTab("info");
@@ -260,11 +248,10 @@ export default function MyPage() {
                 onCancel={() => setActiveTab("info")}
               />
             )}
-
             {activeTab === "reviews" && (
               <ReviewTab
-                freelancerProfileId={freelancerProfileId}
-                role={role}
+                freelancerProfileId={user?.freelancerProfileId ?? null}
+                role={user?.role ?? null}
               />
             )}
           </main>
