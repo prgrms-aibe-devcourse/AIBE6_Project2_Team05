@@ -1,21 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  fetchMyWrittenReviews,
+  fetchReceivedReviews,
+  ReviewApiError,
+  type ReviewResponse,
+} from "@/lib/reviews";
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   MessageSquareText,
-  RefreshCcw,
   Star,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  fetchReceivedReviews,
-  fetchMyWrittenReviews,
-  ReviewApiError,
-  type ReviewResponse,
-} from "@/lib/reviews";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 
 const PAGE_SIZE = 5;
 
@@ -51,8 +51,20 @@ function ReviewCard({ review }: { readonly review: ReviewResponse }) {
     <article className="rounded-2xl border border-[#efeee7] bg-white p-5 transition-shadow hover:shadow-[0_8px_30px_rgba(79,98,49,0.08)]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#d3ebac] text-sm font-semibold text-[#4f6231]">
-            {review.memberName.slice(0, 2)}
+          <div className="relative w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#d3ebac]">
+            {review.memberImageUrl ? (
+              <Image
+                src={review.memberImageUrl}
+                alt={review.memberName}
+                fill
+                sizes="44px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-[#4f6231]">
+                {review.memberName.slice(0, 2)}
+              </div>
+            )}
           </div>
           <div className="min-w-0">
             <h2 className="truncate text-sm font-semibold text-[#1b1c18]">
@@ -145,7 +157,6 @@ export default function ReviewTab({
   role,
 }: ReviewTabProps) {
   const isFreelancer = role === "FREELANCER";
-  // 프리랜서일 때 내부 탭: "written"(내가 쓴) | "received"(받은)
   const [innerTab, setInnerTab] = useState<"written" | "received">("written");
   const [writtenReviews, setWrittenReviews] = useState<
     readonly ReviewResponse[]
@@ -191,22 +202,10 @@ export default function ReviewTab({
 
   return (
     <>
-      <div className="flex items-center justify-between">
         <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
           리뷰 내역
         </h1>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => void loadReviews()}
-          className="h-10 rounded-xl border-[#c5c8ba] text-[#45483d] hover:border-[#4f6231] hover:text-[#4f6231]"
-        >
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          새로고침
-        </Button>
-      </div>
 
-      {/* 프리랜서일 때만 내부 탭 표시 */}
       {isFreelancer && (
         <div className="flex gap-1 p-1 bg-[#f5f4ec] rounded-xl w-fit">
           <button

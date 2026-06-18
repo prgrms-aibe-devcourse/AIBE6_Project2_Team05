@@ -16,6 +16,7 @@ export type ReviewResponse = {
   readonly id: number;
   readonly memberId: number;
   readonly memberName: string;
+  readonly memberImageUrl: string | null;
   readonly rating: number;
   readonly content: string;
   readonly createdAt: string;
@@ -77,6 +78,8 @@ function parseReview(value: unknown): ReviewResponse {
     memberId: typeof value.memberId === "number" ? value.memberId : 0,
     memberName:
       typeof value.memberName === "string" ? value.memberName : "익명",
+    memberImageUrl:
+      typeof value.memberImageUrl === "string" ? value.memberImageUrl : null,
     rating: typeof value.rating === "number" ? value.rating : 0,
     content: typeof value.content === "string" ? value.content : "",
     createdAt: typeof value.createdAt === "string" ? value.createdAt : "",
