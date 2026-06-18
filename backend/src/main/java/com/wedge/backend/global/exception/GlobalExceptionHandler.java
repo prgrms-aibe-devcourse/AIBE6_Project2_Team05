@@ -1,5 +1,7 @@
 package com.wedge.backend.global.exception;
 
+import com.wedge.backend.domain.chat.exception.ChatForbiddenException;
+import com.wedge.backend.domain.chat.exception.ChatNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,6 +21,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleLoginFailed(LoginFailedException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(ChatNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleChatNotFound(ChatNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(ChatForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleChatForbidden(ChatForbiddenException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
