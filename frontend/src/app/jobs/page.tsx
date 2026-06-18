@@ -53,7 +53,7 @@ export default function JobsPage() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [regionInput, setRegionInput] = useState("");
   const [region, setRegion] = useState("");
-  const [status, setStatus] = useState<RecruitStatus | null>(null);
+  const [status, setStatus] = useState<RecruitStatus | null>("OPEN");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -74,7 +74,7 @@ export default function JobsPage() {
         if (region.trim()) params.append("region", region.trim());
         if (status) params.append("status", status);
         params.append("page", String(page));
-        params.append("size", "12");
+        params.append("size", "6");
         params.append("sort", "createdAt,desc");
         const res = await fetch(
           `${API_BASE_URL}/api/v1/jobs?${params.toString()}`,
