@@ -2,13 +2,13 @@
 
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import BasicInfoForm from "@/components/mypage/BasicInfoForm";
+import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
 import MySidebar from "@/components/mypage/MySidebar";
+import PortfolioTab from "@/components/mypage/PortfolioTab";
 import ProfileImageUpload from "@/components/mypage/ProfileImageUpload";
 import SecurityForm from "@/components/mypage/SecurityForm";
-import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
-import PortfolioTab from "@/components/mypage/PortfolioTab";
-import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import { Button } from "@/components/ui/button";
 import {
   API_BASE_URL,
@@ -17,7 +17,7 @@ import {
   getAccessToken,
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type MemberRole = "CLIENT" | "FREELANCER";
@@ -25,6 +25,7 @@ type ActiveTab = "info" | "profile" | "portfolio";
 
 export default function MyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<ActiveTab>("info");
 
   const [profileImg, setProfileImg] = useState<string | null>(null);
@@ -43,6 +44,13 @@ export default function MyPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  // URL 쿼리 파라미터로 탭 초기값 설정
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "profile") setActiveTab("profile");
+    else if (tab === "portfolio") setActiveTab("portfolio");
+  }, [searchParams]);
 
   useEffect(() => {
     const token = getAccessToken();
@@ -205,7 +213,6 @@ export default function MyPage() {
           />
 
           <main className="flex-1 space-y-6">
-            {/* activeTab === "info"일 때만 기존 회원정보 수정 UI 렌더링 */}
             {activeTab === "info" && (
               <>
                 <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
@@ -266,7 +273,6 @@ export default function MyPage() {
               </>
             )}
 
-            {/* 프리랜서 프로필 수정 탭 */}
             {activeTab === "profile" &&
               freelancerProfileId &&
               profileInitialValues && (
@@ -281,7 +287,6 @@ export default function MyPage() {
                 />
               )}
 
-            {/* 포트폴리오 수정 탭 */}
             {activeTab === "portfolio" && freelancerProfileId && (
               <PortfolioTab
                 freelancerProfileId={freelancerProfileId}

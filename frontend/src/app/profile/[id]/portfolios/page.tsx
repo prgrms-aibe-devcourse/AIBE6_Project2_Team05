@@ -161,7 +161,7 @@ export default function PortfoliosPage({
             {isOwner && (
               <div className="ml-auto">
                 <Link
-                  href={`/freelancer/profile/edit/${id}/portfolios`}
+                  href={`/mypage?tab=portfolio`}
                   className="text-sm px-4 py-2 border border-[#6C814C] text-[#6C814C] rounded-xl hover:bg-[#f5f4ec] transition-colors"
                 >
                   포트폴리오 수정

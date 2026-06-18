@@ -264,7 +264,7 @@ export default function ProfilePage({
                 </button>
                 {isOwner && (
                   <Link
-                    href={`/freelancer/profile/edit/${id}`}
+                    href={`/mypage?tab=profile`}
                     className={cn(
                       buttonVariants({ variant: "outline" }),
                       "border-[#6C814C] text-[#6C814C] hover:bg-[#f5f4ec] rounded-xl px-6",
