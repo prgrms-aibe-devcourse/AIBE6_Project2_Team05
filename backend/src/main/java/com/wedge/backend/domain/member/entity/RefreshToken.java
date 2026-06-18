@@ -1,46 +1,28 @@
 package com.wedge.backend.domain.member.entity;
 
-import com.wedge.backend.global.entity.BaseTimeEntity;
-import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "refresh_tokens")
+@RedisHash(value = "refreshToken", timeToLive = 604800) // 7일
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RefreshToken extends BaseTimeEntity {
+@AllArgsConstructor
+public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
     private Long memberId;
 
-    @Column(nullable = false, length = 512)
+    @Indexed
     private String token;
 
-    @Column(nullable = false)
-    private LocalDateTime expiryDate;
-
-    @Builder
-    public RefreshToken(Long memberId, String token, LocalDateTime expiryDate) {
-        this.memberId = memberId;
-        this.token = token;
-        this.expiryDate = expiryDate;
-    }
-
-    public void updateToken(String newToken, LocalDateTime newExpiryDate) {
+    public void updateToken(String newToken) {
         this.token = newToken;
-        this.expiryDate = newExpiryDate;
-    }
-
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiryDate);
     }
 }

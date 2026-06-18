@@ -255,3 +255,17 @@ SELECT (SELECT id FROM members WHERE email = 'freelancer7@wedge.local'), (SELECT
 INSERT INTO freelancer_profiles (member_id, category_id, title, introduction, region, price, career_years, bookmark_count, created_at, updated_at)
 SELECT (SELECT id FROM members WHERE email = 'freelancer8@wedge.local'), (SELECT id FROM categories WHERE name = '드레스·정장'), '맞춤 웨딩 드레스', '신부의 개성을 살린 맞춤 드레스를 제작합니다.', '서울', 1500000, 12, 0, NOW(), NOW()
     WHERE NOT EXISTS (SELECT 1 FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'freelancer8@wedge.local'));
+
+UPDATE freelancer_profiles
+SET category_id = (SELECT id FROM categories WHERE name = 'Photography')
+WHERE category_id = (SELECT id FROM categories WHERE name = '웨딩 스냅사진');
+
+DELETE FROM categories WHERE name = '웨딩 스냅사진';
+
+UPDATE categories
+SET name = '웨딩 스냅사진'
+WHERE name = 'Photography';
+
+UPDATE categories
+SET name = '헤어·메이크업'
+WHERE name = '헤어&메이크업';

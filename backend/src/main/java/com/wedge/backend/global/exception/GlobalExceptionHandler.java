@@ -1,5 +1,7 @@
 package com.wedge.backend.global.exception;
 
+import com.wedge.backend.domain.chat.exception.ChatForbiddenException;
+import com.wedge.backend.domain.chat.exception.ChatNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,6 +23,18 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), e.getMessage()));
     }
 
+    @ExceptionHandler(ChatNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleChatNotFound(ChatNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(ChatForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleChatForbidden(ChatForbiddenException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.badRequest()
@@ -29,8 +43,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
-        return ResponseEntity.status(HttpStatus.LOCKED)
-                .body(new ErrorResponse(HttpStatus.LOCKED.value(), e.getMessage()));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -52,7 +66,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AiGenerationException.class)
     public ResponseEntity<ErrorResponse> handleAiGeneration(AiGenerationException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()));
+        return ResponseEntity.status(e.getStatus())
+                .body(new ErrorResponse(e.getStatus().value(), e.getMessage()));
     }
 }

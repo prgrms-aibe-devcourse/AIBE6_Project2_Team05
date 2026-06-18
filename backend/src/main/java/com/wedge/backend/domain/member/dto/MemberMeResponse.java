@@ -18,6 +18,7 @@ public class MemberMeResponse {
     private Role role;
     private Provider provider;
     private MemberStatus status;
+    private String profileImageUrl;
 
     public static MemberMeResponse from(Member member) {
         return new MemberMeResponse(
@@ -27,7 +28,8 @@ public class MemberMeResponse {
                 member.getPhone(),
                 member.getRole(),
                 member.getProvider(),
-                member.getStatus()
+                member.getStatus(),
+                member.getProfileImageUrl()
         );
     }
 }

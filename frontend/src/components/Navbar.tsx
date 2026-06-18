@@ -22,6 +22,7 @@ export default function Navbar() {
     { href: "/search?category=flower", label: "플라워" },
     { href: "/search?category=catering", label: "케이터링" },
     { href: "/community", label: "커뮤니티" },
+    { href: "/jobs", label: "전문가 찾기" },
   ];
 
   useEffect(() => {

@@ -13,12 +13,9 @@ import com.wedge.backend.global.exception.LoginFailedException;
 import com.wedge.backend.global.exception.MemberNotFoundException;
 import com.wedge.backend.global.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,9 +26,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
-
-    @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
 
     @Transactional
     public void signUp(SignUpRequest request) {
@@ -67,20 +61,11 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(member.getId(), member.getRole().name());
         String refreshToken = jwtUtil.generateRefreshToken(member.getId(), member.getRole().name());
 
-        // Refresh Token 저장 또는 업데이트
-        LocalDateTime expiryDate = LocalDateTime.now().plusSeconds(refreshExpiration / 1000);
-        RefreshToken tokenEntity = refreshTokenRepository.findByMemberId(member.getId())
-                .map(token -> {
-                    token.updateToken(refreshToken, expiryDate);
-                    return token;
-                })
-                .orElseGet(() -> RefreshToken.builder()
-                        .memberId(member.getId())
-                        .token(refreshToken)
-                        .expiryDate(expiryDate)
-                        .build());
-
-        refreshTokenRepository.save(tokenEntity);
+        // memberId를 키로 저장 — 이미 존재하면 덮어씀 (upsert)
+        refreshTokenRepository.save(RefreshToken.builder()
+                .memberId(member.getId())
+                .token(refreshToken)
+                .build());
 
         return new TokenDto(accessToken, refreshToken);
     }
@@ -92,34 +77,30 @@ public class AuthService {
             throw new LoginFailedException("유효하지 않은 리프레시 토큰입니다.");
         }
 
-        // 2. DB에서 토큰 조회 및 일치 여부 확인
+        // 2. Redis에서 토큰 조회 — 존재하지 않으면 만료되었거나 무효화된 것
         RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new LoginFailedException("존재하지 않거나 무효화된 리프레시 토큰입니다."));
+                .orElseThrow(() -> new LoginFailedException("존재하지 않거나 만료된 리프레시 토큰입니다."));
 
-        // 3. 토큰 만료 여부 확인 (DB 기준 만료 시간 체크)
-        if (tokenEntity.isExpired()) {
-            refreshTokenRepository.delete(tokenEntity);
-            throw new LoginFailedException("만료된 리프레시 토큰입니다. 다시 로그인해주세요.");
-        }
-
-        // 4. 새로운 토큰 쌍 생성 (RTR - Refresh Token Rotation)
+        // 3. 회원 조회
         Long memberId = tokenEntity.getMemberId();
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("존재하지 않는 회원입니다."));
 
-        // 탈퇴한 회원의 refresh token이 만료 전에 남아있는 경우를 대비한 방어 로직
+        // 탈퇴한 회원 방어 로직
         if (member.getStatus() == MemberStatus.DELETED) {
-            refreshTokenRepository.delete(tokenEntity);
+            refreshTokenRepository.deleteById(memberId);
             throw new IllegalStateException("탈퇴한 회원입니다.");
         }
 
+        // 4. 새로운 토큰 쌍 생성 (RTR - Refresh Token Rotation)
         String newAccessToken = jwtUtil.generateAccessToken(memberId, member.getRole().name());
         String newRefreshToken = jwtUtil.generateRefreshToken(memberId, member.getRole().name());
 
-        // 5. DB 갱신
-        LocalDateTime expiryDate = LocalDateTime.now().plusSeconds(refreshExpiration / 1000);
-        tokenEntity.updateToken(newRefreshToken, expiryDate);
-        refreshTokenRepository.save(tokenEntity);
+        // 5. Redis 갱신 (upsert)
+        refreshTokenRepository.save(RefreshToken.builder()
+                .memberId(memberId)
+                .token(newRefreshToken)
+                .build());
 
         return new TokenDto(newAccessToken, newRefreshToken);
     }
@@ -133,6 +114,6 @@ public class AuthService {
     @Transactional
     public void logoutByRefreshToken(String refreshToken) {
         refreshTokenRepository.findByToken(refreshToken)
-                .ifPresent(refreshTokenRepository::delete);
+                .ifPresent(token -> refreshTokenRepository.deleteById(token.getMemberId()));
     }
 }

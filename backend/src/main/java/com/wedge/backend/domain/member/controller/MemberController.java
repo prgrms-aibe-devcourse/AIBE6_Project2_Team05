@@ -5,14 +5,13 @@ import com.wedge.backend.domain.member.dto.MemberUpdateRequest;
 import com.wedge.backend.domain.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/members")
@@ -33,6 +32,14 @@ public class MemberController {
         @Valid MemberUpdateRequest request) {
         Long memberId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(memberService.updateMyInfo(memberId, request));
+    }
+
+    @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MemberMeResponse> updateProfileImage(
+            Authentication authentication,
+            @RequestParam MultipartFile image) throws IOException {
+        Long memberId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(memberService.updateProfileImage(memberId, image));
     }
 
     @DeleteMapping("/me")

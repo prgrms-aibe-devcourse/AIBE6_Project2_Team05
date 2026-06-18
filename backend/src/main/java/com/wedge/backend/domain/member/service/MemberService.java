@@ -6,9 +6,13 @@ import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.domain.member.repository.MemberRepository;
 import com.wedge.backend.domain.member.repository.RefreshTokenRepository;
 import com.wedge.backend.global.exception.MemberNotFoundException;
+import com.wedge.backend.global.storage.R2FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final R2FileUploadService r2FileUploadService;
 
     public MemberMeResponse getMyInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
@@ -32,6 +37,15 @@ public class MemberService {
 
         member.updateProfile(request.getName(), request.getPhone());
 
+        return MemberMeResponse.from(member);
+    }
+
+    @Transactional
+    public MemberMeResponse updateProfileImage(Long memberId, MultipartFile image) throws IOException {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("회원 정보를 찾을 수 없습니다."));
+        String imageUrl = r2FileUploadService.upload(image, "profiles");
+        member.updateProfileImage(imageUrl);
         return MemberMeResponse.from(member);
     }
 

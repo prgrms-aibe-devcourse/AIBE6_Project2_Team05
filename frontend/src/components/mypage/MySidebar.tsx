@@ -17,11 +17,18 @@ const sidebarMenu = [
   },
 ];
 
+type MemberRole = "CLIENT" | "FREELANCER";
+
+const ROLE_LABEL: Record<MemberRole, string> = {
+  CLIENT: "예비부부",
+  FREELANCER: "프리랜서",
+};
+
 interface MySidebarProps {
   name: string;
   email: string;
   profileImg: string | null;
-  role: "CLIENT" | "FREELANCER" | null;
+  role: MemberRole | null;
   onLogout: () => void;
 }
 
@@ -55,6 +62,11 @@ export default function MySidebar({
             <div>
               <p className="font-semibold text-[#1b1c18] text-sm">{name}</p>
               <p className="text-xs text-[#75786c]">{email}</p>
+              {role && (
+                <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#e8f5d0] text-[#4f6231]">
+                  {ROLE_LABEL[role]}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -62,7 +74,9 @@ export default function MySidebar({
           {sidebarMenu
             .filter(
               (item) =>
-                item.href !== "/mypage/reviews" || role === "FREELANCER",
+                (item.href !== "/mypage/reviews" &&
+                  item.href !== "/freelancer/profile/manage") ||
+                role === "FREELANCER",
             )
             .map((item) => (
               <Link
