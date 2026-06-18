@@ -36,6 +36,7 @@ export type FreelancerProfileResponse = {
   readonly id: number;
   readonly memberId: number;
   readonly memberName: string;
+  readonly memberImageUrl: string | null;
   readonly categoryId: number;
   readonly categoryName: string;
   readonly title: string;
