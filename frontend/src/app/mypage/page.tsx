@@ -2,13 +2,14 @@
 
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import BasicInfoForm from "@/components/mypage/BasicInfoForm";
-import MySidebar from "@/components/mypage/MySidebar";
-import ProfileImageUpload from "@/components/mypage/ProfileImageUpload";
-import SecurityForm from "@/components/mypage/SecurityForm";
 import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
+import MySidebar from "@/components/mypage/MySidebar";
 import PortfolioTab from "@/components/mypage/PortfolioTab";
+import ProfileImageUpload from "@/components/mypage/ProfileImageUpload";
 import ReviewTab from "@/components/mypage/ReviewTab";
+import SecurityForm from "@/components/mypage/SecurityForm";
 import { Button } from "@/components/ui/button";
 import {
   API_BASE_URL,
@@ -17,7 +18,6 @@ import {
   getAccessToken,
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
-import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -51,6 +51,7 @@ export default function MyPage() {
     if (tab === "profile") setActiveTab("profile");
     else if (tab === "portfolio") setActiveTab("portfolio");
     else if (tab === "reviews") setActiveTab("reviews");
+    else if (tab === "info") setActiveTab("info");
   }, [searchParams]);
 
   useEffect(() => {
@@ -209,7 +210,6 @@ export default function MyPage() {
             role={role}
             freelancerProfileId={freelancerProfileId}
             activeTab={activeTab}
-            onTabChange={setActiveTab}
             onLogout={handleLogout}
           />
 
