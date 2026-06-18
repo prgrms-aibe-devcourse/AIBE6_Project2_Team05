@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { createAuthHeaders } from "@/lib/auth";
 import {
+  fetchFreelancerProfile,
   fetchReservations,
   ReservationApiError,
   type ReservationResponse,
@@ -23,6 +24,9 @@ function getErrorMessage(error: unknown): string {
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<readonly ReservationResponse[]>([]);
+  const [profileImageUrls, setProfileImageUrls] = useState<
+    Readonly<Record<number, string | null>>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -40,6 +44,20 @@ export default function ReservationsPage() {
       ]);
 
       setReservations(resData);
+
+      const freelancerProfileIds = [...new Set(resData.map((reservation) => reservation.freelancerProfileId))];
+      const profileResults = await Promise.allSettled(
+        freelancerProfileIds.map((profileId) => fetchFreelancerProfile(profileId)),
+      );
+      const nextProfileImageUrls: Record<number, string | null> = {};
+      for (const [index, profileId] of freelancerProfileIds.entries()) {
+        const result = profileResults[index];
+        nextProfileImageUrls[profileId] =
+          result?.status === "fulfilled" ? result.value.memberImageUrl : null;
+      }
+
+      setProfileImageUrls(nextProfileImageUrls);
+
       if (meRes.ok) {
         const meData = await meRes.json();
         setUserRole(meData.role);
@@ -71,6 +89,7 @@ export default function ReservationsPage() {
 
         <ReservationList
           reservations={reservations}
+          profileImageUrls={profileImageUrls}
           isLoading={isLoading}
           errorMessage={errorMessage}
           userRole={userRole}

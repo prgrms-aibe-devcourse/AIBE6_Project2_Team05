@@ -19,6 +19,7 @@ const reservationTabs = [
 
 type ReservationListProps = {
   readonly reservations: readonly ReservationResponse[];
+  readonly profileImageUrls: Readonly<Record<number, string | null>>;
   readonly isLoading: boolean;
   readonly errorMessage: string | null;
   readonly userRole: string | null;
@@ -28,6 +29,7 @@ type ReservationListProps = {
 
 export function ReservationList({
   reservations,
+  profileImageUrls,
   isLoading,
   errorMessage,
   userRole,
@@ -77,6 +79,9 @@ export function ReservationList({
               <ReservationCard
                 key={reservation.id}
                 reservation={reservation}
+                profileImageUrl={
+                  profileImageUrls[reservation.freelancerProfileId] ?? null
+                }
                 userRole={userRole}
                 onRefresh={onRefresh}
               />
