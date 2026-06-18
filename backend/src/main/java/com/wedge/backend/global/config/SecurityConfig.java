@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/ws",
                                 "/ws/**",
                                 "/oauth2/**",
+                                "/api/chatbot/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

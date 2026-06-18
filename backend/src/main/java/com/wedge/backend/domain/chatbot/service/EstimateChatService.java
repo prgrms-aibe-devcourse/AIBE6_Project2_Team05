@@ -6,11 +6,14 @@ import com.wedge.backend.domain.chatbot.dto.MessageHistory;
 import com.wedge.backend.global.exception.AiGenerationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -22,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class EstimateChatService {
 
-    private final RestClient restClient;
+    private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final EstimatePromptProvider promptProvider;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -30,23 +33,15 @@ public class EstimateChatService {
     private static final String CHAT_KEY_PREFIX = "chatbot:estimate:";
     private static final long TTL_MINUTES = 30L;
 
-    @Value("${gemini.api-key}")
-    private String apiKey;
-
-    @Value("${gemini.url}")
-    private String geminiUrl;
-
     public ChatResponse chat(ChatRequest request) {
 
         String sessionId = resolveSessionId(request);
         String redisKey = CHAT_KEY_PREFIX + sessionId;
 
         List<MessageHistory> history = getHistory(redisKey);
+        List<Message> messages = buildMessages(history, request.getUserMessage());
 
-        List<Map<String, Object>> contents = buildContents(history, request.getUserMessage());
-
-        String rawResponse = callGeminiApi(Map.of("contents", contents));
-        String aiMessage = parseResponse(rawResponse);
+        String aiMessage = callChatApi(messages);
 
         saveHistory(redisKey, request.getUserMessage(), aiMessage);
 
@@ -83,78 +78,67 @@ public class EstimateChatService {
     private void saveHistory(String redisKey, String userMessage, String aiMessage) {
         List<MessageHistory> history = getHistory(redisKey);
         history.add(new MessageHistory("user", userMessage));
-        history.add(new MessageHistory("model", aiMessage));
+        history.add(new MessageHistory("assistant", aiMessage));
         redisTemplate.opsForValue().set(redisKey, history, TTL_MINUTES, TimeUnit.MINUTES);
     }
 
-    private List<Map<String, Object>> buildContents(
-            List<MessageHistory> history, String currentUserMessage) {
+    private List<Message> buildMessages(List<MessageHistory> history, String currentUserMessage) {
+        List<Message> messages = new ArrayList<>();
 
-        List<Map<String, Object>> contents = new ArrayList<>();
+        // 시스템 프롬프트
+        messages.add(new SystemMessage(promptProvider.buildSystemPrompt()));
 
-        contents.add(makeContent("user", promptProvider.buildSystemPrompt()));
-        contents.add(makeContent("model",
-                "안녕하세요! Wedge 견적 챗봇입니다 💍 " +
-                        "원하시는 웨딩 서비스를 선택해 주세요! " +
-                        "(스튜디오 촬영 / 드레스 대여 / 헤어메이크업 / 부케 / 영상 촬영)"));
-
+        // 대화 히스토리
         for (MessageHistory h : history) {
-            contents.add(makeContent(h.getRole(), h.getContent()));
-        }
-
-        contents.add(makeContent("user", currentUserMessage));
-
-        return contents;
-    }
-
-    private Map<String, Object> makeContent(String role, String text) {
-        return Map.of(
-                "role", role,
-                "parts", List.of(Map.of("text", text))
-        );
-    }
-
-    private String callGeminiApi(Map<String, Object> requestBody) {
-        return restClient
-                .post()
-                .uri(geminiUrl + "?key=" + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
-    }
-
-    private String parseResponse(String response) {
-        try {
-            JsonNode root = objectMapper.readTree(response);
-            String text = root
-                    .path("candidates").get(0)
-                    .path("content")
-                    .path("parts").get(0)
-                    .path("text")
-                    .asText();
-
-            if (text == null || text.isBlank()) {
-                throw new AiGenerationException("챗봇 응답이 비어있습니다. 다시 시도해 주세요.");
+            if ("user".equals(h.getRole())) {
+                messages.add(new UserMessage(h.getContent()));
+            } else {
+                messages.add(new AssistantMessage(h.getContent()));
             }
-            return text;
+        }
 
-        } catch (RuntimeException e) {
-            throw e;
+        // 현재 사용자 메시지
+        messages.add(new UserMessage(currentUserMessage));
+        if (history.size() >= 4) {
+            messages.add(new UserMessage(
+                    "이제 세 가지 정보를 모두 받았습니다. " +
+                            "반드시 JSON 형식으로만 응답하세요. " +
+                            "다른 텍스트는 절대 포함하지 마세요."
+            ));
+        }
+        return messages;
+    }
+
+    private String callChatApi(List<Message> messages) {
+        try {
+            return chatClient.prompt()
+                    .messages(messages)
+                    .call()
+                    .content();
         } catch (Exception e) {
-            log.error("Gemini 응답 파싱 실패: {}", e.getMessage());
-            throw new AiGenerationException("챗봇 응답 처리에 실패했습니다.");
+            log.error("ChatGPT API 호출 실패: {}", e.getMessage());
+            throw new AiGenerationException(
+                    "AI 서비스 호출에 실패했습니다.",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
+
 
     private ChatResponse parseEstimateResult(String aiMessage, String sessionId) {
+        log.info("AI 원본 응답: {}", aiMessage);
         try {
-            String cleaned = aiMessage
-                    .replaceAll("(?s)```json\\s*", "")
-                    .replaceAll("```", "")
-                    .trim();
 
-            JsonNode node = objectMapper.readTree(cleaned);
+            int start = aiMessage.indexOf("{");
+            int end = aiMessage.lastIndexOf("}") + 1;
+
+            if (start == -1 || end == 0) {
+                log.error("JSON을 찾을 수 없음. start={}, end={}", start, end);
+                throw new AiGenerationException("견적 결과를 파싱할 수 없습니다.");
+            }
+
+            String jsonStr = aiMessage.substring(start, end);
+            JsonNode node = objectMapper.readTree(jsonStr);
 
             List<String> services = new ArrayList<>();
             node.path("selectedServices").forEach(s -> services.add(s.asText()));

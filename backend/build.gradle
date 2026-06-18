@@ -15,6 +15,13 @@ java {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:2.0.0-M2"
+	}
 }
 
 dependencies {
@@ -48,6 +55,8 @@ dependencies {
 	implementation 'software.amazon.awssdk:s3:2.25.6'
 	//웹소켓 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	// Spring AI OpenAI 추가
+	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 }
 
 tasks.named('test') {

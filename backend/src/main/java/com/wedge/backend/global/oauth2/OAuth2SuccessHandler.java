@@ -12,10 +12,8 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -24,14 +22,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
-
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
     @Override
-    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
@@ -43,27 +37,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtUtil.generateAccessToken(memberId, role);
         String refreshToken = jwtUtil.generateRefreshToken(memberId, role);
 
-        // Refresh Token 저장 또는 업데이트
-        LocalDateTime expiryDate = LocalDateTime.now().plusSeconds(refreshExpiration / 1000);
-        RefreshToken tokenEntity = refreshTokenRepository.findByMemberId(memberId)
-                .map(token -> {
-                    token.updateToken(refreshToken, expiryDate);
-                    return token;
-                })
-                .orElseGet(() -> RefreshToken.builder()
-                        .memberId(memberId)
-                        .token(refreshToken)
-                        .expiryDate(expiryDate)
-                        .build());
+        // memberId를 키로 저장 — 이미 존재하면 덮어씀 (upsert)
+        refreshTokenRepository.save(RefreshToken.builder()
+                .memberId(memberId)
+                .token(refreshToken)
+                .build());
 
-        refreshTokenRepository.save(tokenEntity);
-
-        // 리프레시 토큰은 HttpOnly 쿠키로 구워서 응답에 추가
+        // 리프레시 토큰은 HttpOnly 쿠키로 응답에 추가
         ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60) // 7일
+                .maxAge(7 * 24 * 60 * 60)
                 .sameSite("None")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

@@ -1,5 +1,6 @@
 package com.wedge.backend.domain.chatbot.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,6 +12,7 @@ public class ChatResponse {
 
     private String sessionId;
     private String message;
+    @JsonProperty("isDone")
     private boolean isDone;
     private EstimateResult estimate;
 
