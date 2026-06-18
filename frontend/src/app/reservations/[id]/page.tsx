@@ -217,16 +217,30 @@ export default function ReservationDetailPage({
               {chatStarting ? "채팅방 여는 중..." : "실시간 채팅하기"}
             </Button>
 
-            {!isFreelancer && (reservation.status === "REQUESTED" || reservation.status === "ACCEPTED") && (
-              <Button
-                variant="outline"
-                disabled={updating}
-                className="bg-white border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                onClick={() => handleStatusChange(cancelReservation, "취소")}
-              >
-                예약 취소하기
-              </Button>
+            {/* 의뢰자: 요청 상태에서만 취소 가능 */}
+            {!isFreelancer && reservation.status === "REQUESTED" && (
+                <Button
+                    variant="outline"
+                    disabled={updating}
+                    className="bg-white border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+                    onClick={() => handleStatusChange(cancelReservation, "취소")}
+                >
+                  예약 취소하기
+                </Button>
             )}
+
+            {/* 프리랜서: 수락 상태에서 취소 가능 */}
+            {isFreelancer &&
+                (reservation.status === "ACCEPTED") && (
+                    <Button
+                        variant="outline"
+                        disabled={updating}
+                        className="bg-white border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+                        onClick={() => handleStatusChange(cancelReservation, "취소")}
+                    >
+                      예약 취소하기
+                    </Button>
+                )}
 
             {isFreelancer && reservation.status === "REQUESTED" && (
               <>
