@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, createAuthHeaders, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type RecruitStatus = "OPEN" | "CLOSED";
 type ProposalStatus = "SUBMITTED" | "ACCEPTED" | "REJECTED";
@@ -58,7 +58,6 @@ export default function JobDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [myMemberId, setMyMemberId] = useState<number | null>(null);
   const [myRole, setMyRole] = useState<string | null>(null);
-
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [proposalContent, setProposalContent] = useState("");
   const [proposalPrice, setProposalPrice] = useState("");
@@ -72,7 +71,6 @@ export default function JobDetailPage() {
       router.replace(`/login?redirect=/jobs/${id}`);
       return;
     }
-
     const fetchPost = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/jobs/${id}`);
@@ -84,7 +82,6 @@ export default function JobDetailPage() {
         setLoading(false);
       }
     };
-
     const fetchMe = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
@@ -97,7 +94,6 @@ export default function JobDetailPage() {
         }
       } catch {}
     };
-
     fetchPost();
     fetchMe();
   }, [id, router]);
@@ -153,7 +149,6 @@ export default function JobDetailPage() {
       };
       if (proposalPrice) body.price = Number(proposalPrice);
       if (proposalRegion) body.region = proposalRegion;
-
       const res = await authFetch(
         `${API_BASE_URL}/api/v1/jobs/${id}/proposals`,
         {
@@ -162,7 +157,6 @@ export default function JobDetailPage() {
           body: JSON.stringify(body),
         },
       );
-
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.message ?? "제안서 제출에 실패했습니다.");
@@ -225,7 +219,7 @@ export default function JobDetailPage() {
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <Link
-          href="/mypage/posts"
+          href="/jobs"
           className="flex items-center gap-1 text-sm text-[#75786c] hover:text-[#45483d] mb-8"
         >
           <svg
@@ -263,11 +257,7 @@ export default function JobDetailPage() {
                     {post.categoryName}
                   </Badge>
                   <Badge
-                    className={`border-0 text-xs ${
-                      post.status === "OPEN"
-                        ? "bg-[#f6d9d3] text-[#6f5a55]"
-                        : "bg-[#efeee7] text-[#75786c]"
-                    }`}
+                    className={`border-0 text-xs ${post.status === "OPEN" ? "bg-[#f6d9d3] text-[#6f5a55]" : "bg-[#efeee7] text-[#75786c]"}`}
                   >
                     {post.status === "OPEN" ? "모집 중" : "마감"}
                   </Badge>
@@ -354,7 +344,6 @@ export default function JobDetailPage() {
           </div>
         ) : null}
 
-        {/* 작성자: 받은 제안서 목록 */}
         {post && !loading && isAuthor && (
           <div className="bg-white rounded-2xl border border-[#efeee7] p-6 sm:p-8 mt-6">
             <h2 className="font-[var(--font-display)] text-lg font-semibold text-[#1b1c18] mb-4">
@@ -372,7 +361,6 @@ export default function JobDetailPage() {
                     key={proposal.id}
                     className="border border-[#efeee7] rounded-2xl p-5 hover:border-[#c5c8ba] transition-colors"
                   >
-                    {/* 제안서 헤더 */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
@@ -383,7 +371,6 @@ export default function JobDetailPage() {
                         <Link
                           href={`/profile/${proposal.freelancerProfileId}`}
                           className="text-sm font-medium text-[#1b1c18] hover:text-[#4f6231] hover:underline"
-                          onClick={(e) => e.stopPropagation()}
                         >
                           {proposal.freelancerName}
                         </Link>
@@ -399,13 +386,9 @@ export default function JobDetailPage() {
                         )}
                       </span>
                     </div>
-
-                    {/* 제안 내용 */}
                     <p className="text-sm text-[#45483d] whitespace-pre-wrap mb-4 leading-relaxed line-clamp-3">
                       {proposal.content}
                     </p>
-
-                    {/* 가격/지역 + 수락/거절 */}
                     <div className="flex items-center justify-between pt-3 border-t border-[#efeee7]">
                       <div className="flex items-center gap-4">
                         <div>
@@ -457,7 +440,6 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        {/* 프리랜서: 제안서 제출 폼 */}
         {post &&
           !loading &&
           myRole === "FREELANCER" &&
@@ -470,7 +452,6 @@ export default function JobDetailPage() {
               <p className="text-xs text-[#75786c] mb-5">
                 예비부부에게 나의 서비스를 제안해보세요.
               </p>
-
               {proposalError && (
                 <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-500 mb-4">
                   {proposalError}
@@ -481,7 +462,6 @@ export default function JobDetailPage() {
                   {proposalSuccess}
                 </p>
               )}
-
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#45483d] mb-1">
