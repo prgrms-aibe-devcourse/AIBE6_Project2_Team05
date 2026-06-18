@@ -1,5 +1,6 @@
 package com.wedge.backend.domain.freelancer.controller;
 
+import com.wedge.backend.domain.freelancer.dto.PortfolioRequestDto;
 import com.wedge.backend.domain.freelancer.dto.PortfolioResponseDto;
 import com.wedge.backend.domain.freelancer.service.PortfolioService;
 import com.wedge.backend.global.util.AuthUtil;
@@ -24,28 +25,58 @@ public class PortfolioController {
     private final PortfolioService portfolioService;
     private final AuthUtil authUtil;
 
-    @Operation(summary = "포트폴리오 목록 조회", description = "비로그인 시 3장, 로그인 시 전체 조회")
+    @Operation(summary = "포트폴리오 목록 조회")
     @GetMapping
     public ResponseEntity<List<PortfolioResponseDto>> getPortfolios(
             @PathVariable Long profileId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isLoggedIn = auth != null && auth.isAuthenticated()
                 && !auth.getPrincipal().equals("anonymousUser");
-
         return ResponseEntity.ok(portfolioService.getPortfolios(profileId, isLoggedIn));
     }
 
-    @Operation(summary = "포트폴리오 등록", description = "이미지를 Cloudflare R2에 업로드하고 포트폴리오를 등록합니다. 본인 프로필에만 등록 가능합니다. 파일 크기 10MB 이하.")
+    @Operation(summary = "포트폴리오 등록")
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<PortfolioResponseDto> createPortfolio(
             @PathVariable Long profileId,
             @RequestParam MultipartFile image,
-            @RequestParam(required = false) String description,
-            @RequestParam(defaultValue = "0") int sortOrder) throws IOException {
-        return ResponseEntity.ok(portfolioService.createPortfolio(authUtil.getCurrentMember(), profileId, image, description, sortOrder));
+            @ModelAttribute PortfolioRequestDto dto) throws IOException {
+        return ResponseEntity.ok(
+                portfolioService.createPortfolio(authUtil.getCurrentMember(), profileId, image, dto));
     }
 
-    @Operation(summary = "포트폴리오 삭제", description = "포트폴리오와 R2 이미지를 함께 삭제합니다. 본인 포트폴리오만 삭제 가능합니다.")
+    @Operation(summary = "포트폴리오 추가 이미지 업로드")
+    @PostMapping(value = "/{portfolioId}/images", consumes = "multipart/form-data")
+    public ResponseEntity<PortfolioResponseDto> addImage(
+            @PathVariable Long profileId,
+            @PathVariable Long portfolioId,
+            @RequestParam MultipartFile image) throws IOException {
+        return ResponseEntity.ok(
+                portfolioService.addImage(authUtil.getCurrentMember(), portfolioId, image));
+    }
+
+    @Operation(summary = "포트폴리오 추가 이미지 삭제")
+    @DeleteMapping("/{portfolioId}/images/{imageId}")
+    public ResponseEntity<Void> deleteImage(
+            @PathVariable Long profileId,
+            @PathVariable Long portfolioId,
+            @PathVariable Long imageId) {
+        portfolioService.deleteImage(authUtil.getCurrentMember(), portfolioId, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "포트폴리오 수정")
+    @PatchMapping(value = "/{portfolioId}", consumes = "multipart/form-data")
+    public ResponseEntity<PortfolioResponseDto> updatePortfolio(
+            @PathVariable Long profileId,
+            @PathVariable Long portfolioId,
+            @RequestParam(required = false) MultipartFile image,
+            @ModelAttribute PortfolioRequestDto dto) throws IOException {
+        return ResponseEntity.ok(
+                portfolioService.updatePortfolio(authUtil.getCurrentMember(), portfolioId, image, dto));
+    }
+
+    @Operation(summary = "포트폴리오 삭제")
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<Void> deletePortfolio(
             @PathVariable Long profileId,

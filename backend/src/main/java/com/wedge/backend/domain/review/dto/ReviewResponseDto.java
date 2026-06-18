@@ -9,7 +9,8 @@ public class ReviewResponseDto {
     private Long reservationId;
     private Long memberId;
     private String memberName;
-    private Long freelancerProfileId; // 추가
+    private String memberImageUrl;
+    private Long freelancerProfileId;
     private int rating;
     private String content;
     private String createdAt;
@@ -19,7 +20,8 @@ public class ReviewResponseDto {
         this.reservationId = review.getReservation().getId();
         this.memberId = review.getMember().getId();
         this.memberName = review.getMember().getName();
-        this.freelancerProfileId = review.getFreelancerProfile().getId(); // 추가
+        this.memberImageUrl = review.getMember().getProfileImageUrl();
+        this.freelancerProfileId = review.getFreelancerProfile().getId();
         this.rating = review.getRating();
         this.content = review.getContent();
         this.createdAt = review.getCreatedAt().toString();

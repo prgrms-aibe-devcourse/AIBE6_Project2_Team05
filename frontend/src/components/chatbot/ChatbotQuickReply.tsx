@@ -3,7 +3,7 @@ import type { QuickReply } from "@/types/chatbot";
 
 interface Props {
   quickReplies: QuickReply[];
-  onSelect: (value: string) => void;
+  onSelect: (value: string, label: string) => void;
   disabled: boolean;
 }
 
@@ -15,7 +15,7 @@ export function ChatbotQuickReply({ quickReplies, onSelect, disabled }: Props) {
       {quickReplies.map((reply) => (
         <Badge
           key={reply.value}
-          onClick={() => !disabled && onSelect(reply.value)}
+          onClick={() => !disabled && onSelect(reply.value, reply.label)}
           variant="outline"
           className={`cursor-pointer border-[#4f6231] text-[#4f6231] rounded-full px-3 py-4 text-sm font-normal
     hover:bg-[#4f6231] hover:text-white transition-colors

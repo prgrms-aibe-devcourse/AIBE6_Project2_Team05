@@ -1,6 +1,6 @@
 import { authFetch } from "@/lib/authFetch";
-import { fetchReservations } from "@/lib/reservations";
 import type { ReservationResponse } from "@/lib/reservations";
+import { fetchReservations } from "@/lib/reservations";
 
 export type MemberRole = "CLIENT" | "FREELANCER" | "ADMIN";
 
@@ -16,6 +16,7 @@ export type ReviewResponse = {
   readonly id: number;
   readonly memberId: number;
   readonly memberName: string;
+  readonly memberImageUrl: string | null;
   readonly rating: number;
   readonly content: string;
   readonly createdAt: string;
@@ -50,7 +51,11 @@ function isMemberRole(value: unknown): value is MemberRole {
 }
 
 function parseCurrentMember(value: unknown): CurrentMember {
-  if (!isRecord(value) || typeof value.id !== "number" || !isMemberRole(value.role)) {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "number" ||
+    !isMemberRole(value.role)
+  ) {
     throw new ReviewApiError(500, "회원 정보를 확인할 수 없습니다.");
   }
 
@@ -71,15 +76,24 @@ function parseReview(value: unknown): ReviewResponse {
   return {
     id: value.id,
     memberId: typeof value.memberId === "number" ? value.memberId : 0,
-    memberName: typeof value.memberName === "string" ? value.memberName : "익명",
+    memberName:
+      typeof value.memberName === "string" ? value.memberName : "익명",
+    memberImageUrl:
+      typeof value.memberImageUrl === "string" ? value.memberImageUrl : null,
     rating: typeof value.rating === "number" ? value.rating : 0,
     content: typeof value.content === "string" ? value.content : "",
     createdAt: typeof value.createdAt === "string" ? value.createdAt : "",
   };
 }
 
-function parseFreelancerProfileSummary(value: unknown): FreelancerProfileSummary | null {
-  if (!isRecord(value) || typeof value.id !== "number" || typeof value.memberId !== "number") {
+function parseFreelancerProfileSummary(
+  value: unknown,
+): FreelancerProfileSummary | null {
+  if (
+    !isRecord(value) ||
+    typeof value.id !== "number" ||
+    typeof value.memberId !== "number"
+  ) {
     return null;
   }
 
@@ -165,7 +179,9 @@ function findProfileIdFromReservations(
   return reservations[0]?.freelancerProfileId ?? null;
 }
 
-async function findProfileIdFromSearch(memberId: number): Promise<number | null> {
+async function findProfileIdFromSearch(
+  memberId: number,
+): Promise<number | null> {
   const payload = await requestJson("/api/freelancers?size=100");
   const page = parseFreelancerPage(payload);
 
@@ -173,12 +189,29 @@ async function findProfileIdFromSearch(memberId: number): Promise<number | null>
     return null;
   }
 
-  return page.content.find((profile) => profile.memberId === memberId)?.id ?? null;
+  return (
+    page.content.find((profile) => profile.memberId === memberId)?.id ?? null
+  );
 }
 
 export async function fetchMyFreelancerProfileId(
   memberId: number,
 ): Promise<number | null> {
   const reservations = await fetchReservations();
-  return findProfileIdFromReservations(reservations) ?? findProfileIdFromSearch(memberId);
+  return (
+    findProfileIdFromReservations(reservations) ??
+    findProfileIdFromSearch(memberId)
+  );
+}
+
+export async function fetchMyWrittenReviews(): Promise<
+  readonly ReviewResponse[]
+> {
+  const payload = await requestJson("/api/v1/reviews/me");
+
+  if (!Array.isArray(payload)) {
+    throw new ReviewApiError(500, "리뷰 목록 응답 형식이 올바르지 않습니다.");
+  }
+
+  return payload.map(parseReview);
 }

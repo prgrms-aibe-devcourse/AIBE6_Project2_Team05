@@ -32,11 +32,14 @@ public class FreelancerSearchService {
         Specification<FreelancerProfile> spec = (root, query, cb) -> null;
 
         if (keyword != null && !keyword.isBlank()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.or(
-                            cb.like(root.get("title"), "%" + keyword + "%"),
-                            cb.like(root.get("introduction"), "%" + keyword + "%")
-                    ));
+            spec = spec.and((root, query, cb) -> {
+                var memberJoin = root.join("member", jakarta.persistence.criteria.JoinType.LEFT);
+                return cb.or(
+                        cb.like(root.get("title"), "%" + keyword + "%"),
+                        cb.like(root.get("introduction"), "%" + keyword + "%"),
+                        cb.like(memberJoin.get("name"), "%" + keyword + "%")
+                );
+            });
         }
 
         if (categoryId != null) {

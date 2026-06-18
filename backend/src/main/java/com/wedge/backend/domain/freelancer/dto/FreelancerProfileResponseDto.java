@@ -11,6 +11,7 @@ public class FreelancerProfileResponseDto {
     private Long id;
     private Long memberId;
     private String memberName;
+    private String memberImageUrl;
     private Long categoryId;
     private String categoryName;
     private String title;
@@ -27,6 +28,7 @@ public class FreelancerProfileResponseDto {
         this.id = profile.getId();
         this.memberId = profile.getMember().getId();
         this.memberName = profile.getMember().getName();
+        this.memberImageUrl = profile.getMember().getProfileImageUrl();
         this.categoryId = profile.getCategory().getId();
         this.categoryName = profile.getCategory().getName();
         this.title = profile.getTitle();

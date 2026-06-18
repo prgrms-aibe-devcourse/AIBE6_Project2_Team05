@@ -20,10 +20,13 @@ import { use, useEffect, useState } from "react";
 interface FreelancerProfile {
   id: number;
   memberId: number;
+  memberName: string;
+  memberImageUrl: string;
   categoryId: number;
   categoryName: string;
   title: string;
   introduction: string;
+  keywords: string;
   region: string;
   price: number;
   careerYears: number;
@@ -38,6 +41,12 @@ interface Portfolio {
   imageUrl: string;
   description: string;
   sortOrder: number;
+  startDate?: string;
+  endDate?: string;
+  client?: string;
+  industry?: string;
+  purpose?: string;
+  images?: { id: number; imageUrl: string }[];
 }
 
 interface Review {
@@ -63,6 +72,9 @@ export default function ProfilePage({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string>("");
+
+  const isOwner = profile?.memberId === currentMemberId;
 
   const handleBookmark = async () => {
     try {
@@ -98,6 +110,7 @@ export default function ProfilePage({
         const reviewData = await reviewRes.json();
 
         setProfile(profileData);
+        setProfileImageUrl(profileData.memberImageUrl || "");
         setPortfolios(portfolioData);
         setReviews(reviewData);
 
@@ -118,32 +131,41 @@ export default function ProfilePage({
   if (loading) return <ProfileLoadingState />;
   if (error || !profile) return <ProfileErrorState error={error} />;
 
+  const coverImageUrl =
+    portfolios[0]?.imageUrl || "https://picsum.photos/seed/cover/1400/500";
+  const keywords =
+    profile.keywords
+      ?.split(",")
+      .map((k) => k.trim())
+      .filter(Boolean) || [];
+
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
       <Navbar />
 
       {/* Cover Image */}
       <div className="relative h-72 md:h-96 overflow-hidden">
-        <Image
-          src="https://picsum.photos/seed/cover/1400/500"
-          alt="Cover"
-          fill
-          className="object-cover"
-        />
+        <Image src={coverImageUrl} alt="Cover" fill className="object-cover" />
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
       {/* Profile Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full -mt-16 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-end gap-5 mb-6">
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-4 border-white shadow-lg shrink-0">
-            <Image
-              src="https://picsum.photos/seed/elena/400/400"
-              alt={profile.title}
-              fill
-              className="object-cover"
-            />
+          {/* 프로필 사진 */}
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0">
+            <div className="w-full h-full rounded-2xl overflow-hidden border-4 border-white shadow-lg">
+              <Image
+                src={
+                  profileImageUrl || "https://picsum.photos/seed/elena/400/400"
+                }
+                alt={profile.memberName || profile.title}
+                fill
+                className="object-cover rounded-2xl"
+              />
+            </div>
           </div>
+
           <div className="flex-1">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -153,6 +175,9 @@ export default function ProfilePage({
                 <h1 className="font-[var(--font-display)] text-2xl sm:text-3xl font-semibold text-[#1b1c18]">
                   {profile.title}
                 </h1>
+                <p className="text-sm text-[#75786c] mt-0.5">
+                  {profile.memberName}
+                </p>
                 <div className="flex items-center gap-3 mt-1">
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
@@ -201,6 +226,18 @@ export default function ProfilePage({
                     </span>
                   )}
                 </div>
+                {keywords.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {keywords.map((tag, i) => (
+                      <span
+                        key={i}
+                        className="text-xs px-2.5 py-1 bg-[#f5f4ec] text-[#4f6231] rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -225,9 +262,9 @@ export default function ProfilePage({
                     />
                   </svg>
                 </button>
-                {currentMemberId === profile.memberId && (
+                {isOwner && (
                   <Link
-                    href={`/freelancer/profile/edit/${id}`}
+                    href={`/mypage?tab=profile`}
                     className={cn(
                       buttonVariants({ variant: "outline" }),
                       "border-[#6C814C] text-[#6C814C] hover:bg-[#f5f4ec] rounded-xl px-6",
@@ -253,7 +290,7 @@ export default function ProfilePage({
         {/* Tabs */}
         <Tabs defaultValue="portfolio" className="w-full">
           <TabsList className="bg-transparent border-b border-[#efeee7] rounded-none p-0 h-auto gap-0 mb-8 w-full justify-start">
-            {["portfolio", "reviews", "about"].map((tab) => (
+            {["portfolio", "about", "reviews"].map((tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab}
@@ -261,9 +298,9 @@ export default function ProfilePage({
               >
                 {tab === "portfolio"
                   ? "포트폴리오"
-                  : tab === "reviews"
-                    ? "리뷰"
-                    : "소개"}
+                  : tab === "about"
+                    ? "전문가 정보"
+                    : "리뷰"}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -273,15 +310,16 @@ export default function ProfilePage({
               portfolios={portfolios}
               isLoggedIn={isLoggedIn}
               profileId={id}
+              introduction={profile.introduction}
             />
-          </TabsContent>
-
-          <TabsContent value="reviews" className="mt-0">
-            <ReviewTab reviews={reviews} />
           </TabsContent>
 
           <TabsContent value="about" className="mt-0">
             <AboutTab profile={profile} reviewCount={profile.reviewCount} />
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-0">
+            <ReviewTab reviews={reviews} />
           </TabsContent>
         </Tabs>
       </div>

@@ -4,14 +4,12 @@ import com.wedge.backend.domain.bookmark.dto.BookmarkResponse;
 import com.wedge.backend.domain.bookmark.dto.CheckBookmarkResponse;
 import com.wedge.backend.domain.bookmark.dto.ToggleBookmarkResponse;
 import com.wedge.backend.domain.bookmark.service.BookmarkService;
-import com.wedge.backend.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,10 +20,10 @@ public class BookmarkController {
 
     @PostMapping("/{freelancerProfileId}")
     public ResponseEntity<ToggleBookmarkResponse> toggleBookmark(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Long memberId,
             @PathVariable Long freelancerProfileId) {
 
-        boolean isBookmarked = bookmarkService.toggleBookmark(member, freelancerProfileId);
+        boolean isBookmarked = bookmarkService.toggleBookmark(memberId, freelancerProfileId);
 
         return ResponseEntity.ok(new ToggleBookmarkResponse(
                 isBookmarked,
@@ -35,20 +33,19 @@ public class BookmarkController {
 
     @GetMapping("/{freelancerProfileId}")
     public ResponseEntity<CheckBookmarkResponse> checkBookmark(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal Long memberId,
             @PathVariable Long freelancerProfileId) {
 
-        boolean isBookmarked = bookmarkService.isBookmarked(
-                member.getId(), freelancerProfileId);
+        boolean isBookmarked = bookmarkService.isBookmarked(memberId, freelancerProfileId);
 
         return ResponseEntity.ok(new CheckBookmarkResponse(isBookmarked));
     }
 
     @GetMapping
     public ResponseEntity<List<BookmarkResponse>> getBookmarks(
-            @AuthenticationPrincipal Member member) {
+            @AuthenticationPrincipal Long memberId) {
 
-        List<BookmarkResponse> bookmarks = bookmarkService.getBookmarks(member.getId());
+        List<BookmarkResponse> bookmarks = bookmarkService.getBookmarks(memberId);
         return ResponseEntity.ok(bookmarks);
     }
 }

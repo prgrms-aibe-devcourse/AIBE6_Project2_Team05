@@ -1,10 +1,12 @@
 package com.wedge.backend.domain.freelancer.service;
 
 import com.wedge.backend.domain.category.entity.Category;
+import com.wedge.backend.domain.freelancer.dto.PortfolioRequestDto;
 import com.wedge.backend.domain.freelancer.dto.PortfolioResponseDto;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.entity.Portfolio;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
+import com.wedge.backend.domain.freelancer.repository.PortfolioImageRepository;
 import com.wedge.backend.domain.freelancer.repository.PortfolioRepository;
 import com.wedge.backend.domain.member.entity.Member;
 import com.wedge.backend.domain.member.entity.Provider;
@@ -41,6 +43,9 @@ class PortfolioServiceTest {
     private FreelancerProfileRepository freelancerProfileRepository;
 
     @Mock
+    private PortfolioImageRepository portfolioImageRepository;
+
+    @Mock
     private R2FileUploadService r2FileUploadService;
 
     @InjectMocks
@@ -50,6 +55,7 @@ class PortfolioServiceTest {
     private Member otherMember;
     private FreelancerProfile profile;
     private Portfolio portfolio;
+    private PortfolioRequestDto requestDto;
 
     @BeforeEach
     void setUp() {
@@ -88,6 +94,8 @@ class PortfolioServiceTest {
                 .description("테스트 포트폴리오")
                 .sortOrder(1)
                 .build();
+
+        requestDto = new PortfolioRequestDto("테스트 포트폴리오", 1, null, null, null, null, null);
     }
 
     // ===== 포트폴리오 목록 조회 =====
@@ -98,7 +106,7 @@ class PortfolioServiceTest {
         given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L))
                 .willReturn(List.of(portfolio));
 
-        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true); // ✅ 파라미터 추가
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getDescription()).isEqualTo("테스트 포트폴리오");
@@ -110,7 +118,7 @@ class PortfolioServiceTest {
         given(portfolioRepository.findByFreelancerProfileIdOrderBySortOrder(1L))
                 .willReturn(List.of());
 
-        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true); // ✅ 파라미터 추가
+        List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true);
 
         assertThat(result).isEmpty();
     }
@@ -126,7 +134,7 @@ class PortfolioServiceTest {
         given(r2FileUploadService.upload(any(), anyString())).willReturn("https://example.com/test.png");
         given(portfolioRepository.save(any())).willReturn(portfolio);
 
-        PortfolioResponseDto result = portfolioService.createPortfolio(member, 1L, image, "설명", 1);
+        PortfolioResponseDto result = portfolioService.createPortfolio(member, 1L, image, requestDto);
 
         assertThat(result).isNotNull();
         assertThat(result.getImageUrl()).isEqualTo("https://example.com/test.png");
@@ -140,7 +148,7 @@ class PortfolioServiceTest {
                 "image", "test.png", "image/png", new byte[0]);
         given(freelancerProfileRepository.findById(1L)).willReturn(Optional.of(profile));
 
-        assertThatThrownBy(() -> portfolioService.createPortfolio(member, 1L, emptyImage, "설명", 1))
+        assertThatThrownBy(() -> portfolioService.createPortfolio(member, 1L, emptyImage, requestDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("파일이 비어있습니다.");
     }
@@ -152,7 +160,7 @@ class PortfolioServiceTest {
                 "image", "test.png", "image/png", new byte[11 * 1024 * 1024]);
         given(freelancerProfileRepository.findById(1L)).willReturn(Optional.of(profile));
 
-        assertThatThrownBy(() -> portfolioService.createPortfolio(member, 1L, largeImage, "설명", 1))
+        assertThatThrownBy(() -> portfolioService.createPortfolio(member, 1L, largeImage, requestDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("파일 크기는 10MB 이하여야 합니다.");
     }
@@ -164,7 +172,7 @@ class PortfolioServiceTest {
                 "image", "test.png", "image/png", new byte[100]);
         given(freelancerProfileRepository.findById(1L)).willReturn(Optional.of(profile));
 
-        assertThatThrownBy(() -> portfolioService.createPortfolio(otherMember, 1L, image, "설명", 1))
+        assertThatThrownBy(() -> portfolioService.createPortfolio(otherMember, 1L, image, requestDto))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("등록 권한이 없습니다.");
     }
@@ -233,5 +241,42 @@ class PortfolioServiceTest {
         List<PortfolioResponseDto> result = portfolioService.getPortfolios(1L, true);
 
         assertThat(result).hasSize(4);
+    }
+
+    // ===== 포트폴리오 수정 =====
+
+    @Test
+    @DisplayName("포트폴리오 수정 성공")
+    void updatePortfolio_success() throws IOException {
+        given(portfolioRepository.findById(1L)).willReturn(Optional.of(portfolio));
+
+        PortfolioResponseDto result = portfolioService.updatePortfolio(member, 1L, null, requestDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getDescription()).isEqualTo("테스트 포트폴리오");
+    }
+
+    @Test
+    @DisplayName("포트폴리오 수정 실패 - 포트폴리오 없음")
+    void updatePortfolio_fail_notFound() {
+        MockMultipartFile image = new MockMultipartFile(
+                "image", "test.png", "image/png", new byte[100]);
+        given(portfolioRepository.findById(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> portfolioService.updatePortfolio(member, 999L, image, requestDto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("포트폴리오를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("포트폴리오 수정 실패 - 권한 없음")
+    void updatePortfolio_fail_noPermission() {
+        MockMultipartFile image = new MockMultipartFile(
+                "image", "test.png", "image/png", new byte[100]);
+        given(portfolioRepository.findById(1L)).willReturn(Optional.of(portfolio));
+
+        assertThatThrownBy(() -> portfolioService.updatePortfolio(otherMember, 1L, image, requestDto))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("수정 권한이 없습니다.");
     }
 }

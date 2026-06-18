@@ -76,8 +76,18 @@ public class ReservationService {
     @Transactional
     public ReservationResponse cancelReservation(Long reservationId, Member member, String cancelReason) {
         Reservation reservation = findReservation(reservationId);
-        validateClientOwner(reservation, member);
-        validateStatus(reservation, ReservationStatus.REQUESTED, ReservationStatus.ACCEPTED);
+        validateMember(member);
+
+        if (member.getRole() == Role.CLIENT) {
+            validateClientOwner(reservation, member);
+            validateStatus(reservation, ReservationStatus.REQUESTED);
+        } else if (member.getRole() == Role.FREELANCER) {
+            validateFreelancerOwner(reservation, member);
+            validateStatus(reservation, ReservationStatus.ACCEPTED);
+        } else {
+            throw new IllegalStateException("예약 취소 권한이 없습니다.");
+        }
+
         reservation.cancel(cancelReason);
         chatService.deactivateRoomByReservationId(reservation.getId());
         return toReservationResponse(reservation);

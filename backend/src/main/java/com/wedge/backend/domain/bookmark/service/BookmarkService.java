@@ -6,6 +6,7 @@ import com.wedge.backend.domain.bookmark.repository.BookmarkRepository;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +20,20 @@ public class BookmarkService {
 
     private final BookmarkRepository bookmarkRepository;
     private final FreelancerProfileRepository freelancerProfileRepository;
-
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public boolean toggleBookmark(Member member, Long freelancerProfileId) {
+    public boolean toggleBookmark(Long memberId, Long freelancerProfileId) {
 
         FreelancerProfile freelancerProfile = freelancerProfileRepository
                 .findById(freelancerProfileId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 프리랜서입니다."));
 
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
         Optional<Bookmark> existing = bookmarkRepository
-                .findByMemberIdAndFreelancerProfileId(member.getId(), freelancerProfileId);
+                .findByMemberIdAndFreelancerProfileId(memberId, freelancerProfileId);
 
         if (existing.isPresent()) {
             bookmarkRepository.delete(existing.get());

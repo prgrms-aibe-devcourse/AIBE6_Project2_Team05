@@ -1,7 +1,7 @@
 "use client";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,10 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { API_BASE_URL } from "@/lib/auth";
-import { cn } from "@/lib/utils";
+import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation"; // ✅ 추가
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 type Category = {
@@ -35,6 +34,16 @@ type FreelancerProfile = {
   careerYears: number;
   createdAt: string;
   updatedAt: string;
+};
+
+type BookmarkResponse = {
+  id: number;
+  freelancerProfileId: number;
+  memberName: string;
+  title: string;
+  region: string;
+  price: number | null;
+  createdAt: string;
 };
 
 const SORT_OPTIONS = [
@@ -62,6 +71,7 @@ function SkeletonCard() {
 
 function SearchPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -76,6 +86,13 @@ function SearchPageInner() {
   const [loading, setLoading] = useState(false);
   const [bookmarked, setBookmarked] = useState<Set<number>>(new Set());
 
+  // searchParams 변화 감지 — 챗봇에서 같은 페이지로 이동 시 카테고리 업데이트
+  useEffect(() => {
+    const categoryId = searchParams.get("categoryId");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedCategoryId(categoryId ? Number(categoryId) : null);
+  }, [searchParams]);
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -87,6 +104,23 @@ function SearchPageInner() {
       }
     };
     loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const loadBookmarks = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+          headers: createAuthHeaders(),
+        });
+        if (!res.ok) return;
+        const data: BookmarkResponse[] = await res.json();
+        const ids = new Set(data.map((b) => b.freelancerProfileId));
+        setBookmarked(ids);
+      } catch (error) {
+        console.error("북마크 목록 조회 실패", error);
+      }
+    };
+    loadBookmarks();
   }, []);
 
   const fetchFreelancers = useCallback(async () => {
@@ -112,16 +146,35 @@ function SearchPageInner() {
   }, [keyword, sortType, selectedCategoryId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFreelancers();
   }, [fetchFreelancers]);
 
-  const toggleBookmark = (id: number) => {
+  const toggleBookmark = async (id: number) => {
+    const headers = createAuthHeaders();
+    if (!headers.Authorization) {
+      router.push("/login");
+      return;
+    }
+
+    const prevBookmarked = new Set(bookmarked);
     setBookmarked((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bookmarks/${id}`, {
+        method: "POST",
+        headers,
+      });
+      if (!res.ok) throw new Error("북마크 API 실패");
+    } catch (error) {
+      console.error("북마크 처리 실패", error);
+      setBookmarked(prevBookmarked);
+    }
   };
 
   return (
@@ -135,7 +188,7 @@ function SearchPageInner() {
             전문가 찾기
           </h1>
           <p className="text-sm text-[#75786c]">
-            당신의 특별한 기념일을 위한 엄선된 전문가들을 만나보세요
+            당신의 특별한 기념일을 위한 엄선된 전문가들을 만나 보세요
           </p>
           <div className="mt-4 flex gap-2">
             <Input
@@ -246,74 +299,69 @@ function SearchPageInner() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {freelancers.map((pro) => (
-              <Card
-                key={pro.id}
-                className="group overflow-hidden border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.1)] transition-all rounded-2xl"
-              >
-                <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f4ec] flex items-center justify-center">
-                  <span className="text-[#75786c] text-sm">이미지 없음</span>
-                  <button
-                    onClick={() => toggleBookmark(pro.id)}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
-                  >
-                    <svg
-                      className={`w-4 h-4 ${bookmarked.has(pro.id) ? "fill-[#6f5a55] text-[#6f5a55]" : "text-[#75786c]"}`}
-                      fill={bookmarked.has(pro.id) ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+              <Link key={pro.id} href={`/profile/${pro.id}`} className="block">
+                <Card className="group overflow-hidden border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.1)] transition-all rounded-2xl cursor-pointer">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f4ec] flex items-center justify-center">
+                    <span className="text-[#75786c] text-sm">이미지 없음</span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleBookmark(pro.id);
+                      }}
+                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-[#1b1c18] text-sm mb-0.5">
-                    {pro.memberName}
-                  </h3>
-                  <p className="text-xs text-[#75786c] mb-2">{pro.title}</p>
-                  <div className="flex items-center gap-1 mb-3">
-                    <svg
-                      className="w-3 h-3 text-[#75786c]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    <span className="text-xs text-[#75786c]">{pro.region}</span>
+                      <svg
+                        className={`w-4 h-4 ${bookmarked.has(pro.id) ? "fill-[#6f5a55] text-[#6f5a55]" : "text-[#75786c]"}`}
+                        fill={bookmarked.has(pro.id) ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <CardContent className="p-4">
+                    <p className="font-semibold text-[#1b1c18] text-sm mb-0.5">
+                      {pro.title}
+                    </p>
+                    <p className="text-xs text-[#75786c] mb-2">
+                      {pro.memberName}
+                    </p>
+                    <div className="flex items-center gap-1 mb-3">
+                      <svg
+                        className="w-3 h-3 text-[#75786c]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <span className="text-xs text-[#75786c]">
+                        {pro.region}
+                      </span>
+                    </div>
                     <span className="text-sm font-semibold text-[#4f6231]">
                       {pro.price ? `₩${pro.price.toLocaleString()}~` : "협의"}
                     </span>
-                    <Link
-                      href={`/profile/${pro.id}`}
-                      className={cn(
-                        buttonVariants({ variant: "outline", size: "sm" }),
-                        "text-xs h-8 border-[#4f6231] text-[#4f6231] hover:bg-[#4f6231] hover:text-white rounded-xl",
-                      )}
-                    >
-                      프로필 보기
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

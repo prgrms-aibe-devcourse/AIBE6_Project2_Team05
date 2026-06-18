@@ -39,6 +39,10 @@ export function ReviewForm({
 }: ReviewFormProps) {
   const [hoverRating, setHoverRating] = useState(0);
   const selectedRating = hoverRating || rating;
+  const trimmedReviewText = reviewText.trim();
+  const isRatingMissing = rating === 0;
+  const isReviewTooShort =
+      trimmedReviewText.length > 0 && trimmedReviewText.length < 10;
 
   return (
     <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-6">
@@ -58,32 +62,36 @@ export function ReviewForm({
         </Label>
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-              onClick={() => onRatingChange(star)}
-              className="transition-transform hover:scale-110"
-            >
-              <svg
-                className={`w-8 h-8 transition-colors ${
-                  star <= selectedRating
-                    ? "text-[#f59e0b] fill-current"
-                    : "text-[#c5c8ba] fill-current"
-                }`}
-                viewBox="0 0 20 20"
+              <button
+                  key={star}
+                  type="button"
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  onClick={() => onRatingChange(star)}
+                  className="transition-transform hover:scale-110"
               >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </button>
+                <svg
+                    className={`w-8 h-8 transition-colors ${
+                        star <= selectedRating
+                            ? "text-[#f59e0b] fill-current"
+                            : "text-[#c5c8ba] fill-current"
+                    }`}
+                    viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </button>
           ))}
           {rating > 0 && (
-            <span className="text-sm text-[#45483d] ml-1">
-              {ratingLabels[rating]}
-            </span>
+              <span className="text-sm text-[#45483d] ml-1">
+        {ratingLabels[rating]}
+      </span>
           )}
         </div>
+
+        {isRatingMissing && (
+            <p className="text-xs text-red-500">별점을 선택해주세요.</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -91,12 +99,17 @@ export function ReviewForm({
           솔직한 후기를 남겨주세요
         </Label>
         <Textarea
-          value={reviewText}
-          onChange={(event) => onReviewTextChange(event.target.value)}
-          placeholder="전문가와의 경험, 서비스 품질, 의사소통 등 다른 분들에게 도움이 될 내용을 자유롭게 작성해주세요"
-          className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] placeholder:text-[#75786c] resize-none min-h-[120px]"
-          rows={5}
+            value={reviewText}
+            onChange={(event) => onReviewTextChange(event.target.value)}
+            placeholder="전문가와의 경험, 서비스 품질, 의사소통 등 다른 분들에게 도움이 될 내용을 자유롭게 작성해주세요"
+            className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] placeholder:text-[#75786c] resize-none min-h-[120px]"
+            rows={5}
         />
+
+        {isReviewTooShort && (
+            <p className="text-xs text-red-500">리뷰는 10자 이상 작성해주세요.</p>
+        )}
+
         <p className="text-xs text-[#75786c] text-right">
           {reviewText.length} / 1000
         </p>
@@ -106,10 +119,10 @@ export function ReviewForm({
         <Button
           className="w-full h-12 bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl font-medium"
           disabled={
-            isLoading ||
-            isSubmitting ||
-            rating === 0 ||
-            reviewText.trim().length < 10
+              isLoading ||
+              isSubmitting ||
+              isRatingMissing ||
+              trimmedReviewText.length < 10
           }
           onClick={onSubmit}
         >
