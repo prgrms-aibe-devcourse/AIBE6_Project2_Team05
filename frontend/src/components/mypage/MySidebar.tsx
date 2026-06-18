@@ -33,6 +33,7 @@ export default function MySidebar({
     { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
     { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews" },
     { icon: "📝", label: "내 게시물", href: "/mypage/posts" },
+    { icon: "📩", label: "내 제안서", href: "/mypage/proposals" },
   ];
 
   const freelancerMenu =

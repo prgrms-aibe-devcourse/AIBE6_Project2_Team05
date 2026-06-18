@@ -3,6 +3,7 @@ package com.wedge.backend.domain.member.service;
 import com.wedge.backend.domain.member.dto.MemberMeResponse;
 import com.wedge.backend.domain.member.dto.MemberUpdateRequest;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.member.entity.Role;
 import com.wedge.backend.domain.member.repository.MemberRepository;
 import com.wedge.backend.domain.member.repository.RefreshTokenRepository;
 import com.wedge.backend.global.exception.MemberNotFoundException;
@@ -58,6 +59,14 @@ public class MemberService {
         // 탈퇴 즉시 refresh token을 무효화하여, 만료(7일) 전까지 재발급으로 서비스를 계속 이용하는 것을 방지
         refreshTokenRepository.deleteByMemberId(memberId);
     }
+    @Transactional
+    public MemberMeResponse changeRole(Long memberId, Role role) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("회원 정보를 찾을 수 없습니다."));
+        member.changeRole(role);
+        return MemberMeResponse.from(member);
+    }
+
         //내부 개발용 회원 조회 메서드 정보, 프론트에서 사용X
         public Member getMember (Long memberId){
             return memberRepository.findById(memberId)

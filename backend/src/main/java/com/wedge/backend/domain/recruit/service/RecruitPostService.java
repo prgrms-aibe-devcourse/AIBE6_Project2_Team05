@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RecruitPostService {
@@ -33,6 +35,13 @@ public class RecruitPostService {
         RecruitPost post = recruitPostRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 구인글입니다."));
         return new RecruitPostResponse(post);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecruitPostResponse> getMyRecruitPosts(Long memberId) {
+        return recruitPostRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
+                .map(RecruitPostResponse::new)
+                .toList();
     }
 
     @Transactional
