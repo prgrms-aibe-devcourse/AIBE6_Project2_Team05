@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type MemberRole = "CLIENT" | "FREELANCER";
+type ActiveTab = "info" | "profile" | "portfolio";
 
 const ROLE_LABEL: Record<MemberRole, string> = {
   CLIENT: "예비부부",
@@ -16,6 +17,8 @@ interface MySidebarProps {
   profileImg: string | null;
   role: MemberRole | null;
   freelancerProfileId?: number | null;
+  activeTab?: ActiveTab;
+  onTabChange?: (tab: ActiveTab) => void;
   onLogout: () => void;
 }
 
@@ -25,6 +28,8 @@ export default function MySidebar({
   profileImg,
   role,
   freelancerProfileId,
+  activeTab,
+  onTabChange,
   onLogout,
 }: MySidebarProps) {
   const baseMenu = [
@@ -36,23 +41,13 @@ export default function MySidebar({
     { icon: "📩", label: "내 제안서", href: "/mypage/proposals" },
   ];
 
-  const freelancerMenu =
+  const freelancerMenu: { icon: string; label: string; tab: ActiveTab }[] =
     role === "FREELANCER" && freelancerProfileId
       ? [
-          {
-            icon: "🎨",
-            label: "프로필 수정",
-            href: `/freelancer/profile/edit/${freelancerProfileId}`,
-          },
-          {
-            icon: "🖼️",
-            label: "포트폴리오 수정",
-            href: `/freelancer/profile/edit/${freelancerProfileId}/portfolios`,
-          },
+          { icon: "🎨", label: "프로필 수정", tab: "profile" },
+          { icon: "🖼️", label: "포트폴리오 수정", tab: "portfolio" },
         ]
       : [];
-
-  const sidebarMenu = [...baseMenu, ...freelancerMenu];
 
   return (
     <aside className="lg:w-64 shrink-0">
@@ -86,15 +81,33 @@ export default function MySidebar({
           </div>
         </div>
         <nav className="p-2">
-          {sidebarMenu.map((item) => (
+          {baseMenu.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231]"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231] ${
+                item.href === "/mypage" && activeTab === "info"
+                  ? "bg-[#f5f4ec] text-[#4f6231] font-medium"
+                  : ""
+              }`}
             >
               <span>{item.icon}</span>
               {item.label}
             </Link>
+          ))}
+          {freelancerMenu.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => onTabChange?.(item.tab)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors w-full text-[#45483d] hover:bg-[#f5f4ec] hover:text-[#4f6231] ${
+                activeTab === item.tab
+                  ? "bg-[#f5f4ec] text-[#4f6231] font-medium"
+                  : ""
+              }`}
+            >
+              <span>{item.icon}</span>
+              {item.label}
+            </button>
           ))}
         </nav>
         <div className="p-2 border-t border-[#efeee7]">
