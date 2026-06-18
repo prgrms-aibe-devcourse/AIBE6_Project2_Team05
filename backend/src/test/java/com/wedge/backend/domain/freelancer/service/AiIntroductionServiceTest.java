@@ -1,10 +1,9 @@
 package com.wedge.backend.domain.freelancer.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.wedge.backend.domain.freelancer.dto.IntroductionGenerateRequest;
 import com.wedge.backend.domain.freelancer.dto.IntroductionGenerateResponse;
 import com.wedge.backend.global.exception.AiGenerationException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
