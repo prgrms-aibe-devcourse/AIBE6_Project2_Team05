@@ -53,9 +53,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        // 프론트엔드로 액세스 토큰만 전달 (쿼리파라미터)
+        // 프론트엔드로 액세스 토큰 + 신규 여부 전달
         String redirectUrl = frontendUrl + "/oauth2/callback"
-                + "?accessToken=" + accessToken;
+                + "?accessToken=" + accessToken
+                + "&isNew=" + memberPrincipal.isNew();
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }

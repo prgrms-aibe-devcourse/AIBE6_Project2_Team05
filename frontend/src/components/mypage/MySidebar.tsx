@@ -9,6 +9,7 @@ const sidebarMenu = [
   { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks", active: false },
   { icon: "⭐", label: "리뷰 내역", href: "/mypage/reviews", active: false },
   { icon: "📝", label: "내 게시물", href: "/mypage/posts", active: false },
+  { icon: "📩", label: "내 제안서", href: "/mypage/proposals", active: false },
   {
     icon: "🎨",
     label: "프로필 관리",
@@ -75,7 +76,8 @@ export default function MySidebar({
             .filter(
               (item) =>
                 (item.href !== "/mypage/reviews" &&
-                  item.href !== "/freelancer/profile/manage") ||
+                  item.href !== "/freelancer/profile/manage" &&
+                  item.href !== "/mypage/proposals") ||
                 role === "FREELANCER",
             )
             .map((item) => (

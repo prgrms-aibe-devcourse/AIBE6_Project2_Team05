@@ -2,3 +2,5 @@
 .claude
 .codex
 .cursor.idea
+backend/.next/trace
+backend/.next/trace-build

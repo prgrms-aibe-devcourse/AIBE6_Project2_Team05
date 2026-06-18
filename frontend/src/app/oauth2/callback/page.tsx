@@ -8,6 +8,7 @@ function OAuth2CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const accessToken = searchParams.get("accessToken");
+  const isNew = searchParams.get("isNew") === "true";
   const hasToken = Boolean(accessToken);
 
   useEffect(() => {
@@ -20,9 +21,14 @@ function OAuth2CallbackContent() {
     }
 
     setAccessToken(accessToken);
-    router.replace("/mypage");
+
+    if (isNew) {
+      router.replace("/select-role");
+    } else {
+      router.replace("/mypage");
+    }
     router.refresh();
-  }, [accessToken, router]);
+  }, [accessToken, isNew, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] px-4 text-center">

@@ -58,17 +58,19 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
         final String resolvedEmail = email;
         final String resolvedName = name;
 
-        Member member = memberRepository.findByProviderAndProviderId(provider, providerId)
-                .orElseGet(() -> memberRepository.save(
-                        Member.builder()
-                                .email(resolvedEmail)
-                                .name(resolvedName)
-                                .role(Role.CLIENT)
-                                .provider(provider)
-                                .providerId(providerId)
-                                .build()
-                ));
+        var existing = memberRepository.findByProviderAndProviderId(provider, providerId);
+        boolean isNew = existing.isEmpty();
 
-        return new MemberPrincipal(member, attributes);
+        Member member = existing.orElseGet(() -> memberRepository.save(
+                Member.builder()
+                        .email(resolvedEmail)
+                        .name(resolvedName)
+                        .role(Role.CLIENT)
+                        .provider(provider)
+                        .providerId(providerId)
+                        .build()
+        ));
+
+        return new MemberPrincipal(member, attributes, isNew);
     }
 }

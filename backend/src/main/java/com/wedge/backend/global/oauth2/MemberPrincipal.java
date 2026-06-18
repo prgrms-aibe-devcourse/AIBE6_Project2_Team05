@@ -15,10 +15,12 @@ public class MemberPrincipal implements OAuth2User {
 
     private final Member member;
     private final Map<String, Object> attributes;
+    private final boolean isNew;
 
-    public MemberPrincipal(Member member, Map<String, Object> attributes) {
+    public MemberPrincipal(Member member, Map<String, Object> attributes, boolean isNew) {
         this.member = member;
         this.attributes = attributes;
+        this.isNew = isNew;
     }
 
     @Override

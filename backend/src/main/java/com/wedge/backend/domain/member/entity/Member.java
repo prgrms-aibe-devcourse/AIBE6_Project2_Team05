@@ -70,6 +70,10 @@ public class Member extends BaseTimeEntity {
         this.password = encodedPassword;
     }
 
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
     public void withdraw() {
         this.status = MemberStatus.DELETED;
     }

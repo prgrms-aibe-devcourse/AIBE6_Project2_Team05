@@ -91,7 +91,7 @@ class AuthFlowTest {
                 .andExpect(cookie().maxAge("refreshToken", 0));
 
         Long memberId = memberRepository.findByEmail(email).orElseThrow().getId();
-        assertThat(refreshTokenRepository.findByMemberId(memberId)).isEmpty();
+        assertThat(refreshTokenRepository.findById(memberId)).isEmpty();
 
         // 6. 로그아웃 이후에는 최신(회전된) refresh token도 더 이상 사용할 수 없다
         mockMvc.perform(post("/api/v1/auth/refresh")
@@ -117,7 +117,7 @@ class AuthFlowTest {
 
         String refreshToken = loginResult.getResponse().getCookie("refreshToken").getValue();
         Long memberId = memberRepository.findByEmail(email).orElseThrow().getId();
-        assertThat(refreshTokenRepository.findByMemberId(memberId)).isPresent();
+        assertThat(refreshTokenRepository.findById(memberId)).isPresent();
 
         // Authorization 헤더 없이 (access token 만료/누락 상황 가정), refresh token 쿠키만으로 logout
         mockMvc.perform(post("/api/v1/auth/logout")
@@ -125,7 +125,7 @@ class AuthFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(cookie().maxAge("refreshToken", 0));
 
-        assertThat(refreshTokenRepository.findByMemberId(memberId)).isEmpty();
+        assertThat(refreshTokenRepository.findById(memberId)).isEmpty();
     }
 
     private String signUpJson(String email) {

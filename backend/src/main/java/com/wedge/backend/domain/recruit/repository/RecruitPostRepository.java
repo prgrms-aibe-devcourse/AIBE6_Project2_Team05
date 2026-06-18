@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface RecruitPostRepository extends JpaRepository<RecruitPost, Long> {
 
     @Query("SELECT r FROM RecruitPost r " +
@@ -19,4 +21,6 @@ public interface RecruitPostRepository extends JpaRepository<RecruitPost, Long> 
             @Param("region") String region,
             @Param("status") RecruitStatus status,
             Pageable pageable);
+
+    List<RecruitPost> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 }
