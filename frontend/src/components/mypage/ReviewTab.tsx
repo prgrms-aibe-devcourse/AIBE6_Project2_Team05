@@ -7,6 +7,7 @@ import {
   ReviewApiError,
   type ReviewResponse,
 } from "@/lib/reviews";
+import { getRoleTheme } from "@/lib/roleTheme";
 import {
   CalendarDays,
   ChevronLeft,
@@ -56,11 +57,14 @@ function ReviewCard({
   readonly cardHref: string | null;
   readonly detailHref: string | null;
 }) {
+  const { avatarBgClass, avatarTextClass } = getRoleTheme("CLIENT");
   const content = (
     <article className="rounded-2xl border border-[#efeee7] bg-white p-5 transition-shadow hover:shadow-[0_8px_30px_rgba(79,98,49,0.08)] hover:border-[#c5c8ba]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="relative w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#d3ebac]">
+          <div
+            className={`relative w-11 h-11 shrink-0 rounded-full overflow-hidden ${avatarBgClass}`}
+          >
             {review.memberImageUrl ? (
               <Image
                 src={review.memberImageUrl}
@@ -70,7 +74,9 @@ function ReviewCard({
                 className="object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-[#4f6231]">
+              <div
+                className={`w-full h-full flex items-center justify-center text-sm font-semibold ${avatarTextClass}`}
+              >
                 {review.memberName.slice(0, 2)}
               </div>
             )}
