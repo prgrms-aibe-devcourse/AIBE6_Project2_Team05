@@ -4,6 +4,7 @@ import com.wedge.backend.domain.freelancer.dto.FreelancerProfileResponse;
 import com.wedge.backend.domain.freelancer.dto.SortType;
 import com.wedge.backend.domain.freelancer.entity.FreelancerProfile;
 import com.wedge.backend.domain.freelancer.repository.FreelancerProfileRepository;
+import com.wedge.backend.domain.freelancer.repository.PortfolioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FreelancerSearchService {
 
     private final FreelancerProfileRepository freelancerProfileRepository;
+    private final PortfolioRepository portfolioRepository;
 
     public Page<FreelancerProfileResponse> getFreelancers(
             String keyword,
@@ -77,6 +79,12 @@ public class FreelancerSearchService {
         };
 
         return freelancerProfileRepository.findAll(spec, sortedPageable)
-                .map(FreelancerProfileResponse::from);
+                .map(profile -> FreelancerProfileResponse.from(
+                        profile,
+                        portfolioRepository
+                                .findFirstByFreelancerProfileIdOrderBySortOrderAscIdAsc(profile.getId())
+                                .map(portfolio -> portfolio.getImageUrl())
+                                .orElse(null)
+                ));
     }
 }

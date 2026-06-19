@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -23,6 +24,7 @@ type FreelancerProfile = {
   categoryId: number;
   title: string;
   introduction: string;
+  portfolioImageUrl: string | null;
   region: string;
   price: number | null;
   careerYears: number;
@@ -283,7 +285,17 @@ function SearchPageInner() {
               <Link key={pro.id} href={`/profile/${pro.id}`} className="block">
                 <Card className="group overflow-hidden border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.1)] transition-all rounded-2xl cursor-pointer">
                   <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f4ec] flex items-center justify-center">
-                    <span className="text-[#75786c] text-sm">이미지 없음</span>
+                    {pro.portfolioImageUrl ? (
+                      <Image
+                        src={pro.portfolioImageUrl}
+                        alt={`${pro.memberName} 포트폴리오`}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <span className="text-[#75786c] text-sm">이미지 없음</span>
+                    )}
                     <button
                       onClick={(e) => {
                         e.preventDefault();
