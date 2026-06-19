@@ -1,7 +1,6 @@
 "use client";
 
 import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
-import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
 import InfoTab from "@/components/mypage/InfoTab";
 import MySidebar from "@/components/mypage/MySidebar";
 import PortfolioTab from "@/components/mypage/PortfolioTab";
@@ -344,30 +343,9 @@ function MyPage() {
                 isSaving={isSaving}
               />
             )}
-            {activeTab === "profile" &&
-              (user?.freelancerProfileId && profileInitialValues ? (
-                <FreelancerProfileTab
-                  freelancerProfileId={user.freelancerProfileId}
-                  initialValues={profileInitialValues}
-                  onSuccess={() => {
-                    setSuccessMessage("프로필이 저장되었습니다.");
-                    setActiveTab("info");
-                  }}
-                  onCancel={() => setActiveTab("info")}
-                />
-              ) : (
-                <NoFreelancerProfileNotice />
-              ))}
             {activeTab === "portfolio" &&
               (user?.freelancerProfileId ? (
-                <PortfolioTab
-                  freelancerProfileId={user.freelancerProfileId}
-                  onSuccess={() => {
-                    setSuccessMessage("포트폴리오가 저장되었습니다.");
-                    setActiveTab("info");
-                  }}
-                  onCancel={() => setActiveTab("info")}
-                />
+                <PortfolioTab freelancerProfileId={user.freelancerProfileId} />
               ) : (
                 <NoFreelancerProfileNotice />
               ))}

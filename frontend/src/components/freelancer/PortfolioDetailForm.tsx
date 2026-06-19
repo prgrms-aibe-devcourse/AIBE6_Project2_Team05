@@ -45,6 +45,7 @@ export default function PortfolioDetailForm({
           <input
             type="date"
             value={startDate}
+            max={endDate || undefined}
             onChange={(e) => onChange("startDate", e.target.value)}
             className={`w-full h-9 px-3 pl-8 rounded-xl ${bgColor} border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]`}
           />
@@ -57,6 +58,7 @@ export default function PortfolioDetailForm({
           <input
             type="date"
             value={endDate}
+            min={startDate || undefined}
             onChange={(e) => onChange("endDate", e.target.value)}
             className={`w-full h-9 px-3 pl-8 rounded-xl ${bgColor} border border-[#efeee7] text-xs text-[#1b1c18] focus:outline-none focus:ring-2 focus:ring-[#6C814C]`}
           />

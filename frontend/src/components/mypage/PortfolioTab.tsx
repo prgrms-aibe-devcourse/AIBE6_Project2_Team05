@@ -3,7 +3,6 @@
 import {
   ExistingPortfolio,
   ImageDto,
-  NewPortfolioItem,
 } from "@/components/freelancer/FreelancerProfileForm";
 import PortfolioDetailForm from "@/components/freelancer/PortfolioDetailForm";
 import { Button } from "@/components/ui/button";
@@ -29,14 +28,10 @@ interface EditingPortfolio {
 
 interface PortfolioTabProps {
   freelancerProfileId: number;
-  onSuccess: () => void;
-  onCancel: () => void;
 }
 
 export default function PortfolioTab({
   freelancerProfileId,
-  onSuccess,
-  onCancel,
 }: PortfolioTabProps) {
   const portfolioInputRef = useRef<HTMLInputElement>(null);
   const editImageInputRef = useRef<HTMLInputElement>(null);
@@ -45,18 +40,19 @@ export default function PortfolioTab({
   const [currentExisting, setCurrentExisting] = useState<ExistingPortfolio[]>(
     [],
   );
-  const [deletedPortfolioIds, setDeletedPortfolioIds] = useState<number[]>([]);
-  const [newPortfolios, setNewPortfolios] = useState<NewPortfolioItem[]>([]);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [editingPortfolio, setEditingPortfolio] =
     useState<EditingPortfolio | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isDeletingImageId, setIsDeletingImageId] = useState<number | null>(
     null,
   );
+  const [deletingPortfolioId, setDeletingPortfolioId] = useState<number | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
@@ -76,19 +72,42 @@ export default function PortfolioTab({
     e.target.value = "";
   };
 
-  const addFiles = (files: File[]) => {
+  const addFiles = async (files: File[]) => {
     const imageFiles = files.filter((f) => f.type.startsWith("image/"));
-    const newItems: NewPortfolioItem[] = imageFiles.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      description: "",
-      startDate: "",
-      endDate: "",
-      client: "",
-      industry: "",
-      purpose: "",
-    }));
-    setNewPortfolios((prev) => [...prev, ...newItems]);
+    if (imageFiles.length === 0) return;
+
+    setIsUploading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    let lastUploadedId: number | null = null;
+
+    for (const file of imageFiles) {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("sortOrder", String(currentExisting.length));
+      try {
+        const res = await authFetch(
+          `${API_BASE_URL}/api/freelancers/${freelancerProfileId}/portfolios`,
+          { method: "POST", body: formData },
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentExisting((prev) => [...prev, data]);
+          lastUploadedId = data.id;
+        } else {
+          setErrorMessage("포트폴리오 업로드에 실패했습니다.");
+        }
+      } catch {
+        setErrorMessage("포트폴리오 업로드에 실패했습니다.");
+      }
+    }
+
+    setIsUploading(false);
+    if (lastUploadedId !== null) {
+      setSuccessMessage(
+        "포트폴리오가 추가되었습니다. 상세 정보를 입력해주세요.",
+      );
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -105,33 +124,26 @@ export default function PortfolioTab({
     addFiles(files);
   };
 
-  const updateNewPortfolio = (
-    index: number,
-    key: keyof NewPortfolioItem,
-    value: string,
-  ) => {
-    setNewPortfolios((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
-    );
-  };
-
-  const handleNewPortfolioRemove = (index: number) => {
-    setNewPortfolios((prev) => {
-      URL.revokeObjectURL(prev[index].preview);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const handleExistingPortfolioDelete = (portfolioId: number) => {
-    if (
-      !window.confirm(
-        "포트폴리오를 삭제할까요? 저장하기 전까지는 취소할 수 없습니다.",
-      )
-    )
-      return;
-    setDeletedPortfolioIds((prev) => [...prev, portfolioId]);
-    setCurrentExisting((prev) => prev.filter((p) => p.id !== portfolioId));
-    if (editingPortfolio?.id === portfolioId) setEditingPortfolio(null);
+  const handleExistingPortfolioDelete = async (portfolioId: number) => {
+    if (!window.confirm("포트폴리오를 삭제하시겠습니까?")) return;
+    setDeletingPortfolioId(portfolioId);
+    setErrorMessage("");
+    try {
+      const res = await authFetch(
+        `${API_BASE_URL}/api/freelancers/${freelancerProfileId}/portfolios/${portfolioId}`,
+        { method: "DELETE" },
+      );
+      if (res.ok) {
+        setCurrentExisting((prev) => prev.filter((p) => p.id !== portfolioId));
+        if (editingPortfolio?.id === portfolioId) setEditingPortfolio(null);
+      } else {
+        setErrorMessage("포트폴리오 삭제에 실패했습니다.");
+      }
+    } catch {
+      setErrorMessage("포트폴리오 삭제에 실패했습니다.");
+    } finally {
+      setDeletingPortfolioId(null);
+    }
   };
 
   const handleEditStart = (item: ExistingPortfolio) => {
@@ -307,46 +319,7 @@ export default function PortfolioTab({
     }
   };
 
-  const handleSubmit = async () => {
-    setErrorMessage("");
-    setIsSubmitting(true);
-    try {
-      for (const portfolioId of deletedPortfolioIds) {
-        await authFetch(
-          `${API_BASE_URL}/api/freelancers/${freelancerProfileId}/portfolios/${portfolioId}`,
-          { method: "DELETE" },
-        ).catch(() => console.warn(`포트폴리오 ${portfolioId} 삭제 실패`));
-      }
-      const startOrder = currentExisting.length;
-      for (let i = 0; i < newPortfolios.length; i++) {
-        const item = newPortfolios[i];
-        const formData = new FormData();
-        formData.append("image", item.file);
-        if (item.description) formData.append("description", item.description);
-        formData.append("sortOrder", String(startOrder + i));
-        if (item.startDate) formData.append("startDate", item.startDate);
-        if (item.endDate) formData.append("endDate", item.endDate);
-        if (item.client) formData.append("client", item.client);
-        if (item.industry) formData.append("industry", item.industry);
-        if (item.purpose) formData.append("purpose", item.purpose);
-        await authFetch(
-          `${API_BASE_URL}/api/freelancers/${freelancerProfileId}/portfolios`,
-          { method: "POST", body: formData },
-        ).catch(() => console.warn(`포트폴리오 ${i + 1} 업로드 실패`));
-      }
-      setNewPortfolios([]);
-      setDeletedPortfolioIds([]);
-      onSuccess();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "저장에 실패했습니다.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const hasPortfolios = currentExisting.length > 0 || newPortfolios.length > 0;
+  const hasPortfolios = currentExisting.length > 0;
 
   if (isLoading) {
     return (
@@ -358,31 +331,21 @@ export default function PortfolioTab({
 
   return (
     <>
-      {/* 상단 제목 + 저장/취소 버튼 */}
+      {/* 상단 제목 */}
       <div className="flex items-center justify-between">
         <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
           포트폴리오 수정
         </h1>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="border-[#c5c8ba] text-[#45483d] rounded-xl"
-          >
-            취소
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            style={{ backgroundColor: "#6C814C", color: "#ffffff" }}
-            className="rounded-xl px-6 hover:opacity-90"
-          >
-            {isSubmitting ? "저장 중..." : "저장하기"}
-          </Button>
-        </div>
+        {isUploading && (
+          <span className="text-xs text-[#75786c]">업로드 중...</span>
+        )}
       </div>
+
+      {successMessage && (
+        <p className="rounded-xl border border-[#d3ebac] bg-[#f0f4eb] px-4 py-3 text-sm text-[#4f6231]">
+          {successMessage}
+        </p>
+      )}
 
       {errorMessage && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-500">
@@ -513,73 +476,6 @@ export default function PortfolioTab({
                     ✕
                   </button>
                 </div>
-              </div>
-            ))}
-
-            {newPortfolios.map((item, index) => (
-              <div
-                key={`new-${index}`}
-                className="border border-[#6C814C]/30 rounded-xl overflow-hidden"
-              >
-                <div className="flex items-center gap-4 p-3">
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                    <img
-                      src={item.preview}
-                      alt={`새 포트폴리오 ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-1 left-1 bg-[#6C814C] text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                      NEW
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Input
-                      value={item.description}
-                      onChange={(e) =>
-                        updateNewPortfolio(index, "description", e.target.value)
-                      }
-                      placeholder="프로젝트 제목 #해시태그"
-                      className="h-9 text-xs bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C] mb-1"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpandedIndex(expandedIndex === index ? null : index)
-                      }
-                      className="text-xs text-[#6C814C] hover:underline"
-                    >
-                      {expandedIndex === index
-                        ? "▲ 상세 정보 접기"
-                        : "▼ 상세 정보 입력"}
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleNewPortfolioRemove(index)}
-                    className="w-8 h-8 rounded-full bg-red-50 text-red-400 flex items-center justify-center text-xs hover:bg-red-100 transition-colors shrink-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-                {expandedIndex === index && (
-                  <div className="px-4 pb-4 border-t border-[#efeee7] pt-3">
-                    <PortfolioDetailForm
-                      startDate={item.startDate}
-                      endDate={item.endDate}
-                      client={item.client}
-                      industry={item.industry}
-                      purpose={item.purpose}
-                      bgColor="bg-[#f5f4ec]"
-                      onChange={(key, value) =>
-                        updateNewPortfolio(
-                          index,
-                          key as keyof NewPortfolioItem,
-                          value,
-                        )
-                      }
-                    />
-                  </div>
-                )}
               </div>
             ))}
           </div>
