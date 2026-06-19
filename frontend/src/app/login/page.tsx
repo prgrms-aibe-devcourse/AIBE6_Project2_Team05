@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/contexts/UserContext";
 import { API_BASE_URL, setAccessToken } from "@/lib/auth";
 
 function LoginForm() {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/mypage";
   const [showPassword, setShowPassword] = useState(false);
@@ -41,6 +43,7 @@ function LoginForm() {
       }
 
       setAccessToken(data.accessToken);
+      await refreshUser();
       router.push(redirectTo);
       router.refresh();
     } catch (error) {

@@ -11,6 +11,21 @@ const ROLE_LABEL: Record<MemberRole, string> = {
   FREELANCER: "프리랜서",
 };
 
+const ROLE_BADGE_CLASS: Record<MemberRole, string> = {
+  CLIENT: "bg-[#fbe4ea] text-[#8a4b5a]",
+  FREELANCER: "bg-[#e8f5d0] text-[#4f6231]",
+};
+
+const ROLE_AVATAR_BG_CLASS: Record<MemberRole, string> = {
+  CLIENT: "bg-[#fbe4ea]",
+  FREELANCER: "bg-[#d3ebac]",
+};
+
+const ROLE_AVATAR_TEXT_CLASS: Record<MemberRole, string> = {
+  CLIENT: "text-[#8a4b5a]",
+  FREELANCER: "text-[#4f6231]",
+};
+
 interface MySidebarProps {
   onLogout: () => void;
 }
@@ -24,6 +39,8 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
   const role = user?.role ?? null;
   const freelancerProfileId = user?.freelancerProfileId ?? null;
   const isFreelancerWithoutProfile = role === "FREELANCER" && !freelancerProfileId;
+  const avatarBgClass = role ? ROLE_AVATAR_BG_CLASS[role] : "bg-[#d3ebac]";
+  const avatarTextClass = role ? ROLE_AVATAR_TEXT_CLASS[role] : "text-[#4f6231]";
 
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
@@ -55,7 +72,9 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
 
   const profileContent = (
     <div className="flex items-center gap-3">
-      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#d3ebac]">
+      <div
+        className={`relative w-12 h-12 rounded-full overflow-hidden ${avatarBgClass}`}
+      >
         {profileImg ? (
           <Image
             src={profileImg}
@@ -65,7 +84,9 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
             className="object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#4f6231] font-bold text-lg">
+          <div
+            className={`w-full h-full flex items-center justify-center font-bold text-lg ${avatarTextClass}`}
+          >
             {name.charAt(0)}
           </div>
         )}
@@ -91,7 +112,9 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
         </div>
         <p className="text-xs text-[#75786c]">{email}</p>
         {role && (
-          <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#e8f5d0] text-[#4f6231]">
+          <span
+            className={`inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${ROLE_BADGE_CLASS[role]}`}
+          >
             {ROLE_LABEL[role]}
           </span>
         )}

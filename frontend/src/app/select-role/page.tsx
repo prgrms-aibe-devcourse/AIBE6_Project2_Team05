@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 
@@ -10,6 +11,7 @@ type RoleOption = "CLIENT" | "FREELANCER";
 
 export default function SelectRolePage() {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const [selected, setSelected] = useState<RoleOption | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,6 +28,7 @@ export default function SelectRolePage() {
         method: "PATCH",
       });
       if (res.ok) {
+        await refreshUser();
         router.replace("/mypage");
         router.refresh();
       }

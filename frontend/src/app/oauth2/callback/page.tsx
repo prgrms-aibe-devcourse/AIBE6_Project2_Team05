@@ -2,10 +2,12 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
 import { setAccessToken } from "@/lib/auth";
 
 function OAuth2CallbackContent() {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const searchParams = useSearchParams();
   const accessToken = searchParams.get("accessToken");
   const needsOnboarding = searchParams.get("needsOnboarding") === "true";
@@ -20,15 +22,20 @@ function OAuth2CallbackContent() {
       return () => window.clearTimeout(timer);
     }
 
-    setAccessToken(accessToken);
+    const applyAuth = async () => {
+      setAccessToken(accessToken);
+      await refreshUser();
 
-    if (needsOnboarding) {
-      router.replace("/select-role");
-    } else {
-      router.replace("/mypage");
-    }
-    router.refresh();
-  }, [accessToken, needsOnboarding, router]);
+      if (needsOnboarding) {
+        router.replace("/select-role");
+      } else {
+        router.replace("/mypage");
+      }
+      router.refresh();
+    };
+
+    void applyAuth();
+  }, [accessToken, needsOnboarding, refreshUser, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] px-4 text-center">
