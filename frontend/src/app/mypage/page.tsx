@@ -14,10 +14,30 @@ import {
 } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { useUser } from "@/contexts/UserContext";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type ActiveTab = "info" | "profile" | "portfolio" | "reviews";
+
+function NoFreelancerProfileNotice() {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d8d6ca] bg-white px-6 py-14 text-center">
+      <p className="text-base font-semibold text-[#1b1c18]">
+        아직 등록된 프로필이 없어요
+      </p>
+      <p className="mt-2 text-sm text-[#75786c]">
+        프로필을 등록하면 이 메뉴를 이용할 수 있어요.
+      </p>
+      <Link
+        href="/freelancer/profile/new"
+        className="mt-4 inline-block rounded-xl bg-[#4f6231] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#677b47]"
+      >
+        프로필 등록하기
+      </Link>
+    </div>
+  );
+}
 
 export default function MyPage() {
   const router = useRouter();
@@ -228,8 +248,7 @@ export default function MyPage() {
               />
             )}
             {activeTab === "profile" &&
-              user?.freelancerProfileId &&
-              profileInitialValues && (
+              (user?.freelancerProfileId && profileInitialValues ? (
                 <FreelancerProfileTab
                   freelancerProfileId={user.freelancerProfileId}
                   initialValues={profileInitialValues}
@@ -239,17 +258,22 @@ export default function MyPage() {
                   }}
                   onCancel={() => setActiveTab("info")}
                 />
-              )}
-            {activeTab === "portfolio" && user?.freelancerProfileId && (
-              <PortfolioTab
-                freelancerProfileId={user.freelancerProfileId}
-                onSuccess={() => {
-                  setSuccessMessage("포트폴리오가 저장되었습니다.");
-                  setActiveTab("info");
-                }}
-                onCancel={() => setActiveTab("info")}
-              />
-            )}
+              ) : (
+                <NoFreelancerProfileNotice />
+              ))}
+            {activeTab === "portfolio" &&
+              (user?.freelancerProfileId ? (
+                <PortfolioTab
+                  freelancerProfileId={user.freelancerProfileId}
+                  onSuccess={() => {
+                    setSuccessMessage("포트폴리오가 저장되었습니다.");
+                    setActiveTab("info");
+                  }}
+                  onCancel={() => setActiveTab("info")}
+                />
+              ) : (
+                <NoFreelancerProfileNotice />
+              ))}
             {activeTab === "reviews" && (
               <ReviewTab
                 freelancerProfileId={user?.freelancerProfileId ?? null}

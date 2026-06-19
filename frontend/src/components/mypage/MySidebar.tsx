@@ -23,6 +23,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
   const profileImg = user?.profileImageUrl ?? null;
   const role = user?.role ?? null;
   const freelancerProfileId = user?.freelancerProfileId ?? null;
+  const isFreelancerWithoutProfile = role === "FREELANCER" && !freelancerProfileId;
 
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
@@ -38,6 +39,15 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
             icon: "🖼️",
             label: "포트폴리오 수정",
             href: "/mypage?tab=portfolio",
+          },
+        ]
+      : []),
+    ...(isFreelancerWithoutProfile
+      ? [
+          {
+            icon: "✨",
+            label: "프로필 등록하기",
+            href: "/freelancer/profile/new",
           },
         ]
       : []),
@@ -101,7 +111,22 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
               {profileContent}
             </Link>
           ) : (
-            profileContent
+            <div>
+              {profileContent}
+              {isFreelancerWithoutProfile && (
+                <div className="mt-3 rounded-xl bg-[#f5f4ec] px-3 py-2.5">
+                  <p className="text-xs text-[#75786c] leading-relaxed">
+                    프로필 등록 후 내 페이지로 이동할 수 있어요.
+                  </p>
+                  <Link
+                    href="/freelancer/profile/new"
+                    className="mt-1.5 inline-block text-xs font-semibold text-[#4f6231] hover:underline"
+                  >
+                    프로필 등록하기 →
+                  </Link>
+                </div>
+              )}
+            </div>
           )}
         </div>
         <nav className="p-2">

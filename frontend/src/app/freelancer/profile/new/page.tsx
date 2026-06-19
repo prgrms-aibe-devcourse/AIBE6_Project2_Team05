@@ -4,6 +4,7 @@ import FreelancerProfileForm, {
   NewPortfolioItem,
   ProfileFormValues,
 } from "@/components/freelancer/FreelancerProfileForm";
+import { useUser } from "@/contexts/UserContext";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ const EMPTY_VALUES: ProfileFormValues = {
 
 export default function FreelancerProfileNewPage() {
   const router = useRouter();
+  const { refreshUser } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -88,6 +90,7 @@ export default function FreelancerProfileNewPage() {
         });
       }
 
+      await refreshUser();
       router.push(`/profile/${profileId}`);
     } catch (error) {
       setErrorMessage(
