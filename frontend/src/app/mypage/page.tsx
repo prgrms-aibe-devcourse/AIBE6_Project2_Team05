@@ -61,6 +61,11 @@ export default function MyPage() {
         if (!response.ok)
           throw new Error(data?.message ?? "회원 정보를 불러오지 못했습니다.");
 
+        if (data.status === "ONBOARDING") {
+          router.replace("/select-role");
+          return;
+        }
+
         setLocalName(data.name ?? "");
         setPhone(data.phone ?? "");
         setLocalProfileImg(data.profileImageUrl ?? null);
@@ -134,7 +139,7 @@ export default function MyPage() {
       setNewPw("");
       setConfirmPw("");
       setSuccessMessage("회원 정보가 저장되었습니다.");
-      await refreshUser(); // Context 업데이트
+      await refreshUser();
     } catch (error) {
       setErrorMessage(
         error instanceof Error

@@ -46,13 +46,13 @@ public class Member extends BaseTimeEntity {
 
     @Builder
     public Member(String email, String password, String name, String phone,
-                  Role role, Provider provider, String providerId) {
+                  Role role, MemberStatus status, Provider provider, String providerId) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.phone = phone;
         this.role = role != null ? role : Role.CLIENT;
-        this.status = MemberStatus.ACTIVE;
+        this.status = status != null ? status : MemberStatus.ACTIVE;
         this.provider = provider != null ? provider : Provider.LOCAL;
         this.providerId = providerId;
     }
@@ -72,6 +72,9 @@ public class Member extends BaseTimeEntity {
 
     public void changeRole(Role role) {
         this.role = role;
+        if (this.status == MemberStatus.ONBOARDING) {
+            this.status = MemberStatus.ACTIVE;
+        }
     }
 
     public void withdraw() {
