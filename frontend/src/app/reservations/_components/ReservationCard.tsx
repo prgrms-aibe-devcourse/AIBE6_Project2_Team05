@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -14,12 +15,14 @@ import { useState } from "react";
 
 type ReservationCardProps = {
   readonly reservation: ReservationResponse;
+  readonly profileImageUrl: string | null;
   readonly userRole: string | null;
   readonly onRefresh: () => void;
 };
 
 export function ReservationCard({
   reservation,
+  profileImageUrl,
   userRole,
   onRefresh,
 }: ReservationCardProps) {
@@ -51,8 +54,20 @@ export function ReservationCard({
   return (
     <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all">
       <div className="flex gap-4 p-5">
-        <div className="w-16 h-16 rounded-xl bg-[#f5f4ec] shrink-0 flex items-center justify-center text-sm font-semibold text-[#4f6231]">
-          {reservation.freelancerName?.[0] ?? "W"}
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f5f4ec]">
+          {profileImageUrl ? (
+            <Image
+              src={profileImageUrl}
+              alt={reservation.freelancerName ?? "프리랜서"}
+              fill
+              sizes="64px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#4f6231]">
+              {reservation.freelancerName?.[0] ?? "W"}
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">

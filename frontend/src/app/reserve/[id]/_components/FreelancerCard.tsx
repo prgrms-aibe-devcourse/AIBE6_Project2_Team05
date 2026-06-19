@@ -2,6 +2,7 @@ import Image from "next/image";
 
 type FreelancerProfile = {
   readonly memberName: string;
+  readonly memberImageUrl: string | null;
   readonly title: string;
   readonly introduction: string;
   readonly region: string;
@@ -21,12 +22,14 @@ export function FreelancerCard({ profile, loading }: FreelancerCardProps) {
   const displayRegion = profile?.region ?? "지역 정보 없음";
   const displayPrice =
     profile?.price == null ? "협의" : `₩${profile.price.toLocaleString()}~`;
+  const displayImageUrl =
+    profile?.memberImageUrl ?? "https://picsum.photos/seed/julianne/200/200";
 
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-[#efeee7] bg-white p-5">
       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
         <Image
-          src="https://picsum.photos/seed/julianne/200/200"
+          src={displayImageUrl}
           alt={displayName}
           fill
           sizes="64px"
