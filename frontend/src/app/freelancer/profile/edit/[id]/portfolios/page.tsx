@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import {
   ExistingPortfolio,
   ImageDto,
@@ -323,15 +321,14 @@ export default function FreelancerPortfolioEditPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+      <div className="flex min-h-full items-center justify-center bg-[#fbf9f2] text-[#45483d]">
         포트폴리오를 불러오는 중입니다...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="text-2xl font-semibold text-[#1b1c18] mb-8">
           포트폴리오 수정
@@ -777,8 +774,6 @@ export default function FreelancerPortfolioEditPage() {
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 }

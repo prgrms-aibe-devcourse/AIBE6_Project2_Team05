@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { createAuthHeaders, getAccessToken } from "@/lib/auth";
 import {
   fetchFreelancerProfile,
@@ -92,9 +90,7 @@ export default function ReservationsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex-1">
         <h1 className="font-[var(--font-display)] text-3xl font-semibold text-[#1b1c18] mb-2">
           {userRole === "FREELANCER" ? "예약 관리" : "내 예약 현황"}
@@ -115,8 +111,6 @@ export default function ReservationsPage() {
           onRefresh={() => void loadData()}
         />
       </div>
-
-      <Footer />
     </div>
   );
 }

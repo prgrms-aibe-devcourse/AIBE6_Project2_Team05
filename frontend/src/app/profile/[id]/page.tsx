@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import AboutTab from "@/components/profile/AboutTab";
 import PortfolioTab from "@/components/profile/PortfolioTab";
 import ProfileErrorState from "@/components/profile/ProfileErrorState";
@@ -140,9 +138,7 @@ export default function ProfilePage({
       .filter(Boolean) || [];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       {/* Cover Image */}
       <div className="relative h-72 md:h-96 overflow-hidden">
         <Image src={coverImageUrl} alt="Cover" fill className="object-cover" />
@@ -325,7 +321,6 @@ export default function ProfilePage({
       </div>
 
       <div className="pb-16" />
-      <Footer />
     </div>
   );
 }

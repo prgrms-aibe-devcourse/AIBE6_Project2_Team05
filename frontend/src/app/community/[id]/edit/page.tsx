@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,9 +73,7 @@ export default function CommunityEditPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <Link
           href={`/community/${id}`}
@@ -172,8 +168,6 @@ export default function CommunityEditPage() {
           )}
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

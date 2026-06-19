@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -215,8 +213,7 @@ export default function JobDetailPage() {
   const isAuthor = post && myMemberId && post.memberId === myMemberId;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <Link
           href="/jobs"
@@ -512,7 +509,6 @@ export default function JobDetailPage() {
             </div>
           )}
       </div>
-      <Footer />
     </div>
   );
 }

@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { buttonVariants } from "@/components/ui/button";
 import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -89,9 +87,7 @@ export default function BookmarksPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="font-[var(--font-display)] text-3xl font-semibold text-[#1b1c18] mb-2">
           관심 프리랜서
@@ -259,8 +255,6 @@ export default function BookmarksPage() {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 }

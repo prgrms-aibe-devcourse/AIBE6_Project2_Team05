@@ -1,8 +1,6 @@
 "use client";
 
-import Footer from "@/components/Footer";
 import MySidebar from "@/components/mypage/MySidebar";
-import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -133,8 +131,7 @@ export default function MyPostsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
           <MySidebar
@@ -275,7 +272,6 @@ export default function MyPostsPage() {
           </main>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

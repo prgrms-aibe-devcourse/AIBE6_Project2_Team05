@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { createAuthHeaders } from "@/lib/auth";
 import {
   fetchReservations,
@@ -64,9 +62,7 @@ export default function FreelancerReservationsPage() {
   }, [loadData]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex min-h-full flex-col bg-[#fbf9f2]">
       <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-[var(--font-display)] text-3xl font-semibold text-[#1b1c18]">
           예약 관리
@@ -84,8 +80,6 @@ export default function FreelancerReservationsPage() {
           onRefresh={() => void loadData()}
         />
       </div>
-
-      <Footer />
     </div>
   );
 }

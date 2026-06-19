@@ -1,11 +1,9 @@
 "use client";
 
-import Footer from "@/components/Footer";
 import FreelancerProfileForm, {
   NewPortfolioItem,
   ProfileFormValues,
 } from "@/components/freelancer/FreelancerProfileForm";
-import Navbar from "@/components/Navbar";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import { useRouter } from "next/navigation";
@@ -101,8 +99,7 @@ export default function FreelancerProfileNewPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="text-2xl font-semibold text-[#1b1c18] mb-8">
           프리랜서 프로필 등록
@@ -116,7 +113,6 @@ export default function FreelancerProfileNewPage() {
           onCancel={() => router.back()}
         />
       </div>
-      <Footer />
     </div>
   );
 }

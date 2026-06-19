@@ -4,8 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { authFetch } from "@/lib/authFetch";
 import {
   buildReservationSummary,
@@ -157,9 +155,7 @@ export default function ReviewPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="relative h-40 overflow-hidden">
         <Image
           src="https://picsum.photos/seed/reviewhero/1400/300"
@@ -202,8 +198,6 @@ export default function ReviewPage() {
           onSubmit={() => void handleSubmitReview()}
         />
       </div>
-
-      <Footer />
     </div>
   );
 }

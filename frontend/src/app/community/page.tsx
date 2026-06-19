@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,9 +99,7 @@ export default function CommunityPage() {
   const isLoggedIn = mounted && Boolean(getAccessToken());
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       {/* Hero */}
       <section className="bg-[#f5f4ec] py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -232,8 +228,6 @@ export default function CommunityPage() {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default function FreelancerProfileManagePage() {
   }, [router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+    <div className="flex min-h-full items-center justify-center bg-[#fbf9f2] text-[#45483d]">
       프로필 확인 중...
     </div>
   );

@@ -8,8 +8,6 @@ import "swiper/css/effect-coverflow";
 
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,9 +76,7 @@ const calcArc = (swiper: any) => {
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <section className="relative overflow-hidden bg-gradient-to-b from-[#f5f4ec] to-[#fbf9f2] pt-20 pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm font-medium tracking-widest uppercase text-[#6f5a55] mb-4">
@@ -325,8 +321,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

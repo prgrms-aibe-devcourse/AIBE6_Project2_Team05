@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
@@ -38,8 +36,7 @@ export default function SelectRolePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl border border-[#efeee7] p-8 sm:p-12 max-w-md w-full text-center">
           <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18] mb-2">
@@ -84,7 +81,6 @@ export default function SelectRolePage() {
           </Button>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -1,6 +1,4 @@
 "use client";
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -178,9 +176,7 @@ function SearchPageInner() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       {/* Header */}
       <div className="bg-[#f5f4ec] py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -366,8 +362,6 @@ function SearchPageInner() {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 }
@@ -376,8 +370,7 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen bg-[#fbf9f2]">
-          <Navbar />
+        <div className="flex min-h-full bg-[#fbf9f2]">
         </div>
       }
     >

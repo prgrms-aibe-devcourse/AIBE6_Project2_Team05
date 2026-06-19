@@ -1,5 +1,5 @@
 // src/app/layout.tsx
-import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
+import { AppChrome } from "@/components/layout/AppChrome";
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -32,8 +32,7 @@ export default function RootLayout({
       className={`${playfairDisplay.variable} ${beVietnamPro.variable} antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#fbf9f2] text-[#1b1c18]">
-        {children}
-        <ChatbotWidget />
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   );

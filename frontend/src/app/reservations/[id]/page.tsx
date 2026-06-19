@@ -3,8 +3,6 @@
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -112,25 +110,21 @@ export default function ReservationDetailPage({
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-        <Navbar />
+      <div className="flex flex-col min-h-full bg-[#fbf9f2]">
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[#75786c]">정보를 불러오는 중입니다...</p>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (error || !reservation) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-        <Navbar />
+      <div className="flex flex-col min-h-full bg-[#fbf9f2]">
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <p className="text-red-500 mb-4">{error || "예약을 찾을 수 없습니다."}</p>
           <Button onClick={() => router.back()}>뒤로 가기</Button>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -139,9 +133,7 @@ export default function ReservationDetailPage({
   const isFreelancer = userRole === "FREELANCER";
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex-1">
         <div className="mb-8">
           <button
@@ -294,8 +286,6 @@ export default function ReservationDetailPage({
           </p>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

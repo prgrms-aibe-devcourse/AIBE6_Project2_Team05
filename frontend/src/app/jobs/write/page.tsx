@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,8 +79,7 @@ export default function JobsWritePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <Link
           href="/mypage/posts"
@@ -285,7 +282,6 @@ export default function JobsWritePage() {
           </form>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

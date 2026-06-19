@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { getAccessToken } from "@/lib/auth";
 import { authFetch } from "@/lib/authFetch";
 import Image from "next/image";
@@ -90,9 +88,7 @@ export default function PortfoliosPage({
   }, [id]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       {/* 프리랜서 배너 */}
       <div className="bg-white border-b border-[#efeee7]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -450,8 +446,6 @@ export default function PortfoliosPage({
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 }

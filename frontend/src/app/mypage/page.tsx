@@ -1,7 +1,5 @@
 "use client";
 
-import Footer from "@/components/Footer";
-import Navbar from "@/components/Navbar";
 import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
 import FreelancerProfileTab from "@/components/mypage/FreelancerProfileTab";
 import InfoTab from "@/components/mypage/InfoTab";
@@ -187,15 +185,14 @@ export default function MyPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+      <div className="flex min-h-full items-center justify-center bg-[#fbf9f2] text-[#45483d]">
         회원 정보를 불러오는 중입니다...
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
+    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <div className="flex flex-col lg:flex-row gap-8">
           <MySidebar
@@ -270,7 +267,6 @@ export default function MyPage() {
           </main>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

@@ -4,8 +4,6 @@ import { Client, type IMessage, type StompSubscription } from "@stomp/stompjs";
 import { ArrowLeft, RefreshCw, Send } from "lucide-react";
 import { use, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   createWebSocketUrl,
@@ -357,20 +355,16 @@ export default function ChatRoomPage({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#fbf9f2]">
-        <Navbar />
+      <div className="flex min-h-full flex-col bg-[#fbf9f2]">
         <main className="flex flex-1 items-center justify-center">
           <p className="text-sm text-[#75786c]">채팅방을 불러오는 중입니다...</p>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#fbf9f2]">
-      <Navbar />
-
+    <div className="flex min-h-full flex-col bg-[#fbf9f2]">
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-4">
           <button
@@ -510,8 +504,6 @@ export default function ChatRoomPage({
           </form>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }
