@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, clearAccessToken, createAuthHeaders, getAccessToken } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { Heart } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -17,9 +18,9 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
 
   const navLinks = [
-    { href: "/search?category=photographer", label: "작가" },
+    { href: "/search", label: "전문가 탐색" },
     { href: "/community", label: "커뮤니티" },
-    { href: "/jobs", label: "전문가 찾기" },
+    { href: "/jobs", label: "구인" },
   ];
 
   useEffect(() => {
@@ -79,6 +80,15 @@ export default function Navbar() {
               </>
             ) : isLoggedIn ? (
               <>
+                <Link
+                  href="/bookmarks"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "text-[#45483d] hover:text-[#e85454] hover:bg-[#f5f4ec] p-2"
+                  )}
+                >
+                  <Heart className="w-6 h-6" />
+                </Link>
                 <Link
                   href="/mypage"
                   className={cn(
@@ -172,6 +182,17 @@ export default function Navbar() {
                     </>
                   ) : isLoggedIn ? (
                     <>
+                      <Link
+                        href="/bookmarks"
+                        onClick={() => setMobileOpen(false)}
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "w-full justify-center gap-2"
+                        )}
+                      >
+                        <Heart className="w-4 h-4" />
+                        찜목록
+                      </Link>
                       <Link
                         href="/mypage"
                         onClick={() => setMobileOpen(false)}

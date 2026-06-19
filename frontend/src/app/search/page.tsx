@@ -166,7 +166,7 @@ function SearchPageInner() {
       <div className="bg-[#f5f4ec] py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-[var(--font-display)] text-3xl font-semibold text-[#1b1c18] mb-2">
-            전문가 찾기
+            전문가 탐색
           </h1>
           <p className="text-sm text-[#75786c]">
             당신의 특별한 기념일을 위한 엄선된 전문가들을 만나 보세요
