@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
+import { getRoleTheme } from "@/lib/roleTheme";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,17 +64,27 @@ function MemberAvatar({
   currentUser,
 }: {
   post: Post;
-  currentUser: { id: number; profileImageUrl: string | null } | null;
+  currentUser: {
+    id: number;
+    role: "CLIENT" | "FREELANCER";
+    profileImageUrl: string | null;
+  } | null;
 }) {
   // 백엔드에서 memberImageUrl 오면 사용, 아니면 본인 글일 때 Context 이미지 사용
+  const isMyPost = currentUser?.id === post.memberId;
   const imageUrl =
     post.memberImageUrl ||
-    (currentUser?.id === post.memberId ? currentUser?.profileImageUrl : null);
+    (isMyPost ? currentUser?.profileImageUrl : null);
+  const { avatarBgClass, avatarTextClass } = getRoleTheme(
+    isMyPost ? currentUser.role : null,
+  );
 
   return (
     <Avatar className="w-7 h-7">
       {imageUrl && <AvatarImage src={imageUrl} alt={post.memberName} />}
-      <AvatarFallback className="bg-[#d3ebac] text-[#4f6231] text-xs font-semibold">
+      <AvatarFallback
+        className={`${avatarBgClass} ${avatarTextClass} text-xs font-semibold`}
+      >
         {post.memberName.charAt(0)}
       </AvatarFallback>
     </Avatar>

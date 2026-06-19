@@ -1,30 +1,9 @@
 "use client";
 
 import { useUser } from "@/contexts/UserContext";
+import { getRoleTheme, ROLE_LABEL } from "@/lib/roleTheme";
 import Image from "next/image";
 import Link from "next/link";
-
-type MemberRole = "CLIENT" | "FREELANCER";
-
-const ROLE_LABEL: Record<MemberRole, string> = {
-  CLIENT: "예비부부",
-  FREELANCER: "프리랜서",
-};
-
-const ROLE_BADGE_CLASS: Record<MemberRole, string> = {
-  CLIENT: "bg-[#fbe4ea] text-[#8a4b5a]",
-  FREELANCER: "bg-[#e8f5d0] text-[#4f6231]",
-};
-
-const ROLE_AVATAR_BG_CLASS: Record<MemberRole, string> = {
-  CLIENT: "bg-[#fbe4ea]",
-  FREELANCER: "bg-[#d3ebac]",
-};
-
-const ROLE_AVATAR_TEXT_CLASS: Record<MemberRole, string> = {
-  CLIENT: "text-[#8a4b5a]",
-  FREELANCER: "text-[#4f6231]",
-};
 
 interface MySidebarProps {
   onLogout: () => void;
@@ -39,8 +18,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
   const role = user?.role ?? null;
   const freelancerProfileId = user?.freelancerProfileId ?? null;
   const isFreelancerWithoutProfile = role === "FREELANCER" && !freelancerProfileId;
-  const avatarBgClass = role ? ROLE_AVATAR_BG_CLASS[role] : "bg-[#d3ebac]";
-  const avatarTextClass = role ? ROLE_AVATAR_TEXT_CLASS[role] : "text-[#4f6231]";
+  const { badgeClass, avatarBgClass, avatarTextClass } = getRoleTheme(role);
 
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
@@ -113,7 +91,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
         <p className="text-xs text-[#75786c]">{email}</p>
         {role && (
           <span
-            className={`inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${ROLE_BADGE_CLASS[role]}`}
+            className={`inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeClass}`}
           >
             {ROLE_LABEL[role]}
           </span>

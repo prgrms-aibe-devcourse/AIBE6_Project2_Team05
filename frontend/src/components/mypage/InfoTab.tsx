@@ -4,11 +4,13 @@ import BasicInfoForm from "@/components/mypage/BasicInfoForm";
 import ProfileImageUpload from "@/components/mypage/ProfileImageUpload";
 import SecurityForm from "@/components/mypage/SecurityForm";
 import { Button } from "@/components/ui/button";
+import { MemberRole } from "@/lib/roleTheme";
 
 interface InfoTabProps {
   name: string;
   email: string;
   phone: string;
+  role: MemberRole | null;
   profileImg: string | null;
   currentPw: string;
   newPw: string;
@@ -30,6 +32,7 @@ export default function InfoTab({
   name,
   email,
   phone,
+  role,
   profileImg,
   currentPw,
   newPw,
@@ -63,6 +66,7 @@ export default function InfoTab({
       )}
       <ProfileImageUpload
         name={name}
+        role={role}
         profileImg={profileImg}
         onImageChange={onProfileImgChange}
       />

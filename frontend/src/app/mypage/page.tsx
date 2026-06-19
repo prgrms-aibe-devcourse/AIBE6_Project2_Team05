@@ -223,6 +223,7 @@ export default function MyPage() {
                 name={localName}
                 email={user?.email ?? ""}
                 phone={phone}
+                role={user?.role ?? null}
                 profileImg={localProfileImg}
                 currentPw={currentPw}
                 newPw={newPw}

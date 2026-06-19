@@ -4,20 +4,24 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
+import { getRoleTheme, MemberRole } from "@/lib/roleTheme";
 
 interface ProfileImageUploadProps {
   name: string;
+  role: MemberRole | null;
   profileImg: string | null;
   onImageChange: (img: string | null) => void;
 }
 
 export default function ProfileImageUpload({
   name,
+  role,
   profileImg,
   onImageChange,
 }: ProfileImageUploadProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const { avatarBgClass, avatarTextClass } = getRoleTheme(role);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +55,9 @@ export default function ProfileImageUpload({
         프로필 이미지
       </h2>
       <div className="flex items-center gap-6">
-        <div className="relative w-24 h-24 rounded-full overflow-hidden bg-[#d3ebac] shrink-0">
+        <div
+          className={`relative w-24 h-24 rounded-full overflow-hidden shrink-0 ${avatarBgClass}`}
+        >
           {profileImg ? (
             <Image
               src={profileImg}
@@ -61,7 +67,9 @@ export default function ProfileImageUpload({
               className="object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#4f6231] font-bold text-3xl">
+            <div
+              className={`w-full h-full flex items-center justify-center font-bold text-3xl ${avatarTextClass}`}
+            >
               {name.charAt(0)}
             </div>
           )}
