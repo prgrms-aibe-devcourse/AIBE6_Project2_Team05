@@ -1,5 +1,6 @@
 package com.wedge.backend.global.oauth2;
 
+import com.wedge.backend.domain.member.entity.MemberStatus;
 import com.wedge.backend.domain.member.entity.RefreshToken;
 import com.wedge.backend.domain.member.repository.RefreshTokenRepository;
 import com.wedge.backend.global.jwt.JwtUtil;
@@ -53,10 +54,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-        // 프론트엔드로 액세스 토큰 + 신규 여부 전달
+        boolean needsOnboarding = memberPrincipal.getMember().getStatus() == MemberStatus.ONBOARDING;
+
         String redirectUrl = frontendUrl + "/oauth2/callback"
                 + "?accessToken=" + accessToken
-                + "&isNew=" + memberPrincipal.isNew();
+                + "&isNew=" + memberPrincipal.isNew()
+                + "&needsOnboarding=" + needsOnboarding;
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }

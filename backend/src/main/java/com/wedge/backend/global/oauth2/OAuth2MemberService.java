@@ -1,6 +1,7 @@
 package com.wedge.backend.global.oauth2;
 
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.member.entity.MemberStatus;
 import com.wedge.backend.domain.member.entity.Provider;
 import com.wedge.backend.domain.member.entity.Role;
 import com.wedge.backend.domain.member.repository.MemberRepository;
@@ -66,6 +67,7 @@ public class OAuth2MemberService extends DefaultOAuth2UserService {
                         .email(resolvedEmail)
                         .name(resolvedName)
                         .role(Role.CLIENT)
+                        .status(MemberStatus.ONBOARDING)
                         .provider(provider)
                         .providerId(providerId)
                         .build()

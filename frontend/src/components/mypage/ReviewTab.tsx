@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 const PAGE_SIZE = 5;
@@ -46,9 +47,17 @@ function ReviewStars({ rating }: { readonly rating: number }) {
   );
 }
 
-function ReviewCard({ review }: { readonly review: ReviewResponse }) {
-  return (
-    <article className="rounded-2xl border border-[#efeee7] bg-white p-5 transition-shadow hover:shadow-[0_8px_30px_rgba(79,98,49,0.08)]">
+function ReviewCard({
+  review,
+  cardHref,
+  detailHref,
+}: {
+  readonly review: ReviewResponse;
+  readonly cardHref: string | null;
+  readonly detailHref: string | null;
+}) {
+  const content = (
+    <article className="rounded-2xl border border-[#efeee7] bg-white p-5 transition-shadow hover:shadow-[0_8px_30px_rgba(79,98,49,0.08)] hover:border-[#c5c8ba]">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="relative w-11 h-11 shrink-0 rounded-full overflow-hidden bg-[#d3ebac]">
@@ -84,7 +93,28 @@ function ReviewCard({ review }: { readonly review: ReviewResponse }) {
       <p className="mt-4 whitespace-pre-line text-sm leading-6 text-[#45483d]">
         {review.content}
       </p>
+      {detailHref && (
+        <div className="mt-4 pt-3 border-t border-[#f5f4ec] text-right">
+          <Link
+            href={detailHref}
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#4f6231] hover:underline"
+          >
+            예약 상세 보기
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
     </article>
+  );
+
+  if (!cardHref) {
+    return content;
+  }
+
+  return (
+    <Link href={cardHref} className="block">
+      {content}
+    </Link>
   );
 }
 
@@ -97,7 +127,13 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-function ReviewList({ reviews }: { reviews: readonly ReviewResponse[] }) {
+function ReviewList({
+  reviews,
+  mode,
+}: {
+  reviews: readonly ReviewResponse[];
+  mode: "written" | "received";
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(reviews.length / PAGE_SIZE);
   const pagedReviews = reviews.slice(
@@ -105,11 +141,26 @@ function ReviewList({ reviews }: { reviews: readonly ReviewResponse[] }) {
     currentPage * PAGE_SIZE,
   );
 
+  const cardHrefFor = (review: ReviewResponse): string | null => {
+    if (mode !== "written" || review.reservationId === null) return null;
+    return `/review/${review.reservationId}`;
+  };
+
+  const detailHrefFor = (review: ReviewResponse): string | null => {
+    if (mode !== "received" || review.reservationId === null) return null;
+    return `/reservations/${review.reservationId}`;
+  };
+
   return (
     <>
       <div className="space-y-4">
         {pagedReviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard
+            key={review.id}
+            review={review}
+            cardHref={cardHrefFor(review)}
+            detailHref={detailHrefFor(review)}
+          />
         ))}
       </div>
       {totalPages > 1 && (
@@ -202,9 +253,9 @@ export default function ReviewTab({
 
   return (
     <>
-        <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
-          리뷰 내역
-        </h1>
+      <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
+        리뷰 내역
+      </h1>
 
       {isFreelancer && (
         <div className="flex gap-1 p-1 bg-[#f5f4ec] rounded-xl w-fit">
@@ -257,7 +308,12 @@ export default function ReviewTab({
               <span className="font-semibold text-[#1b1c18]">{countLabel}</span>
             </p>
           </div>
-          <ReviewList reviews={currentReviews} />
+          <ReviewList
+            reviews={currentReviews}
+            mode={
+              isFreelancer && innerTab === "received" ? "received" : "written"
+            }
+          />
         </>
       )}
     </>

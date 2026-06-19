@@ -1,0 +1,31 @@
+export const CATEGORY = {
+    WEDDING_PHOTO: { id: 1,  name: '웨딩 사진작가' },
+    WEDDING_VIDEO: { id: 2,  name: '웨딩 영상' },
+    HAIR_MAKEUP:   { id: 3,  name: '헤어·메이크업' },
+    FLORIST:       { id: 4,  name: '웨딩 플로리스트' },
+    PLANNER:       { id: 5,  name: '웨딩 플래너' },
+    OFFICIANT:     { id: 6,  name: '주례·혼례사' },
+    BAND:          { id: 7,  name: '연주·밴드' },
+    SONG:          { id: 8,  name: '축가' },
+    HOST:          { id: 9,  name: '사회자' },
+    ETC:           { id: 10, name: '기타' },
+  } as const;
+  
+  export const SERVICE_TO_CATEGORY_ID: Record<string, number> = {
+    "웨딩 사진작가":   CATEGORY.WEDDING_PHOTO.id,
+    "웨딩 스냅사진":   CATEGORY.WEDDING_PHOTO.id,
+    "스냅사진 촬영":   CATEGORY.WEDDING_PHOTO.id,
+    "웨딩 영상":       CATEGORY.WEDDING_VIDEO.id,
+    "영상 촬영":       CATEGORY.WEDDING_VIDEO.id,
+    "헤어·메이크업":   CATEGORY.HAIR_MAKEUP.id,
+    "헤어메이크업":    CATEGORY.HAIR_MAKEUP.id,
+    "헤어 메이크업":   CATEGORY.HAIR_MAKEUP.id,
+    "웨딩 플로리스트": CATEGORY.FLORIST.id,
+    "부케":            CATEGORY.FLORIST.id,
+    "웨딩 플래너":     CATEGORY.PLANNER.id,
+    "주례·혼례사":     CATEGORY.OFFICIANT.id,
+    "연주·밴드":       CATEGORY.BAND.id,
+    "축가":            CATEGORY.SONG.id,
+    "사회자":          CATEGORY.HOST.id,
+    "기타":            CATEGORY.ETC.id,
+  };

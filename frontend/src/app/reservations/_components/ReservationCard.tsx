@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   acceptReservation,
   completeReservation,
@@ -10,8 +9,12 @@ import {
   ReservationApiError,
   type ReservationResponse,
 } from "@/lib/reservations";
-import { formatReservationDate, reservationStatusView } from "../reservationView";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
+import {
+  formatReservationDate,
+  reservationStatusView,
+} from "../reservationView";
 
 type ReservationCardProps = {
   readonly reservation: ReservationResponse;
@@ -28,6 +31,7 @@ export function ReservationCard({
 }: ReservationCardProps) {
   const status = reservationStatusView[reservation.status];
   const [isUpdating, setIsUpdating] = useState(false);
+  const imageUrl = reservation.freelancerImageUrl ?? profileImageUrl;
 
   const handleStatusChange = async (
     action: (id: number) => Promise<ReservationResponse>,
@@ -55,9 +59,9 @@ export function ReservationCard({
     <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all">
       <div className="flex gap-4 p-5">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f5f4ec]">
-          {profileImageUrl ? (
+          {imageUrl ? (
             <Image
-              src={profileImageUrl}
+              src={imageUrl}
               alt={reservation.freelancerName ?? "프리랜서"}
               fill
               sizes="64px"
@@ -140,7 +144,9 @@ export function ReservationCard({
         <div className="flex gap-2">
           {reservation.status === "COMPLETED" && (
             <Link
-              href={isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`}
+              href={
+                isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`
+              }
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "text-xs h-8 border-[#c5c8ba] text-[#45483d] rounded-xl hover:border-[#4f6231] hover:text-[#4f6231]",

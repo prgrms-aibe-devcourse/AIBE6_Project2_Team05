@@ -36,7 +36,6 @@ public class FreelancerSearchService {
                 var memberJoin = root.join("member", jakarta.persistence.criteria.JoinType.LEFT);
                 return cb.or(
                         cb.like(root.get("title"), "%" + keyword + "%"),
-                        cb.like(root.get("introduction"), "%" + keyword + "%"),
                         cb.like(memberJoin.get("name"), "%" + keyword + "%")
                 );
             });
@@ -72,7 +71,7 @@ public class FreelancerSearchService {
             case POPULAR -> PageRequest.of(
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
-                    Sort.by(Sort.Direction.DESC, "bookmarkCount")
+                    Sort.by(Sort.Direction.DESC, "bookmarkCount").and(Sort.by(Sort.Direction.DESC, "createdAt"))
             );
             default -> pageable;
         };

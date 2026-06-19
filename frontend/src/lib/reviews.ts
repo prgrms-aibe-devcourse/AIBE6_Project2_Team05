@@ -14,6 +14,7 @@ export type CurrentMember = {
 
 export type ReviewResponse = {
   readonly id: number;
+  readonly reservationId: number | null;
   readonly memberId: number;
   readonly memberName: string;
   readonly memberImageUrl: string | null;
@@ -75,6 +76,8 @@ function parseReview(value: unknown): ReviewResponse {
 
   return {
     id: value.id,
+    reservationId:
+      typeof value.reservationId === "number" ? value.reservationId : null,
     memberId: typeof value.memberId === "number" ? value.memberId : 0,
     memberName:
       typeof value.memberName === "string" ? value.memberName : "익명",

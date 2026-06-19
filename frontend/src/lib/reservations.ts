@@ -22,6 +22,7 @@ export type ReservationResponse = {
   readonly clientName: string;
   readonly freelancerProfileId: number;
   readonly freelancerName: string;
+  readonly freelancerImageUrl?: string | null;
   readonly freelancerTitle: string;
   readonly reservationDate: string;
   readonly requestMessage: string;
@@ -90,10 +91,7 @@ async function readErrorMessage(response: Response): Promise<string> {
   return body.trim();
 }
 
-async function requestJson<T>(
-  path: string,
-  init: RequestInit,
-): Promise<T> {
+async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
 
@@ -128,7 +126,9 @@ export async function createReservation(
   });
 }
 
-export async function fetchReservations(): Promise<readonly ReservationResponse[]> {
+export async function fetchReservations(): Promise<
+  readonly ReservationResponse[]
+> {
   return requestJson<readonly ReservationResponse[]>("/api/v1/reservations", {
     method: "GET",
   });
@@ -142,22 +142,31 @@ export async function fetchFreelancerProfile(
   });
 }
 
-export async function acceptReservation(id: number): Promise<ReservationResponse> {
+export async function acceptReservation(
+  id: number,
+): Promise<ReservationResponse> {
   return requestJson<ReservationResponse>(`/api/v1/reservations/${id}/accept`, {
     method: "PATCH",
   });
 }
 
-export async function rejectReservation(id: number): Promise<ReservationResponse> {
+export async function rejectReservation(
+  id: number,
+): Promise<ReservationResponse> {
   return requestJson<ReservationResponse>(`/api/v1/reservations/${id}/reject`, {
     method: "PATCH",
   });
 }
 
-export async function completeReservation(id: number): Promise<ReservationResponse> {
-  return requestJson<ReservationResponse>(`/api/v1/reservations/${id}/complete`, {
-    method: "PATCH",
-  });
+export async function completeReservation(
+  id: number,
+): Promise<ReservationResponse> {
+  return requestJson<ReservationResponse>(
+    `/api/v1/reservations/${id}/complete`,
+    {
+      method: "PATCH",
+    },
+  );
 }
 
 export async function cancelReservation(
@@ -170,7 +179,9 @@ export async function cancelReservation(
   });
 }
 
-export async function fetchReservationById(id: number): Promise<ReservationResponse> {
+export async function fetchReservationById(
+  id: number,
+): Promise<ReservationResponse> {
   return requestJson<ReservationResponse>(`/api/v1/reservations/${id}`, {
     method: "GET",
   });
