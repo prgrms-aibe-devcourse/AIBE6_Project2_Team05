@@ -47,6 +47,12 @@ public class MemberController {
         return ResponseEntity.ok(memberService.updateProfileImage(memberId, image));
     }
 
+    @DeleteMapping("/me/image")
+    public ResponseEntity<MemberMeResponse> removeProfileImage(Authentication authentication) {
+        Long memberId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(memberService.removeProfileImage(memberId));
+    }
+
     @PatchMapping("/me/role")
     public ResponseEntity<MemberMeResponse> changeRole(Authentication authentication,
                                                         @RequestParam Role role) {

@@ -19,6 +19,7 @@ type Post = {
   memberId: number;
   memberName: string;
   memberImageUrl?: string | null;
+  memberRole?: "CLIENT" | "FREELANCER" | null;
   title: string;
   content: string;
   type: PostType;
@@ -97,10 +98,15 @@ export default function CommunityDetailPage() {
     }
   };
 
-  const isAuthor = post && myMemberId !== null && post.memberId === myMemberId;
-  const isMyPost = !!post && !!user && post.memberId === user.id;
+  const isAuthor =
+    !!post &&
+    myMemberId !== null &&
+    Number(post.memberId) === Number(myMemberId);
+  const isMyPost =
+    !!post && !!user && Number(post.memberId) === Number(user.id);
+  const roleForTheme = post?.memberRole ?? (isMyPost ? user.role : null);
   const { avatarBgClass, avatarTextClass } = getRoleTheme(
-    isMyPost ? user.role : null,
+    roleForTheme,
   );
   const memberImageUrl =
     post?.memberImageUrl || (isMyPost ? user?.profileImageUrl : null);

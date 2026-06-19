@@ -18,6 +18,7 @@ type Post = {
   memberId: number;
   memberName: string;
   memberImageUrl?: string | null;
+  memberRole?: "CLIENT" | "FREELANCER" | null;
   title: string;
   content: string;
   type: PostType;
@@ -71,12 +72,14 @@ function MemberAvatar({
   } | null;
 }) {
   // 백엔드에서 memberImageUrl 오면 사용, 아니면 본인 글일 때 Context 이미지 사용
-  const isMyPost = currentUser?.id === post.memberId;
+  const isMyPost =
+    currentUser !== null && Number(currentUser.id) === Number(post.memberId);
   const imageUrl =
     post.memberImageUrl ||
     (isMyPost ? currentUser?.profileImageUrl : null);
+  const roleForTheme = post.memberRole ?? (isMyPost ? currentUser.role : null);
   const { avatarBgClass, avatarTextClass } = getRoleTheme(
-    isMyPost ? currentUser.role : null,
+    roleForTheme,
   );
 
   return (

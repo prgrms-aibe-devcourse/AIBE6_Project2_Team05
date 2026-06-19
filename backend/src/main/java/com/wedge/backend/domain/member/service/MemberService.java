@@ -46,7 +46,23 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException("회원 정보를 찾을 수 없습니다."));
         String imageUrl = r2FileUploadService.upload(image, "profiles");
+        String previousImageUrl = member.getProfileImageUrl();
         member.updateProfileImage(imageUrl);
+        if (previousImageUrl != null && !previousImageUrl.equals(imageUrl)) {
+            r2FileUploadService.delete(previousImageUrl);
+        }
+        return MemberMeResponse.from(member);
+    }
+
+    @Transactional
+    public MemberMeResponse removeProfileImage(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException("회원 정보를 찾을 수 없습니다."));
+        String previousImageUrl = member.getProfileImageUrl();
+        if (previousImageUrl != null) {
+            r2FileUploadService.delete(previousImageUrl);
+        }
+        member.updateProfileImage(null);
         return MemberMeResponse.from(member);
     }
 

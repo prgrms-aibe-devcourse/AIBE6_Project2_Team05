@@ -16,7 +16,7 @@ import { authFetch } from "@/lib/authFetch";
 import { useUser } from "@/contexts/UserContext";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ActiveTab = "info" | "profile" | "portfolio" | "reviews";
 
@@ -51,11 +51,31 @@ export default function MyPage() {
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [localProfileImg, setLocalProfileImg] = useState<string | null>(null);
+  const [serverProfileImg, setServerProfileImg] = useState<string | null>(null);
+  const [pendingProfileImageFile, setPendingProfileImageFile] =
+    useState<File | null>(null);
+  const [pendingProfileImageRemoval, setPendingProfileImageRemoval] =
+    useState(false);
   const [localName, setLocalName] = useState("");
+  const previewImageUrlRef = useRef<string | null>(null);
+
+  const clearPreviewImageUrl = () => {
+    if (previewImageUrlRef.current) {
+      URL.revokeObjectURL(previewImageUrlRef.current);
+      previewImageUrlRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearPreviewImageUrl();
+    };
+  }, []);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -86,7 +106,11 @@ export default function MyPage() {
 
         setLocalName(data.name ?? "");
         setPhone(data.phone ?? "");
+        clearPreviewImageUrl();
+        setServerProfileImg(data.profileImageUrl ?? null);
         setLocalProfileImg(data.profileImageUrl ?? null);
+        setPendingProfileImageFile(null);
+        setPendingProfileImageRemoval(false);
 
         if (data.role === "FREELANCER") {
           try {
@@ -137,6 +161,7 @@ export default function MyPage() {
         return;
       }
     }
+    setIsSaving(true);
     try {
       const body: { name: string; phone: string; password?: string } = {
         name: localName,
@@ -151,6 +176,40 @@ export default function MyPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok)
         throw new Error(data?.message ?? "회원 정보 수정에 실패했습니다.");
+
+      if (pendingProfileImageFile) {
+        const formData = new FormData();
+        formData.append("image", pendingProfileImageFile);
+        const imageRes = await authFetch(`${API_BASE_URL}/api/v1/members/me/image`, {
+          method: "PATCH",
+          body: formData,
+        });
+        const imageData = await imageRes.json().catch(() => null);
+        if (!imageRes.ok) {
+          throw new Error(
+            imageData?.message ?? "프로필 이미지 저장에 실패했습니다.",
+          );
+        }
+        clearPreviewImageUrl();
+        setServerProfileImg(imageData.profileImageUrl ?? null);
+        setLocalProfileImg(imageData.profileImageUrl ?? null);
+      } else if (pendingProfileImageRemoval) {
+        const removeRes = await authFetch(`${API_BASE_URL}/api/v1/members/me/image`, {
+          method: "DELETE",
+        });
+        const removeData = await removeRes.json().catch(() => null);
+        if (!removeRes.ok) {
+          throw new Error(
+            removeData?.message ?? "프로필 이미지 제거에 실패했습니다.",
+          );
+        }
+        clearPreviewImageUrl();
+        setServerProfileImg(null);
+        setLocalProfileImg(null);
+      }
+
+      setPendingProfileImageFile(null);
+      setPendingProfileImageRemoval(false);
       setLocalName(data.name ?? "");
       setPhone(data.phone ?? "");
       setCurrentPw("");
@@ -164,6 +223,8 @@ export default function MyPage() {
           ? error.message
           : "회원 정보 수정에 실패했습니다.",
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -232,20 +293,34 @@ export default function MyPage() {
                 successMessage={successMessage}
                 onNameChange={setLocalName}
                 onPhoneChange={setPhone}
-                onProfileImgChange={(img) => {
-                  setLocalProfileImg(img);
-                  refreshUser();
+                onProfileImageSelected={(file, previewUrl) => {
+                  clearPreviewImageUrl();
+                  previewImageUrlRef.current = previewUrl;
+                  setLocalProfileImg(previewUrl);
+                  setPendingProfileImageFile(file);
+                  setPendingProfileImageRemoval(false);
+                }}
+                onProfileImageRemoved={() => {
+                  clearPreviewImageUrl();
+                  setLocalProfileImg(null);
+                  setPendingProfileImageFile(null);
+                  setPendingProfileImageRemoval(serverProfileImg !== null);
                 }}
                 onCurrentPwChange={setCurrentPw}
                 onNewPwChange={setNewPw}
                 onConfirmPwChange={setConfirmPw}
                 onSave={handleProfileUpdate}
                 onCancel={() => {
+                  clearPreviewImageUrl();
+                  setLocalProfileImg(serverProfileImg);
+                  setPendingProfileImageFile(null);
+                  setPendingProfileImageRemoval(false);
                   setCurrentPw("");
                   setNewPw("");
                   setConfirmPw("");
                 }}
                 onWithdraw={handleWithdraw}
+                isSaving={isSaving}
               />
             )}
             {activeTab === "profile" &&
