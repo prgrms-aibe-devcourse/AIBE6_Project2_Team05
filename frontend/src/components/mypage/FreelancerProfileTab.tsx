@@ -37,6 +37,7 @@ export default function FreelancerProfileTab({
             categoryId: Number(values.categoryId),
             title: values.title.trim(),
             introduction: values.introduction.trim(),
+            selfIntroduction: values.selfIntroduction.trim(),
             region: values.region,
             price: Number(values.price),
             careerYears: Number(values.careerYears),

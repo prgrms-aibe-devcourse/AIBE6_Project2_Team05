@@ -6,6 +6,7 @@ interface FreelancerProfile {
   averageRating: number;
   reviewCount: number;
   bookmarkCount: number;
+  selfIntroduction?: string;
 }
 
 interface AboutTabProps {
@@ -15,7 +16,7 @@ interface AboutTabProps {
 
 export default function AboutTab({ profile, reviewCount }: AboutTabProps) {
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       {/* 전문가 정보 요약 카드 */}
       <div className="bg-white border border-[#efeee7] rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
@@ -63,6 +64,20 @@ export default function AboutTab({ profile, reviewCount }: AboutTabProps) {
           </span>
         </div>
       </div>
+
+      {/* 자기소개 */}
+      {profile.selfIntroduction && (
+        <div className="mt-6">
+          <h2 className="font-semibold text-[#1b1c18] text-base mb-3">
+            자기소개
+          </h2>
+          <div className="bg-white rounded-2xl border border-[#efeee7] p-6">
+            <p className="text-sm text-[#45483d] leading-relaxed whitespace-pre-wrap">
+              {profile.selfIntroduction}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

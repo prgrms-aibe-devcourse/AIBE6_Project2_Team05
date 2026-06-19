@@ -69,6 +69,7 @@ export interface ProfileFormValues {
   categoryId: number | "";
   title: string;
   introduction: string;
+  selfIntroduction: string;
   region: string;
   price: string;
   careerYears: string;
@@ -127,7 +128,7 @@ export default function FreelancerProfileForm({
       return;
     }
     if (!values.introduction.trim()) {
-      alert("자기소개를 입력해주세요.");
+      alert("서비스 설명을 입력해주세요.");
       return;
     }
     if (!values.region) {
@@ -201,13 +202,24 @@ export default function FreelancerProfileForm({
 
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-[#45483d]">
-            자기소개 *
+            서비스 설명 *
           </Label>
           <Textarea
             value={values.introduction}
             onChange={(e) => updateField("introduction", e.target.value)}
             placeholder="전문 분야, 스타일, 경력 등을 소개해주세요"
             rows={5}
+            className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C] text-[#1b1c18] resize-none"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-sm font-medium text-[#45483d]">자기소개</Label>
+          <Textarea
+            value={values.selfIntroduction}
+            onChange={(e) => updateField("selfIntroduction", e.target.value)}
+            placeholder="나를 소개하는 한마디를 자유롭게 작성해주세요"
+            rows={4}
             className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#6C814C] text-[#1b1c18] resize-none"
           />
         </div>

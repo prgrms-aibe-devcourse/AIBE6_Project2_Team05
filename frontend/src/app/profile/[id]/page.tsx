@@ -24,6 +24,7 @@ interface FreelancerProfile {
   categoryName: string;
   title: string;
   introduction: string;
+  selfIntroduction?: string;
   keywords: string;
   region: string;
   price: number;
