@@ -13,6 +13,7 @@ import { authFetch } from "@/lib/authFetch";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 interface FreelancerProfile {
@@ -63,6 +64,7 @@ export default function ProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const [bookmarked, setBookmarked] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
@@ -76,6 +78,10 @@ export default function ProfilePage({
   const isOwner = profile?.memberId === currentMemberId;
 
   const handleBookmark = async () => {
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(`/profile/${id}`)}`);
+      return;
+    }
     try {
       const res = await authFetch(`/api/bookmarks/${id}`, { method: "POST" });
       const data = await res.json();
@@ -123,9 +129,9 @@ export default function ProfilePage({
           const meData = await meRes.json();
           setCurrentMemberId(meData.id);
 
-          const bookmarkRes = await authFetch(
-            `/api/bookmarks/${id}/status`,
-          ).catch(() => null);
+          const bookmarkRes = await authFetch(`/api/bookmarks/${id}`).catch(
+            () => null,
+          );
           if (bookmarkRes?.ok) {
             const bData = await bookmarkRes.json();
             setBookmarked(bData.bookmarked ?? false);
