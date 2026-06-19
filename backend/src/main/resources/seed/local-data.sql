@@ -1,10 +1,4 @@
-INSERT INTO categories (name)
-SELECT 'Photography'
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM categories
-    WHERE name = 'Photography'
-);
+INSERT INTO categories (name) SELECT '웨딩 스냅사진' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '웨딩 스냅사진');
 
 INSERT INTO members (
     email,
@@ -29,7 +23,7 @@ SELECT
     NULL,
     '2026-06-15 12:00:00',
     '2026-06-15 12:00:00'
-WHERE NOT EXISTS (
+    WHERE NOT EXISTS (
     SELECT 1
     FROM members
     WHERE email = 'test-client@wedge.local'
@@ -58,7 +52,7 @@ SELECT
     NULL,
     '2026-06-15 12:00:00',
     '2026-06-15 12:00:00'
-WHERE NOT EXISTS (
+    WHERE NOT EXISTS (
     SELECT 1
     FROM members
     WHERE email = 'test-freelancer@wedge.local'
@@ -78,7 +72,7 @@ INSERT INTO freelancer_profiles (
 )
 SELECT
     (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1),
-    (SELECT id FROM categories WHERE name = 'Photography' LIMIT 1),
+    (SELECT id FROM categories WHERE name = '웨딩 스냅사진' LIMIT 1),
     '서울 웨딩 스토리텔러',
     '자연스러운 감성과 세련된 구도로 웨딩 순간을 담는 로컬 테스트 프로필입니다.',
     'Seoul',
@@ -91,7 +85,7 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM freelancer_profiles
     WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1)
-);
+    );
 
 INSERT INTO portfolios (
     freelancer_profile_id,
@@ -112,8 +106,8 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM portfolios
     WHERE freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
-      AND sort_order = 1
-);
+  AND sort_order = 1
+    );
 
 INSERT INTO portfolios (
     freelancer_profile_id,
@@ -134,8 +128,8 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM portfolios
     WHERE freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
-      AND sort_order = 2
-);
+  AND sort_order = 2
+    );
 
 INSERT INTO reservations (
     client_id,
@@ -160,9 +154,9 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM reservations
     WHERE client_id = (SELECT id FROM members WHERE email = 'test-client@wedge.local' LIMIT 1)
-      AND freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
-      AND reservation_date = '2026-06-20 14:00:00'
-);
+  AND freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
+  AND reservation_date = '2026-06-20 14:00:00'
+    );
 
 INSERT INTO reservations (
     client_id,
@@ -187,18 +181,18 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM reservations
     WHERE client_id = (SELECT id FROM members WHERE email = 'test-client@wedge.local' LIMIT 1)
-      AND freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
-      AND reservation_date = '2026-06-22 16:30:00'
-);
-INSERT INTO categories (name) SELECT '웨딩 영상' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '웨딩 영상');
-INSERT INTO categories (name) SELECT '웨딩 스냅사진' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '웨딩 스냅사진');
-INSERT INTO categories (name) SELECT '축가' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '축가');
-INSERT INTO categories (name) SELECT '헤어&메이크업' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '헤어&메이크업');
+  AND freelancer_profile_id = (SELECT id FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'test-freelancer@wedge.local' LIMIT 1) LIMIT 1)
+  AND reservation_date = '2026-06-22 16:30:00'
+    );
+
+INSERT INTO categories (name) SELECT '웨딩 영상'    WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '웨딩 영상');
+INSERT INTO categories (name) SELECT '축가'         WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '축가');
+INSERT INTO categories (name) SELECT '헤어·메이크업' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '헤어·메이크업');
 INSERT INTO categories (name) SELECT '웨딩 플로리스트' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '웨딩 플로리스트');
-INSERT INTO categories (name) SELECT '사회자' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '사회자');
-INSERT INTO categories (name) SELECT '드레스·정장' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '드레스·정장');
-INSERT INTO categories (name) SELECT '하객알바' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '하객알바');
-INSERT INTO categories (name) SELECT '기타' WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '기타');
+INSERT INTO categories (name) SELECT '사회자'       WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '사회자');
+INSERT INTO categories (name) SELECT '드레스·정장'   WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '드레스·정장');
+INSERT INTO categories (name) SELECT '하객알바'      WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '하객알바');
+INSERT INTO categories (name) SELECT '기타'         WHERE NOT EXISTS (SELECT 1 FROM categories WHERE name = '기타');
 
 INSERT INTO members (email, password, name, phone, role, status, provider, provider_id, created_at, updated_at)
 SELECT 'freelancer2@wedge.local', '$2a$10$bo9IwOuoBfZPrirjku2kAe6yCeMR6ajU/Nq7uRXeAdMEr8vCj3eye', '김영상', '010-1234-5678', 'FREELANCER', 'ACTIVE', 'LOCAL', NULL, NOW(), NOW()
@@ -241,7 +235,7 @@ SELECT (SELECT id FROM members WHERE email = 'freelancer4@wedge.local'), (SELECT
     WHERE NOT EXISTS (SELECT 1 FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'freelancer4@wedge.local'));
 
 INSERT INTO freelancer_profiles (member_id, category_id, title, introduction, region, price, career_years, bookmark_count, created_at, updated_at)
-SELECT (SELECT id FROM members WHERE email = 'freelancer5@wedge.local'), (SELECT id FROM categories WHERE name = '헤어&메이크업'), '헤어&메이크업 아티스트', '청담동 출신 헤어메이크업 전문가입니다.', '서울', 350000, 6, 0, NOW(), NOW()
+SELECT (SELECT id FROM members WHERE email = 'freelancer5@wedge.local'), (SELECT id FROM categories WHERE name = '헤어·메이크업'), '헤어·메이크업 아티스트', '청담동 출신 헤어메이크업 전문가입니다.', '서울', 350000, 6, 0, NOW(), NOW()
     WHERE NOT EXISTS (SELECT 1 FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'freelancer5@wedge.local'));
 
 INSERT INTO freelancer_profiles (member_id, category_id, title, introduction, region, price, career_years, bookmark_count, created_at, updated_at)
@@ -255,17 +249,3 @@ SELECT (SELECT id FROM members WHERE email = 'freelancer7@wedge.local'), (SELECT
 INSERT INTO freelancer_profiles (member_id, category_id, title, introduction, region, price, career_years, bookmark_count, created_at, updated_at)
 SELECT (SELECT id FROM members WHERE email = 'freelancer8@wedge.local'), (SELECT id FROM categories WHERE name = '드레스·정장'), '맞춤 웨딩 드레스', '신부의 개성을 살린 맞춤 드레스를 제작합니다.', '서울', 1500000, 12, 0, NOW(), NOW()
     WHERE NOT EXISTS (SELECT 1 FROM freelancer_profiles WHERE member_id = (SELECT id FROM members WHERE email = 'freelancer8@wedge.local'));
-
-UPDATE freelancer_profiles
-SET category_id = (SELECT id FROM categories WHERE name = 'Photography')
-WHERE category_id = (SELECT id FROM categories WHERE name = '웨딩 스냅사진');
-
-DELETE FROM categories WHERE name = '웨딩 스냅사진';
-
-UPDATE categories
-SET name = '웨딩 스냅사진'
-WHERE name = 'Photography';
-
-UPDATE categories
-SET name = '헤어·메이크업'
-WHERE name = '헤어&메이크업';
