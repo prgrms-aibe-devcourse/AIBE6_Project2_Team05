@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { CATEGORY } from "@/constants/category";
 
+
 type FreelancerProfile = {
   id: number;
   memberId: number;
@@ -77,7 +78,7 @@ function SearchPageInner() {
       : null,
   );
   const [sortType, setSortType] = useState("ALL");
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") ?? "");
   const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(false);
