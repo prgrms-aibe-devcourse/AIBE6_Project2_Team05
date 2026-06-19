@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   acceptReservation,
   completeReservation,
@@ -9,8 +7,13 @@ import {
   ReservationApiError,
   type ReservationResponse,
 } from "@/lib/reservations";
-import { formatReservationDate, reservationStatusView } from "../reservationView";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { useState } from "react";
+import {
+  formatReservationDate,
+  reservationStatusView,
+} from "../reservationView";
 
 type ReservationCardProps = {
   readonly reservation: ReservationResponse;
@@ -51,8 +54,16 @@ export function ReservationCard({
   return (
     <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all">
       <div className="flex gap-4 p-5">
-        <div className="w-16 h-16 rounded-xl bg-[#f5f4ec] shrink-0 flex items-center justify-center text-sm font-semibold text-[#4f6231]">
-          {reservation.freelancerName?.[0] ?? "W"}
+        <div className="w-16 h-16 rounded-xl bg-[#f5f4ec] shrink-0 flex items-center justify-center text-sm font-semibold text-[#4f6231] overflow-hidden">
+          {reservation.freelancerImageUrl ? (
+            <img
+              src={reservation.freelancerImageUrl}
+              alt={reservation.freelancerName ?? "프리랜서"}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            (reservation.freelancerName?.[0] ?? "W")
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
@@ -125,7 +136,9 @@ export function ReservationCard({
         <div className="flex gap-2">
           {reservation.status === "COMPLETED" && (
             <Link
-              href={isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`}
+              href={
+                isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`
+              }
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "text-xs h-8 border-[#c5c8ba] text-[#45483d] rounded-xl hover:border-[#4f6231] hover:text-[#4f6231]",

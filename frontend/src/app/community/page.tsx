@@ -47,7 +47,7 @@ const typeColor: Record<PostType, string> = {
 
 function PostSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-5 border border-[#efeee7]">
+    <div className="bg-white rounded-2xl p-5 border border-[#efeee7] mb-6">
       <Skeleton className="h-4 w-20 mb-3 rounded-full" />
       <Skeleton className="h-5 w-2/3 mb-2" />
       <Skeleton className="h-4 w-full mb-1" />
@@ -177,7 +177,7 @@ export default function CommunityPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-4">
+          <div>
             {Array.from({ length: 5 }).map((_, i) => (
               <PostSkeleton key={i} />
             ))}
@@ -187,42 +187,48 @@ export default function CommunityPage() {
             <p className="text-[#75786c]">게시글이 없습니다.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <Link key={post.id} href={`/community/${post.id}`}>
-                <article className="bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all cursor-pointer flex overflow-hidden">
+          <div>
+            {posts.map((post, index) => (
+              <Link
+                key={post.id}
+                href={`/community/${post.id}`}
+                className="block mb-6"
+              >
+                <article className="bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] hover:border-[#c5c8ba] transition-all cursor-pointer flex overflow-hidden min-h-[160px]">
                   {post.imageUrl && (
-                    <div className="relative w-36 sm:w-48 shrink-0">
+                    <div className="relative w-36 sm:w-48 h-40 shrink-0">
                       <Image
                         src={post.imageUrl}
                         alt={post.title}
                         fill
+                        sizes="(max-width: 640px) 144px, 192px"
                         className="object-cover"
+                        priority={index === 0}
                       />
                     </div>
                   )}
-                  <div className="p-5 flex flex-col justify-between flex-1">
+                  <div className="p-5 flex flex-col justify-between flex-1 min-w-0">
                     <div>
                       <Badge
-                        className={`${typeColor[post.type]} border-0 text-xs mb-3`}
+                        className={`${typeColor[post.type]} border-0 text-xs mb-2.5`}
                       >
                         {typeLabel[post.type]}
                       </Badge>
-                      <h3 className="font-[var(--font-display)] font-semibold text-[#1b1c18] text-base mb-2 leading-snug">
+                      <h3 className="font-[var(--font-display)] font-semibold text-[#1b1c18] text-lg mb-1.5 leading-snug line-clamp-1">
                         {post.title}
                       </h3>
-                      <p className="text-sm text-[#75786c] leading-relaxed line-clamp-2">
+                      <p className="text-sm text-[#9a9c8f] leading-relaxed line-clamp-2">
                         {post.content}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#f5f4ec]">
                       <div className="flex items-center gap-2">
                         <MemberAvatar post={post} currentUser={user} />
-                        <span className="text-xs text-[#75786c]">
+                        <span className="text-xs font-medium text-[#45483d]">
                           {post.memberName}
                         </span>
                       </div>
-                      <span className="text-xs text-[#75786c]">
+                      <span className="text-xs text-[#9a9c8f]">
                         {new Date(post.createdAt).toLocaleDateString("ko-KR")}
                       </span>
                     </div>

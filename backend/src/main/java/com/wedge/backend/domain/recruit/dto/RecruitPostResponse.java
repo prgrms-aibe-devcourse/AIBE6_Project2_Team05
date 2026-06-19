@@ -13,6 +13,7 @@ public class RecruitPostResponse {
     private final Long id;
     private final Long memberId;
     private final String memberName;
+    private final String memberImageUrl;
     private final String title;
     private final String content;
     private final Long categoryId;
@@ -28,6 +29,7 @@ public class RecruitPostResponse {
         this.id = post.getId();
         this.memberId = post.getMember().getId();
         this.memberName = post.getMember().getName();
+        this.memberImageUrl = post.getMember().getProfileImageUrl();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.categoryId = post.getCategory().getId();

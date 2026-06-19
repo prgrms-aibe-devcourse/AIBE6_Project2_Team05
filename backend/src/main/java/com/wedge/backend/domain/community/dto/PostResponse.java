@@ -12,6 +12,7 @@ public class PostResponse {
     private final Long id;
     private final Long memberId;
     private final String memberName;
+    private final String memberImageUrl;
     private final String title;
     private final String content;
     private final PostType type;
@@ -23,6 +24,7 @@ public class PostResponse {
         this.id = post.getId();
         this.memberId = post.getMember().getId();
         this.memberName = post.getMember().getName();
+        this.memberImageUrl = post.getMember().getProfileImageUrl();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.type = post.getType();

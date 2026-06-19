@@ -15,6 +15,7 @@ public class ReservationResponse {
     private final String clientName;
     private final Long freelancerProfileId;
     private final String freelancerName;
+    private final String freelancerImageUrl;
     private final String freelancerTitle;
     private final LocalDateTime reservationDate;
     private final String requestMessage;
@@ -34,6 +35,7 @@ public class ReservationResponse {
         this.clientName = reservation.getClient().getName();
         this.freelancerProfileId = reservation.getFreelancerProfile().getId();
         this.freelancerName = reservation.getFreelancerProfile().getMember().getName();
+        this.freelancerImageUrl = reservation.getFreelancerProfile().getMember().getProfileImageUrl();
         this.freelancerTitle = reservation.getFreelancerProfile().getTitle();
         this.reservationDate = reservation.getReservationDate();
         this.requestMessage = reservation.getRequestMessage();
