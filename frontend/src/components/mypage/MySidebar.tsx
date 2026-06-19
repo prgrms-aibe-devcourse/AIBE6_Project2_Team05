@@ -17,16 +17,21 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
   const profileImg = user?.profileImageUrl ?? null;
   const role = user?.role ?? null;
   const freelancerProfileId = user?.freelancerProfileId ?? null;
-  const isFreelancerWithoutProfile = role === "FREELANCER" && !freelancerProfileId;
+  const isFreelancerWithoutProfile =
+    role === "FREELANCER" && !freelancerProfileId;
   const { badgeClass, avatarBgClass, avatarTextClass } = getRoleTheme(role);
 
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
-    { icon: "📅", label: "예약 내역", href: "/reservations" },
+    { icon: "📅", label: "예약 현황", href: "/reservations" },
     { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
     { icon: "⭐", label: "리뷰 내역", href: "/mypage?tab=reviews" },
-    { icon: "📝", label: "내 구인글", href: "/mypage/posts" },
-    { icon: "📩", label: "내 제안서", href: "/mypage/proposals" },
+    ...(role !== "FREELANCER"
+      ? [{ icon: "📝", label: "내 구인글", href: "/mypage/posts" }]
+      : []),
+    ...(role !== "CLIENT"
+      ? [{ icon: "📩", label: "내 제안서", href: "/mypage/proposals" }]
+      : []),
     ...(role === "FREELANCER" && freelancerProfileId
       ? [
           { icon: "🎨", label: "프로필 수정", href: "/mypage?tab=profile" },
