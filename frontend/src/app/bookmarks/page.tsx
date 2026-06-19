@@ -74,8 +74,6 @@ export default function BookmarksPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
-      <Navbar />
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18] mb-8 pb-3 border-b border-[#efeee7]">
           나의 찜목록
