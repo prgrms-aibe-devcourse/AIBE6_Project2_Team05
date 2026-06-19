@@ -47,7 +47,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
           {
             icon: "✨",
             label: "프로필 등록하기",
-            href: "/freelancer/profile/new",
+            href: "/freelancer/profile/manage",
           },
         ]
       : []),
@@ -119,7 +119,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
                     프로필 등록 후 내 페이지로 이동할 수 있어요.
                   </p>
                   <Link
-                    href="/freelancer/profile/new"
+                    href="/freelancer/profile/manage"
                     className="mt-1.5 inline-block text-xs font-semibold text-[#4f6231] hover:underline"
                   >
                     프로필 등록하기 →

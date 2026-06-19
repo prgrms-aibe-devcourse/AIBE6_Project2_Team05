@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
+import { authFetch } from "@/lib/authFetch";
 import {
   createContext,
   useCallback,
@@ -48,9 +49,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/members/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authFetch(`${API_BASE_URL}/api/v1/members/me`);
       if (!res.ok) {
         setUser(null);
         return;
@@ -59,9 +58,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       let freelancerProfileId = null;
       if (data.role === "FREELANCER") {
-        const profileRes = await fetch(`${API_BASE_URL}/api/freelancers/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => null);
+        const profileRes = await authFetch(
+          `${API_BASE_URL}/api/freelancers/me`,
+        ).catch(() => null);
         if (profileRes?.ok) {
           const profileData = await profileRes.json();
           freelancerProfileId = profileData.id;

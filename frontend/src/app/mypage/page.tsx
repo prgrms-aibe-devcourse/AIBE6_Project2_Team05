@@ -30,7 +30,7 @@ function NoFreelancerProfileNotice() {
         프로필을 등록하면 이 메뉴를 이용할 수 있어요.
       </p>
       <Link
-        href="/freelancer/profile/new"
+        href="/freelancer/profile/manage"
         className="mt-4 inline-block rounded-xl bg-[#4f6231] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#677b47]"
       >
         프로필 등록하기

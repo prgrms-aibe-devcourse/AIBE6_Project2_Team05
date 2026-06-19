@@ -27,13 +27,26 @@ export default function FreelancerProfileNewPage() {
 
   useEffect(() => {
     if (!getAccessToken()) {
-      router.push("/login?redirect=/freelancer/profile/new");
+      router.push("/login?redirect=/freelancer/profile/manage");
+      return;
     }
+
+    const checkExistingProfile = async () => {
+      try {
+        const res = await authFetch(`${API_BASE_URL}/api/freelancers/me`);
+        if (res.ok) {
+          const data = await res.json();
+          router.replace(`/freelancer/profile/edit/${data.id}`);
+        }
+      } catch {}
+    };
+
+    void checkExistingProfile();
   }, [router]);
 
   const handleSubmit = async (
     values: ProfileFormValues,
-    newPortfolios: NewPortfolioItem[],
+    newPortfolios: NewPortfolioItem[] = [],
   ) => {
     setErrorMessage("");
 
