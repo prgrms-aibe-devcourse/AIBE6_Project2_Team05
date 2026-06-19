@@ -18,7 +18,7 @@ import {
   type ReservationResponse,
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
-import { createAuthHeaders } from "@/lib/auth";
+import { createAuthHeaders, getAccessToken } from "@/lib/auth";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -32,6 +32,7 @@ export default function ReservationDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const reservationId = Number(id);
+  const hasAccessToken = getAccessToken() !== null;
 
   const [reservation, setReservation] = useState<ReservationResponse | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -39,6 +40,12 @@ export default function ReservationDetailPage({
   const [updating, setUpdating] = useState(false);
   const [chatStarting, setChatStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasAccessToken) {
+      router.replace(`/login?redirect=${encodeURIComponent(`/reservations/${id}`)}`);
+    }
+  }, [hasAccessToken, id, router]);
 
   const loadData = useCallback(async () => {
     try {
@@ -64,11 +71,16 @@ export default function ReservationDetailPage({
   }, [reservationId]);
 
   useEffect(() => {
+    if (!hasAccessToken) return;
     const timer = window.setTimeout(() => {
       void loadData();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadData]);
+  }, [hasAccessToken, loadData]);
+
+  if (!hasAccessToken) {
+    return null;
+  }
 
   const handleStatusChange = async (
     action: (id: number) => Promise<unknown>,

@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { createAuthHeaders } from "@/lib/auth";
+import { createAuthHeaders, getAccessToken } from "@/lib/auth";
 import {
+  fetchFreelancerProfile,
   fetchReservations,
   ReservationApiError,
   type ReservationResponse,
@@ -22,10 +24,21 @@ function getErrorMessage(error: unknown): string {
 }
 
 export default function ReservationsPage() {
+  const router = useRouter();
+  const hasAccessToken = getAccessToken() !== null;
   const [reservations, setReservations] = useState<readonly ReservationResponse[]>([]);
+  const [profileImageUrls, setProfileImageUrls] = useState<
+    Readonly<Record<number, string | null>>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hasAccessToken) {
+      router.replace("/login?redirect=%2Freservations");
+    }
+  }, [hasAccessToken, router]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -40,6 +53,20 @@ export default function ReservationsPage() {
       ]);
 
       setReservations(resData);
+
+      const freelancerProfileIds = [...new Set(resData.map((reservation) => reservation.freelancerProfileId))];
+      const profileResults = await Promise.allSettled(
+        freelancerProfileIds.map((profileId) => fetchFreelancerProfile(profileId)),
+      );
+      const nextProfileImageUrls: Record<number, string | null> = {};
+      for (const [index, profileId] of freelancerProfileIds.entries()) {
+        const result = profileResults[index];
+        nextProfileImageUrls[profileId] =
+          result?.status === "fulfilled" ? result.value.memberImageUrl : null;
+      }
+
+      setProfileImageUrls(nextProfileImageUrls);
+
       if (meRes.ok) {
         const meData = await meRes.json();
         setUserRole(meData.role);
@@ -52,8 +79,17 @@ export default function ReservationsPage() {
   }, []);
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    if (!hasAccessToken) return;
+    const timer = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [hasAccessToken, loadData]);
+
+  if (!hasAccessToken) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fbf9f2]">
@@ -71,6 +107,7 @@ export default function ReservationsPage() {
 
         <ReservationList
           reservations={reservations}
+          profileImageUrls={profileImageUrls}
           isLoading={isLoading}
           errorMessage={errorMessage}
           userRole={userRole}

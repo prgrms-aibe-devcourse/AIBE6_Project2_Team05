@@ -18,9 +18,6 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/search?category=photographer", label: "작가" },
-    { href: "/search?category=venue", label: "베뉴" },
-    { href: "/search?category=flower", label: "플라워" },
-    { href: "/search?category=catering", label: "케이터링" },
     { href: "/community", label: "커뮤니티" },
     { href: "/jobs", label: "전문가 찾기" },
   ];
