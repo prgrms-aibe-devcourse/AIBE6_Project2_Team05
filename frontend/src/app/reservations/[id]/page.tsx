@@ -16,7 +16,6 @@ import {
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
 import { createAuthHeaders, getAccessToken } from "@/lib/auth";
-import { ReservationChatButton } from "../_components/ReservationChatButton";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -199,12 +198,6 @@ export default function ReservationDetailPage({
           </div>
 
           <div className="bg-[#f5f4ec] px-8 py-6 flex flex-wrap gap-3 justify-end">
-            <ReservationChatButton
-              reservationId={reservationId}
-              status={reservation.status}
-              className="rounded-xl bg-[#4f6231] px-8 text-white hover:bg-[#677b47]"
-            />
-
             {/* 의뢰자: 요청 상태에서만 취소 가능 */}
             {!isFreelancer && reservation.status === "REQUESTED" && (
                 <Button
