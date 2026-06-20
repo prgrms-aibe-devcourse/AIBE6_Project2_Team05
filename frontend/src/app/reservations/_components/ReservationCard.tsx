@@ -15,6 +15,7 @@ import {
   formatReservationDate,
   reservationStatusView,
 } from "../reservationView";
+import { getReservationReviewHref } from "../reservation-review-link.js";
 import { ReservationChatButton } from "./ReservationChatButton";
 
 type ReservationCardProps = {
@@ -150,9 +151,10 @@ export function ReservationCard({
           />
           {reservation.status === "COMPLETED" && (
             <Link
-              href={
-                isFreelancer ? "/mypage/reviews" : `/review/${reservation.id}`
-              }
+              href={getReservationReviewHref({
+                isFreelancer,
+                reservationId: reservation.id,
+              })}
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
                 "text-xs h-8 border-[#c5c8ba] text-[#45483d] rounded-xl hover:border-[#4f6231] hover:text-[#4f6231]",
