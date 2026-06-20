@@ -5,6 +5,7 @@ import { ArrowLeft, RefreshCw, Send } from "lucide-react";
 import { use, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { getChatPresenceIndicator } from "@/app/chat/chat-presence.mjs";
 import {
   createWebSocketUrl,
   fetchChatMessages,
@@ -66,6 +67,7 @@ export default function ChatRoomPage({
   const canSend = Boolean(room?.isActive) && connectionState === "연결됨";
   const isReconnectBusy =
     connectionState === "연결 중" || connectionState.startsWith("재연결 중");
+  const presenceIndicator = getChatPresenceIndicator(room?.opponent.isOnline ?? false);
   const sortedMessages = useMemo(
     () =>
       [...messages].sort((a, b) => {
@@ -380,8 +382,14 @@ export default function ChatRoomPage({
             <h1 className="truncate text-xl font-semibold text-[#1b1c18]">
               {room?.opponent.name ?? "채팅방"}
             </h1>
-            <p className="text-xs text-[#75786c]">
-              {room?.opponent.isOnline ? "온라인" : "오프라인"} · {connectionState}
+            <p
+              className={`inline-flex items-center justify-center gap-2 text-xs ${presenceIndicator.textClassName}`}
+            >
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${presenceIndicator.dotClassName}`}
+                aria-hidden="true"
+              />
+              <span>{presenceIndicator.label}</span>
             </p>
           </div>
 
