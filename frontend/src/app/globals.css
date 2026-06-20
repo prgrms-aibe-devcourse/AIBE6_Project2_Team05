@@ -158,22 +158,25 @@ input::-ms-clear {
   display: none;
 }
 
-.swiper:not(.swiper-initialized) {
-  visibility: hidden;
+.swiper {
+  transition: opacity 200ms ease-out;
 }
 
-@keyframes route-enter-deblur {
-  from { filter: blur(6px); }
-  to { filter: blur(0px); }
+.swiper:not(.swiper-initialized) {
+  opacity: 0;
+}
+
+@keyframes route-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .route-shell {
-  filter: blur(0px);
+  opacity: 1;
 }
 
 .route-enter {
-  animation: route-enter-deblur 300ms ease-out both;
-  will-change: filter;
+  animation: route-fade-in 200ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

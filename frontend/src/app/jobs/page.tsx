@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -25,23 +24,6 @@ type RecruitPost = {
   createdAt: string;
 };
 
-function JobSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-[#efeee7]">
-      <div className="flex items-center gap-2 mb-3">
-        <Skeleton className="h-4 w-16 rounded-full" />
-        <Skeleton className="h-4 w-12 rounded-full" />
-      </div>
-      <Skeleton className="h-5 w-2/3 mb-2" />
-      <Skeleton className="h-4 w-full mb-1" />
-      <Skeleton className="h-4 w-4/5 mb-4" />
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-7 w-7 rounded-full" />
-        <Skeleton className="h-3 w-20" />
-      </div>
-    </div>
-  );
-}
 
 export default function JobsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -246,13 +228,12 @@ export default function JobsPage() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <JobSkeleton key={i} />
-            ))}
+          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+            <div className="w-8 h-8 border-2 border-[#4f6231] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-[#75786c]">구인글을 불러오는 중입니다</p>
           </div>
         ) : posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
             <div className="w-16 h-16 rounded-full bg-[#f5f4ec] flex items-center justify-center text-2xl">
               📋
             </div>
@@ -269,7 +250,7 @@ export default function JobsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[50vh]">
             {posts.map((post) => (
               <Link key={post.id} href={`/jobs/${post.id}`}>
                 <article

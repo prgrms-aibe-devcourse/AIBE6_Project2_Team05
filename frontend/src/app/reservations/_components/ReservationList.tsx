@@ -56,7 +56,7 @@ export function ReservationList({
         ))}
       </TabsList>
 
-      <TabsContent value={activeTab} className="mt-0">
+      <TabsContent value={activeTab} className="mt-0 min-h-[50vh]">
         {isLoading ? (
           <div className="text-center py-20 text-sm text-[#75786c]">
             예약 목록을 불러오는 중입니다.

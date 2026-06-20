@@ -10,13 +10,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CATEGORY } from "@/constants/category";
 import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import { CATEGORY } from "@/constants/category";
-
+import { Suspense, useEffect, useState } from "react";
 
 type FreelancerProfile = {
   id: number;
@@ -31,6 +37,11 @@ type FreelancerProfile = {
   careerYears: number;
   createdAt: string;
   updatedAt: string;
+};
+
+type FreelancerListResponse = {
+  content: FreelancerProfile[];
+  totalElements: number;
 };
 
 type BookmarkResponse = {
@@ -51,18 +62,41 @@ const SORT_OPTIONS = [
 
 const categories = Object.values(CATEGORY);
 
+async function fetchFreelancers(params: {
+  keyword: string;
+  sortType: string;
+  categoryId: number | null;
+}): Promise<FreelancerListResponse> {
+  const query = new URLSearchParams();
+  if (params.keyword) query.append("keyword", params.keyword);
+  if (params.sortType !== "ALL") query.append("sortType", params.sortType);
+  if (params.categoryId !== null)
+    query.append("categoryId", String(params.categoryId));
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/freelancers?${query.toString()}`,
+  );
+  if (!res.ok) throw new Error("프리랜서 목록 조회 실패");
+  return res.json();
+}
+
+async function fetchBookmarks(): Promise<BookmarkResponse[]> {
+  const res = await fetch(`${API_BASE_URL}/api/bookmarks`, {
+    headers: createAuthHeaders(),
+  });
+  if (!res.ok) throw new Error("북마크 조회 실패");
+  return res.json();
+}
+
 function SkeletonCard() {
   return (
-    <Card className="overflow-hidden border border-[#efeee7]">
-      <Skeleton className="aspect-[4/5] w-full" />
-      <CardContent className="p-4 space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-3 w-1/2" />
-        <Skeleton className="h-3 w-1/3" />
-        <div className="flex justify-between items-center pt-1">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-8 w-20" />
-        </div>
+    <Card className="overflow-hidden border border-[#efeee7] rounded-2xl">
+      <Skeleton className="aspect-[4/5] w-full rounded-none" />
+      <CardContent className="p-4">
+        <Skeleton className="h-4 w-3/4 mb-1" />
+        <Skeleton className="h-3 w-1/2 mb-3" />
+        <Skeleton className="h-3 w-1/3 mb-3" />
+        <Skeleton className="h-4 w-1/4" />
       </CardContent>
     </Card>
   );
@@ -71,6 +105,7 @@ function SkeletonCard() {
 function SearchPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     searchParams.get("categoryId")
@@ -79,89 +114,85 @@ function SearchPageInner() {
   );
   const [sortType, setSortType] = useState("ALL");
   const [keyword, setKeyword] = useState(searchParams.get("keyword") ?? "");
-  const [freelancers, setFreelancers] = useState<FreelancerProfile[]>([]);
-  const [totalElements, setTotalElements] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [bookmarked, setBookmarked] = useState<Set<number>>(new Set());
+  const [submittedKeyword, setSubmittedKeyword] = useState(
+    searchParams.get("keyword") ?? "",
+  );
 
-  // searchParams 변화 감지 — 챗봇에서 같은 페이지로 이동 시 카테고리 업데이트
   useEffect(() => {
     const categoryId = searchParams.get("categoryId");
+    const kw = searchParams.get("keyword") ?? "";
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedCategoryId(categoryId ? Number(categoryId) : null);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setKeyword(kw);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSubmittedKeyword(kw);
   }, [searchParams]);
 
+  const { data, isLoading, isPlaceholderData } = useQuery({
+    queryKey: ["freelancers", submittedKeyword, sortType, selectedCategoryId],
+    queryFn: () =>
+      fetchFreelancers({
+        keyword: submittedKeyword,
+        sortType,
+        categoryId: selectedCategoryId,
+      }),
+    placeholderData: keepPreviousData,
+  });
 
-  useEffect(() => {
-    const loadBookmarks = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/bookmarks`, {
-          headers: createAuthHeaders(),
-        });
-        if (!res.ok) return;
-        const data: BookmarkResponse[] = await res.json();
-        const ids = new Set(data.map((b) => b.freelancerProfileId));
-        setBookmarked(ids);
-      } catch (error) {
-        console.error("북마크 목록 조회 실패", error);
-      }
-    };
-    loadBookmarks();
-  }, []);
+  const freelancers = data?.content ?? [];
+  const totalElements = data?.totalElements ?? 0;
 
-  const fetchFreelancers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (keyword) params.append("keyword", keyword);
-      if (sortType !== "ALL") params.append("sortType", sortType);
-      if (selectedCategoryId !== null)
-        params.append("categoryId", String(selectedCategoryId));
+  const { data: bookmarkData } = useQuery({
+    queryKey: ["bookmarks"],
+    queryFn: fetchBookmarks,
+  });
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/freelancers?${params.toString()}`,
-      );
-      const data = await res.json();
-      setFreelancers(data.content ?? []);
-      setTotalElements(data.totalElements ?? 0);
-    } catch (error) {
-      console.error("프리랜서 목록 조회 실패", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [keyword, sortType, selectedCategoryId]);
+  const bookmarked = new Set(
+    bookmarkData?.map((b) => b.freelancerProfileId) ?? [],
+  );
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchFreelancers();
-  }, [fetchFreelancers]);
-
-  const toggleBookmark = async (id: number) => {
-    const headers = createAuthHeaders();
-    if (!headers.Authorization) {
-      router.push("/login");
-      return;
-    }
-
-    const prevBookmarked = new Set(bookmarked);
-    setBookmarked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-    try {
+  const bookmarkMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const headers = createAuthHeaders();
+      if (!headers.Authorization) throw new Error("UNAUTHORIZED");
       const res = await fetch(`${API_BASE_URL}/api/bookmarks/${id}`, {
         method: "POST",
         headers,
       });
       if (!res.ok) throw new Error("북마크 API 실패");
-    } catch (error) {
-      console.error("북마크 처리 실패", error);
-      setBookmarked(prevBookmarked);
-    }
-  };
+    },
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: ["bookmarks"] });
+      const prev = queryClient.getQueryData<BookmarkResponse[]>(["bookmarks"]);
+
+      queryClient.setQueryData<BookmarkResponse[]>(
+        ["bookmarks"],
+        (old = []) => {
+          const exists = old.some((b) => b.freelancerProfileId === id);
+          return exists
+            ? old.filter((b) => b.freelancerProfileId !== id)
+            : [...old, { freelancerProfileId: id } as BookmarkResponse];
+        },
+      );
+
+      return { prev };
+    },
+    onError: (err, _id, context) => {
+      if (err instanceof Error && err.message === "UNAUTHORIZED") {
+        router.push("/login");
+        return;
+      }
+      if (context?.prev) {
+        queryClient.setQueryData(["bookmarks"], context.prev);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+    },
+  });
+
+  const handleSearch = () => setSubmittedKeyword(keyword);
 
   return (
     <div className="flex flex-col min-h-full bg-[#fbf9f2]">
@@ -178,12 +209,12 @@ function SearchPageInner() {
             <Input
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && fetchFreelancers()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="이름 또는 서비스를 검색하세요"
               className="w-72 rounded-xl border-[#c5c8ba]"
             />
             <Button
-              onClick={fetchFreelancers}
+              onClick={handleSearch}
               className="bg-[#4f6231] hover:bg-[#3d4c26] text-white rounded-xl"
             >
               검색
@@ -260,19 +291,20 @@ function SearchPageInner() {
 
       {/* 프리랜서 목록 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 w-full">
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : freelancers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
             <p className="text-[#75786c]">등록된 전문가가 없습니다.</p>
             <Button
               variant="outline"
               onClick={() => {
                 setKeyword("");
+                setSubmittedKeyword("");
                 setSelectedCategoryId(null);
               }}
               className="border-[#4f6231] text-[#4f6231]"
@@ -281,9 +313,19 @@ function SearchPageInner() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div
+            className={cn(
+              "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5",
+              "transition-opacity duration-300",
+              isPlaceholderData && "opacity-50 pointer-events-none",
+            )}
+          >
             {freelancers.map((pro) => (
-              <Link key={pro.id} href={`/profile/${pro.id}`} className="block">
+              <Link
+                key={pro.id}
+                href={`/profile/${pro.id}`}
+                className="block animate-in fade-in duration-500"
+              >
                 <Card className="group overflow-hidden border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.1)] transition-all rounded-2xl cursor-pointer">
                   <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f4ec] flex items-center justify-center">
                     {pro.portfolioImageUrl ? (
@@ -295,12 +337,14 @@ function SearchPageInner() {
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <span className="text-[#75786c] text-sm">이미지 없음</span>
+                      <span className="text-[#75786c] text-sm">
+                        이미지 없음
+                      </span>
                     )}
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        toggleBookmark(pro.id);
+                        bookmarkMutation.mutate(pro.id);
                       }}
                       className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
                     >
@@ -366,12 +410,7 @@ function SearchPageInner() {
 
 export default function SearchPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-full bg-[#fbf9f2]">
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="flex min-h-full bg-[#fbf9f2]" />}>
       <SearchPageInner />
     </Suspense>
   );

@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/contexts/UserContext";
 import { getRoleTheme } from "@/lib/roleTheme";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
@@ -45,20 +44,6 @@ const typeColor: Record<PostType, string> = {
   BOARD: "bg-[#efeee7] text-[#45483d]",
 };
 
-function PostSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-[#efeee7] mb-6">
-      <Skeleton className="h-4 w-20 mb-3 rounded-full" />
-      <Skeleton className="h-5 w-2/3 mb-2" />
-      <Skeleton className="h-4 w-full mb-1" />
-      <Skeleton className="h-4 w-4/5 mb-4" />
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-7 w-7 rounded-full" />
-        <Skeleton className="h-3 w-20" />
-      </div>
-    </div>
-  );
-}
 
 function MemberAvatar({
   post,
@@ -187,17 +172,16 @@ export default function CommunityPage() {
         </div>
 
         {loading ? (
-          <div>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <PostSkeleton key={i} />
-            ))}
+          <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+            <div className="w-8 h-8 border-2 border-[#4f6231] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-[#75786c]">게시글을 불러오는 중입니다</p>
           </div>
         ) : posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
+          <div className="flex flex-col items-center justify-center min-h-[50vh]">
             <p className="text-[#75786c]">게시글이 없습니다.</p>
           </div>
         ) : (
-          <div>
+          <div className="min-h-[50vh]">
             {posts.map((post, index) => (
               <Link
                 key={post.id}

@@ -120,15 +120,11 @@ export default function BookmarksPage() {
           </aside>
 
           {/* 카드 목록 */}
-          <div className="flex-1">
+          <div className="flex-1 min-h-[50vh]">
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-2xl overflow-hidden border border-[#efeee7] aspect-[4/5] animate-pulse"
-                  />
-                ))}
+              <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+                <div className="w-8 h-8 border-2 border-[#4f6231] border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-[#75786c]">찜목록을 불러오는 중입니다</p>
               </div>
             ) : filtered.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

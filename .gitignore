@@ -4,3 +4,6 @@
 .cursor.idea
 backend/.next/trace
 backend/.next/trace-build
+.omc/state/hud-stdin-cache.json
+.omc/state/sessions/473c53b6-38e0-45fa-b42c-e3fb41555384/hud-state.json
+.omc/state/sessions/26613d9f-70b4-4193-bccf-20e56f5ce1cc/hud-state.json

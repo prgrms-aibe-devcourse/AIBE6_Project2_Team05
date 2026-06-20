@@ -68,7 +68,10 @@ export default function Navbar() {
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-3">
             {isLoading ? (
-              <div className="w-48" />
+              <div className="flex items-center gap-3 w-48">
+                <div className="h-8 w-20 rounded-full bg-[#efeee7] animate-pulse" />
+                <div className="h-8 w-20 rounded-full bg-[#efeee7] animate-pulse" />
+              </div>
             ) : isLoggedIn ? (
               <>
                 <Link
@@ -167,7 +170,10 @@ export default function Navbar() {
                 </nav>
                 <div className="flex flex-col gap-3 pt-4 border-t border-[#c5c8ba]">
                   {isLoading ? (
-                    <div className="h-9" />
+                    <div className="flex flex-col gap-3">
+                      <div className="h-9 rounded-md bg-[#efeee7] animate-pulse" />
+                      <div className="h-9 rounded-md bg-[#efeee7] animate-pulse" />
+                    </div>
                   ) : isLoggedIn ? (
                     <>
                       <Link

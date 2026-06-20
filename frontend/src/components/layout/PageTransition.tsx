@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export function PageTransition({ children }: { readonly children: React.ReactNode }) {
   const pathname = usePathname();
-  const [entering, setEntering] = useState(true);
+  const isFirstRender = useRef(true);
+  const [entering, setEntering] = useState(false);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     setEntering(false);
     const id = requestAnimationFrame(() => setEntering(true));
     return () => cancelAnimationFrame(id);

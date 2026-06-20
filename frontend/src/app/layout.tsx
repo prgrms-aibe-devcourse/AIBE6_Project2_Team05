@@ -1,6 +1,6 @@
-// src/app/layout.tsx
 import { AppChrome } from "@/components/layout/AppChrome";
 import { UserProvider } from "@/contexts/UserContext";
+import QueryProvider from "@/providers/QueryProvider"; 
 import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -32,10 +32,12 @@ export default function RootLayout({
       lang="ko"
       className={`${playfairDisplay.variable} ${beVietnamPro.variable} antialiased`}
     >
-      <body className="min-h-dvh flex flex-col bg-[#fbf9f2] text-[#1b1c18]">
-        <UserProvider>
-          <AppChrome>{children}</AppChrome>
-        </UserProvider>
+      <body className="min-h-full flex flex-col bg-[#fbf9f2] text-[#1b1c18]">
+        <QueryProvider>
+          <UserProvider>
+            <AppChrome>{children}</AppChrome>
+          </UserProvider>
+        </QueryProvider>b2aa2b4 (Refactor : 탐색 페이지에서 카테고리/정렬/검색 변경 시 잔상 발생 해결)
       </body>
     </html>
   );
