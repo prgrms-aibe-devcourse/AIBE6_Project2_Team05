@@ -214,7 +214,6 @@ export default function ReviewTab({
   role,
 }: ReviewTabProps) {
   const isFreelancer = role === "FREELANCER";
-  const [innerTab, setInnerTab] = useState<"written" | "received">("written");
   const [writtenReviews, setWrittenReviews] = useState<
     readonly ReviewResponse[]
   >([]);
@@ -228,12 +227,14 @@ export default function ReviewTab({
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const written = await fetchMyWrittenReviews();
-      setWrittenReviews(written);
-
       if (isFreelancer && freelancerProfileId) {
         const received = await fetchReceivedReviews(freelancerProfileId);
         setReceivedReviews(received);
+        setWrittenReviews([]);
+      } else {
+        const written = await fetchMyWrittenReviews();
+        setWrittenReviews(written);
+        setReceivedReviews([]);
       }
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
@@ -246,48 +247,19 @@ export default function ReviewTab({
     void loadReviews();
   }, [loadReviews]);
 
-  const currentReviews =
-    isFreelancer && innerTab === "received" ? receivedReviews : writtenReviews;
-  const countLabel =
-    isFreelancer && innerTab === "received"
-      ? `받은 리뷰 ${receivedReviews.length}개`
-      : `작성한 리뷰 ${writtenReviews.length}개`;
-  const emptyMessage =
-    isFreelancer && innerTab === "received"
-      ? "아직 받은 리뷰가 없습니다"
-      : "아직 작성한 리뷰가 없습니다";
+  const currentReviews = isFreelancer ? receivedReviews : writtenReviews;
+  const countLabel = isFreelancer
+    ? `받은 리뷰 ${receivedReviews.length}개`
+    : `작성한 리뷰 ${writtenReviews.length}개`;
+  const emptyMessage = isFreelancer
+    ? "아직 받은 리뷰가 없습니다"
+    : "아직 작성한 리뷰가 없습니다";
 
   return (
     <>
       <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
         리뷰 내역
       </h1>
-
-      {isFreelancer && (
-        <div className="flex gap-1 p-1 bg-[#f5f4ec] rounded-xl w-fit">
-          <button
-            onClick={() => setInnerTab("written")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              innerTab === "written"
-                ? "bg-white text-[#4f6231] shadow-sm"
-                : "text-[#75786c] hover:text-[#45483d]"
-            }`}
-          >
-            내가 쓴 리뷰
-          </button>
-          <button
-            onClick={() => setInnerTab("received")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              innerTab === "received"
-                ? "bg-white text-[#4f6231] shadow-sm"
-                : "text-[#75786c] hover:text-[#45483d]"
-            }`}
-          >
-            받은 리뷰
-          </button>
-        </div>
-      )}
-
       {isLoading ? (
         <div className="rounded-2xl border border-[#efeee7] bg-white px-6 py-14 text-center text-sm text-[#75786c]">
           리뷰 내역을 불러오는 중입니다...
@@ -316,9 +288,7 @@ export default function ReviewTab({
           </div>
           <ReviewList
             reviews={currentReviews}
-            mode={
-              isFreelancer && innerTab === "received" ? "received" : "written"
-            }
+            mode={isFreelancer ? "received" : "written"}
           />
         </>
       )}
