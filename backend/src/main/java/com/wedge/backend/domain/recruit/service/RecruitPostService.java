@@ -3,6 +3,7 @@ package com.wedge.backend.domain.recruit.service;
 import com.wedge.backend.domain.category.entity.Category;
 import com.wedge.backend.domain.category.repository.CategoryRepository;
 import com.wedge.backend.domain.member.entity.Member;
+import com.wedge.backend.domain.proposal.repository.ProposalRepository;
 import com.wedge.backend.domain.recruit.dto.RecruitPostRequest;
 import com.wedge.backend.domain.recruit.dto.RecruitPostResponse;
 import com.wedge.backend.domain.recruit.entity.RecruitPost;
@@ -22,10 +23,11 @@ public class RecruitPostService {
 
     private final RecruitPostRepository recruitPostRepository;
     private final CategoryRepository categoryRepository;
+    private final ProposalRepository proposalRepository;
 
     @Transactional(readOnly = true)
     public Page<RecruitPostResponse> getRecruitPosts(Long categoryId, String region,
-                                                      RecruitStatus status, Pageable pageable) {
+                                                     RecruitStatus status, Pageable pageable) {
         return recruitPostRepository.findByFilters(categoryId, region, status, pageable)
                 .map(RecruitPostResponse::new);
     }
@@ -68,6 +70,7 @@ public class RecruitPostService {
     @Transactional
     public void deleteRecruitPost(Long postId, Member member) {
         RecruitPost post = findMyPost(postId, member);
+        proposalRepository.deleteAll(proposalRepository.findByRecruitPost(post));
         recruitPostRepository.delete(post);
     }
 

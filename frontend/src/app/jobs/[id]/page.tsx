@@ -163,6 +163,8 @@ export default function JobDetailPage() {
       setProposalContent("");
       setProposalPrice("");
       setProposalRegion("");
+      alert("제안서가 제출되었습니다!");
+      router.push("/jobs");
     } catch (e) {
       setProposalError(
         e instanceof Error ? e.message : "제안서 제출에 실패했습니다.",
