@@ -2,7 +2,6 @@ const reservationChatAvailableStatuses = [
   "REQUESTED",
   "ACCEPTED",
   "REJECTED",
-  "COMPLETED",
   "CANCELED",
 ];
 
