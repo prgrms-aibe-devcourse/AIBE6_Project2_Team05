@@ -262,14 +262,14 @@ export default function ProfilePage({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBookmark}
-                    className={`p-2.5 rounded-xl border transition-colors ${
+                    className={`h-8 w-8 flex items-center justify-center rounded-xl transition-colors ${
                       bookmarked
-                        ? "border-[#6f5a55] bg-[#f6d9d3] text-[#6f5a55]"
-                        : "border-[#c5c8ba] text-[#75786c] hover:border-[#6f5a55]"
+                        ? "bg-[#f9eeec] text-[#c97f76]"
+                        : "bg-[#f5f4ec] text-[#75786c] hover:bg-[#f9eeec] hover:text-[#c97f76]"
                     }`}
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-[18px] h-[18px]"
                       fill={bookmarked ? "currentColor" : "none"}
                       stroke="currentColor"
                       viewBox="0 0 24 24"
