@@ -15,6 +15,7 @@ import {
   formatReservationDate,
   reservationStatusView,
 } from "../reservationView";
+import { ReservationChatButton } from "./ReservationChatButton";
 
 type ReservationCardProps = {
   readonly reservation: ReservationResponse;
@@ -142,6 +143,11 @@ export function ReservationCard({
           )}
         </div>
         <div className="flex gap-2">
+          <ReservationChatButton
+            reservationId={reservation.id}
+            status={reservation.status}
+            className="h-8 rounded-xl bg-[#4f6231] px-3 text-xs text-white hover:bg-[#677b47]"
+          />
           {reservation.status === "COMPLETED" && (
             <Link
               href={

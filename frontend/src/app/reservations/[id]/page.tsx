@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { createChatRoom } from "@/lib/chat";
 import {
   acceptReservation,
   cancelReservation,
@@ -17,6 +16,7 @@ import {
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
 import { createAuthHeaders, getAccessToken } from "@/lib/auth";
+import { ReservationChatButton } from "../_components/ReservationChatButton";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -36,7 +36,6 @@ export default function ReservationDetailPage({
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [chatStarting, setChatStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -93,18 +92,6 @@ export default function ReservationDetailPage({
       alert(getErrorMessage(err, "처리에 실패했습니다."));
     } finally {
       setUpdating(false);
-    }
-  };
-
-  const handleOpenChat = async () => {
-    setChatStarting(true);
-    try {
-      const chatRoom = await createChatRoom({ reservationId });
-      router.push(`/chat/${chatRoom.id}`);
-    } catch (err: unknown) {
-      alert(getErrorMessage(err, "채팅방을 열지 못했습니다."));
-    } finally {
-      setChatStarting(false);
     }
   };
 
@@ -211,15 +198,12 @@ export default function ReservationDetailPage({
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="bg-[#f5f4ec] px-8 py-6 flex flex-wrap gap-3 justify-end">
-            <Button
-              disabled={updating || chatStarting}
-              className="bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl px-8"
-              onClick={handleOpenChat}
-            >
-              {chatStarting ? "채팅방 여는 중..." : "실시간 채팅하기"}
-            </Button>
+            <ReservationChatButton
+              reservationId={reservationId}
+              status={reservation.status}
+              className="rounded-xl bg-[#4f6231] px-8 text-white hover:bg-[#677b47]"
+            />
 
             {/* 의뢰자: 요청 상태에서만 취소 가능 */}
             {!isFreelancer && reservation.status === "REQUESTED" && (
