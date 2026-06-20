@@ -1,6 +1,8 @@
 "use client";
 
-import { ProfileFormValues } from "@/components/freelancer/FreelancerProfileForm";
+import FreelancerProfileForm, {
+  ProfileFormValues,
+} from "@/components/freelancer/FreelancerProfileForm";
 import InfoTab from "@/components/mypage/InfoTab";
 import MySidebar from "@/components/mypage/MySidebar";
 import PortfolioTab from "@/components/mypage/PortfolioTab";
@@ -42,11 +44,8 @@ export default function MyPageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-1 min-h-[60vh] items-center justify-center bg-[#fbf9f2]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-[#4f6231] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-[#75786c]">회원 정보를 불러오는 중입니다</p>
-          </div>
+        <div className="flex min-h-full items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+          회원 정보를 불러오는 중입니다...
         </div>
       }
     >
@@ -251,6 +250,42 @@ function MyPage() {
     }
   };
 
+  const handleFreelancerProfileSubmit = async (values: ProfileFormValues) => {
+    if (!user?.freelancerProfileId) return;
+    setErrorMessage("");
+    setIsSaving(true);
+    try {
+      const response = await authFetch(
+        `${API_BASE_URL}/api/freelancers/${user.freelancerProfileId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            categoryId: Number(values.categoryId),
+            title: values.title.trim(),
+            introduction: values.introduction.trim(),
+            selfIntroduction: values.selfIntroduction.trim(),
+            region: values.region,
+            price: Number(values.price),
+            careerYears: Number(values.careerYears),
+          }),
+        },
+      );
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message ?? "프로필 수정에 실패했습니다.");
+      }
+      setProfileInitialValues(values);
+      setSuccessMessage("프로필이 저장되었습니다.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "프로필 수정에 실패했습니다.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleWithdraw = async () => {
     if (!window.confirm("정말 탈퇴하시겠습니까?")) return;
     try {
@@ -290,11 +325,8 @@ function MyPage() {
 
   if (isLoading || userLoading) {
     return (
-      <div className="flex flex-1 min-h-[60vh] items-center justify-center bg-[#fbf9f2]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-[#4f6231] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-[#75786c]">회원 정보를 불러오는 중입니다</p>
-        </div>
+      <div className="flex min-h-full items-center justify-center bg-[#fbf9f2] text-[#45483d]">
+        회원 정보를 불러오는 중입니다...
       </div>
     );
   }
@@ -349,6 +381,25 @@ function MyPage() {
                 isSaving={isSaving}
               />
             )}
+            {activeTab === "profile" &&
+              (user?.freelancerProfileId ? (
+                profileInitialValues ? (
+                  <FreelancerProfileForm
+                    mode="edit"
+                    initialValues={profileInitialValues}
+                    isSubmitting={isSaving}
+                    errorMessage={errorMessage}
+                    onSubmit={handleFreelancerProfileSubmit}
+                    onCancel={() => router.push("/mypage?tab=info")}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center py-14 text-sm text-[#75786c]">
+                    프로필 정보를 불러오는 중입니다...
+                  </div>
+                )
+              ) : (
+                <NoFreelancerProfileNotice />
+              ))}
             {activeTab === "portfolio" &&
               (user?.freelancerProfileId ? (
                 <PortfolioTab freelancerProfileId={user.freelancerProfileId} />
