@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,43 +8,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {
-  createReservation,
-  fetchFreelancerProfile,
-  type FreelancerProfileResponse,
-} from "@/lib/reservations";
+import { createReservation } from "@/lib/reservations";
 import { FreelancerCard } from "./_components/FreelancerCard";
+import {
+  getMinimumTimeForDate,
+  getTodayDateString,
+} from "./reservation-time.js";
+import {
+  buildReservationDateTime,
+  getReservationValidationMessage,
+} from "./reservation-submit.js";
+import { useReserveFreelancerProfile } from "./use-reserve-freelancer-profile";
 
 export default function ReservePage() {
   const params = useParams();
   const router = useRouter();
   const freelancerId = Number(params.id);
-
-  const [profile, setProfile] = useState<FreelancerProfileResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const minReservationDate = getTodayDateString();
   const [submitting, setSubmitting] = useState(false);
-
   const [date, setDate] = useState("");
   const [time, setTime] = useState("12:00");
   const [notes, setNotes] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isNaN(freelancerId)) return;
-
-    fetchFreelancerProfile(freelancerId)
-      .then(setProfile)
-      .catch((err) => {
-        console.error(err);
-        setErrorMessage("프리랜서 정보를 불러오는데 실패했습니다.");
-      })
-      .finally(() => setLoading(false));
-  }, [freelancerId]);
+  const {
+    profile,
+    isLoading: isProfileLoading,
+    errorMessage: profileErrorMessage,
+  } = useReserveFreelancerProfile(freelancerId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date) {
-      alert("예식 날짜를 선택해주세요.");
+    const validationMessage = getReservationValidationMessage(date, time);
+    if (validationMessage !== null) {
+      setErrorMessage(validationMessage);
       return;
     }
 
@@ -52,9 +48,8 @@ export default function ReservePage() {
     setErrorMessage(null);
 
     try {
-      // ISO 형식으로 날짜와 시간 결합 (예: 2026-06-20T14:00:00)
-      const reservationDateTime = `${date}T${time}:00`;
-      
+      const reservationDateTime = buildReservationDateTime(date, time);
+
       await createReservation({
         freelancerProfileId: freelancerId,
         reservationDate: reservationDateTime,
@@ -63,13 +58,17 @@ export default function ReservePage() {
 
       alert("예약 신청이 완료되었습니다!");
       router.push("/reservations");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMessage(err.message || "예약 신청 중 오류가 발생했습니다.");
+      setErrorMessage(
+        err instanceof Error ? err.message : "예약 신청 중 오류가 발생했습니다.",
+      );
     } finally {
       setSubmitting(false);
     }
   };
+
+  const displayErrorMessage = errorMessage ?? profileErrorMessage;
 
   return (
     <div className="flex flex-1 flex-col bg-[#fbf9f2]">
@@ -92,7 +91,7 @@ export default function ReservePage() {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Form */}
           <div className="space-y-6">
-            <FreelancerCard profile={profile} loading={loading} />
+            <FreelancerCard profile={profile} loading={isProfileLoading} />
 
             {/* Form Fields */}
             <div className="bg-white rounded-2xl border border-[#efeee7] p-6 space-y-5">
@@ -110,6 +109,7 @@ export default function ReservePage() {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
+                      min={minReservationDate}
                       required
                       className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] pl-10"
                     />
@@ -128,6 +128,7 @@ export default function ReservePage() {
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
+                      min={getMinimumTimeForDate(date)}
                       required
                       className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] pl-10"
                     />
@@ -151,8 +152,8 @@ export default function ReservePage() {
                 />
               </div>
 
-              {errorMessage && (
-                <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
+              {displayErrorMessage && (
+                <p className="text-sm text-red-500 font-medium">{displayErrorMessage}</p>
               )}
             </div>
           </div>
@@ -190,7 +191,7 @@ export default function ReservePage() {
 
               <Button 
                 type="submit"
-                disabled={submitting || loading}
+                disabled={submitting || isProfileLoading}
                 className="w-full h-12 bg-[#4f6231] text-white hover:bg-[#677b47] rounded-xl mt-5 font-medium"
               >
                 {submitting ? "신청 중..." : "예약 신청하기"}
