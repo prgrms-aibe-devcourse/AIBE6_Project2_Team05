@@ -142,13 +142,13 @@
     @apply border-border outline-ring/50;
   }
   html {
-    @apply font-sans;
+    @apply font-sans h-full;
     overflow-x: hidden;
     scrollbar-gutter: stable;
     overscroll-behavior-x: none;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground h-full;
     overflow-x: hidden;
   }
 }
@@ -167,8 +167,12 @@ input::-ms-clear {
 }
 
 @keyframes route-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .route-shell {
