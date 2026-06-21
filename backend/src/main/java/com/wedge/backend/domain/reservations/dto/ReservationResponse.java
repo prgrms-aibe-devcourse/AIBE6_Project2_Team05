@@ -13,6 +13,7 @@ public class ReservationResponse {
     private final Long id;
     private final Long clientId;
     private final String clientName;
+    private final String clientImageUrl;
     private final Long freelancerProfileId;
     private final String freelancerName;
     private final String freelancerImageUrl;
@@ -33,6 +34,7 @@ public class ReservationResponse {
         this.id = reservation.getId();
         this.clientId = reservation.getClient().getId();
         this.clientName = reservation.getClient().getName();
+        this.clientImageUrl = reservation.getClient().getProfileImageUrl();
         this.freelancerProfileId = reservation.getFreelancerProfile().getId();
         this.freelancerName = reservation.getFreelancerProfile().getMember().getName();
         this.freelancerImageUrl = reservation.getFreelancerProfile().getMember().getProfileImageUrl();

@@ -16,6 +16,7 @@ import {
   reservationStatusView,
 } from "../reservationView";
 import { getReservationReviewHref } from "../reservation-review-link.js";
+import { getReservationCardView } from "../reservation-card-view.js";
 import { ReservationChatButton } from "./ReservationChatButton";
 
 type ReservationCardProps = {
@@ -33,7 +34,12 @@ export function ReservationCard({
 }: ReservationCardProps) {
   const status = reservationStatusView[reservation.status];
   const [isUpdating, setIsUpdating] = useState(false);
-  const imageUrl = reservation.freelancerImageUrl ?? profileImageUrl;
+  const isFreelancer = userRole === "FREELANCER";
+  const cardView = getReservationCardView({
+    reservation,
+    userRole,
+    profileImageUrl,
+  });
 
   const handleStatusChange = async (
     action: (id: number) => Promise<ReservationResponse>,
@@ -55,37 +61,35 @@ export function ReservationCard({
     }
   };
 
-  const isFreelancer = userRole === "FREELANCER";
-
   return (
     <div className="bg-white rounded-2xl border border-[#efeee7] overflow-hidden hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] transition-all">
       <div className="flex gap-4 p-5">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f5f4ec]">
-          {imageUrl ? (
+          {cardView.imageUrl ? (
             <Image
-              src={imageUrl}
-              alt={reservation.freelancerName ?? "프리랜서"}
+              src={cardView.imageUrl}
+              alt={cardView.imageAlt}
               fill
               sizes="64px"
               className="object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[#4f6231]">
-              {reservation.freelancerName?.[0] ?? "W"}
+              {cardView.imageFallback}
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-semibold text-[#1b1c18] text-sm">
-              {reservation.freelancerName ?? "프리랜서"}
+              {cardView.displayName}
             </h3>
             <Badge className={`${status.color} border-0 text-xs shrink-0`}>
               {status.label}
             </Badge>
           </div>
           <p className="text-xs text-[#75786c] mb-2">
-            {reservation.freelancerTitle ?? "웨딩 전문가"}
+            {cardView.displaySubtitle}
           </p>
           <div className="flex flex-wrap gap-3 text-xs text-[#45483d]">
             <span className="flex items-center gap-1">

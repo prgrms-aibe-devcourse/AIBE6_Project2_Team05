@@ -20,6 +20,7 @@ export type ReservationResponse = {
   readonly id: number;
   readonly clientId: number;
   readonly clientName: string;
+  readonly clientImageUrl?: string | null;
   readonly freelancerProfileId: number;
   readonly freelancerName: string;
   readonly freelancerImageUrl?: string | null;
