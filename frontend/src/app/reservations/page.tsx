@@ -2,13 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL, createAuthHeaders, getAccessToken } from "@/lib/auth";
+import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
 import {
   fetchFreelancerProfile,
   fetchReservations,
   ReservationApiError,
   type ReservationResponse,
 } from "@/lib/reservations";
+import {
+  shouldRedirectReservationAuth,
+  shouldRenderReservationAuth,
+  useReservationAuthState,
+} from "./reservation-auth-view.js";
 import { ReservationList } from "./_components/ReservationList";
 
 function getErrorMessage(error: unknown): string {
@@ -23,7 +28,7 @@ function getErrorMessage(error: unknown): string {
 
 export default function ReservationsPage() {
   const router = useRouter();
-  const hasAccessToken = getAccessToken() !== null;
+  const { hasAccessToken, isMounted } = useReservationAuthState();
   const [reservations, setReservations] = useState<readonly ReservationResponse[]>([]);
   const [profileImageUrls, setProfileImageUrls] = useState<
     Readonly<Record<number, string | null>>
@@ -33,10 +38,10 @@ export default function ReservationsPage() {
   const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!hasAccessToken) {
+    if (shouldRedirectReservationAuth({ hasAccessToken, isMounted })) {
       router.replace("/login?redirect=%2Freservations");
     }
-  }, [hasAccessToken, router]);
+  }, [hasAccessToken, isMounted, router]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -77,15 +82,12 @@ export default function ReservationsPage() {
   }, []);
 
   useEffect(() => {
-    if (!hasAccessToken) return;
-    const timer = window.setTimeout(() => {
-      void loadData();
-    }, 0);
+    if (!shouldRenderReservationAuth({ hasAccessToken, isMounted })) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadData();
+  }, [hasAccessToken, isMounted, loadData]);
 
-    return () => window.clearTimeout(timer);
-  }, [hasAccessToken, loadData]);
-
-  if (!hasAccessToken) {
+  if (!shouldRenderReservationAuth({ hasAccessToken, isMounted })) {
     return null;
   }
 

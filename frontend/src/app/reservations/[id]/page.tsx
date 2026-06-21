@@ -15,7 +15,12 @@ import {
   type ReservationResponse,
 } from "@/lib/reservations";
 import { formatReservationDate, reservationStatusView } from "../reservationView";
-import { API_BASE_URL, createAuthHeaders, getAccessToken } from "@/lib/auth";
+import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
+import {
+  shouldRedirectReservationAuth,
+  shouldRenderReservationAuth,
+  useReservationAuthState,
+} from "../reservation-auth-view.js";
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
@@ -29,7 +34,7 @@ export default function ReservationDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const reservationId = Number(id);
-  const hasAccessToken = getAccessToken() !== null;
+  const { hasAccessToken, isMounted } = useReservationAuthState();
 
   const [reservation, setReservation] = useState<ReservationResponse | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -38,10 +43,10 @@ export default function ReservationDetailPage({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!hasAccessToken) {
+    if (shouldRedirectReservationAuth({ hasAccessToken, isMounted })) {
       router.replace(`/login?redirect=${encodeURIComponent(`/reservations/${id}`)}`);
     }
-  }, [hasAccessToken, id, router]);
+  }, [hasAccessToken, id, isMounted, router]);
 
   const loadData = useCallback(async () => {
     try {
@@ -67,14 +72,12 @@ export default function ReservationDetailPage({
   }, [reservationId]);
 
   useEffect(() => {
-    if (!hasAccessToken) return;
-    const timer = window.setTimeout(() => {
-      void loadData();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [hasAccessToken, loadData]);
+    if (!shouldRenderReservationAuth({ hasAccessToken, isMounted })) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadData();
+  }, [hasAccessToken, isMounted, loadData]);
 
-  if (!hasAccessToken) {
+  if (!shouldRenderReservationAuth({ hasAccessToken, isMounted })) {
     return null;
   }
 
