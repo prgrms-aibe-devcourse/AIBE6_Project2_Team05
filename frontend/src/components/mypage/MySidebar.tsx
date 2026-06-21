@@ -23,7 +23,7 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
 
   const allMenu = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
-    { icon: "📅", label: "예약 현황", href: "/reservations" },
+      { icon: "📅", label: role === "FREELANCER" ? "예약 관리" : "예약 현황", href: "/reservations" },
     { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
     { icon: "⭐", label: "리뷰 내역", href: "/mypage?tab=reviews" },
     ...(role !== "FREELANCER"
