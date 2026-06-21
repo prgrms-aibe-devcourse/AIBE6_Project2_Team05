@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { ReservationResponse } from "@/lib/reservations";
 import { ReservationCard } from "./ReservationCard";
 import { reservationStatusView } from "../reservationView";
+import { sortReservationsByDateDescending } from "../reservation-sort.js";
 
 const reservationTabs = [
   { value: "all", label: "전체" },
@@ -37,10 +38,12 @@ export function ReservationList({
   onRefresh,
 }: ReservationListProps) {
   const [activeTab, setActiveTab] = useState("all");
-  const filteredReservations = reservations.filter((reservation) => {
-    if (activeTab === "all") return true;
-    return reservationStatusView[reservation.status].tab === activeTab;
-  });
+  const filteredReservations = sortReservationsByDateDescending(
+    reservations.filter((reservation) => {
+      if (activeTab === "all") return true;
+      return reservationStatusView[reservation.status].tab === activeTab;
+    }),
+  );
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
