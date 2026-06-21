@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 type RecruitStatus = "OPEN" | "CLOSED";
 type Category = { id: number; name: string };
@@ -36,6 +37,9 @@ export default function JobsPage() {
   const [status, setStatus] = useState<RecruitStatus | null>("OPEN");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const { user, isLoading: isUserLoading } = useUser();
+  const isFreelancer = user?.role === "FREELANCER";
+
 
   useEffect(() => {
     setMounted(true);
@@ -217,13 +221,13 @@ export default function JobsPage() {
               </span>
             )}
           </p>
-          {isLoggedIn && (
-            <Link
-              href="/jobs/write"
-              className="text-sm font-medium text-white bg-[#4f6231] hover:bg-[#677b47] px-4 py-2 rounded-full transition-colors"
-            >
-              + 글쓰기
-            </Link>
+          {isLoggedIn && !isUserLoading && !isFreelancer && (
+              <Link
+                  href="/jobs/write"
+                  className="text-sm font-medium text-white bg-[#4f6231] hover:bg-[#677b47] px-4 py-2 rounded-full transition-colors"
+              >
+                + 글쓰기
+              </Link>
           )}
         </div>
 
@@ -240,14 +244,22 @@ export default function JobsPage() {
             <p className="text-[#75786c] text-sm">
               조건에 맞는 구인글이 없습니다.
             </p>
-            {isLoggedIn && (
-              <Link
-                href="/jobs/write"
-                className="text-sm text-[#4f6231] hover:underline font-medium"
-              >
-                첫 번째 구인글을 작성해보세요
-              </Link>
-            )}
+            {isLoggedIn &&
+                (isFreelancer ? (
+                    <span
+                        className="text-sm text-[#9aa08f] font-medium cursor-not-allowed"
+                        title="프리랜서는 구인글을 작성할 수 없습니다."
+                    >
+        첫 번째 구인글을 작성해보세요
+      </span>
+                ) : (
+                    <Link
+                        href="/jobs/write"
+                        className="text-sm text-[#4f6231] hover:underline font-medium"
+                    >
+                      첫 번째 구인글을 작성해보세요
+                    </Link>
+                ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[50vh]">
