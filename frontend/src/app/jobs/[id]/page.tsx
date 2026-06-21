@@ -177,7 +177,7 @@ export default function JobDetailPage() {
   const handleAcceptProposal = async (proposalId: number) => {
     if (
       !confirm(
-        "이 제안서를 수락하시겠습니까? 수락 시 예약이 자동 생성되고 구인글이 마감됩니다.",
+        "이 제안서를 수락하시겠습니까? 수락 시 구인글이 마감되고 제안서 상태가 수락으로 변경됩니다.",
       )
     )
       return;
