@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { API_BASE_URL, getAccessToken } from "@/lib/auth";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
@@ -22,6 +23,7 @@ type RecruitPost = {
   weddingDate: string;
   status: RecruitStatus;
   region: string | null;
+  imageUrl: string | null;
   createdAt: string;
   proposalCount: number;
 };
@@ -267,8 +269,20 @@ export default function JobsPage() {
             {posts.map((post) => (
               <Link key={post.id} href={`/jobs/${post.id}`}>
                 <article
-                  className={`bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] hover:border-[#c5c8ba] transition-all cursor-pointer p-5 h-full flex flex-col ${post.status === "CLOSED" ? "opacity-60" : ""}`}
+                  className={`bg-white rounded-2xl border border-[#efeee7] hover:shadow-[0px_4px_20px_rgba(108,129,76,0.08)] hover:border-[#c5c8ba] transition-all cursor-pointer h-full flex flex-col overflow-hidden ${post.status === "CLOSED" ? "opacity-60" : ""}`}
                 >
+                  {post.imageUrl && (
+                    <div className="relative w-full h-40 shrink-0">
+                      <Image
+                        src={post.imageUrl}
+                        alt={post.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 50vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex gap-1.5 flex-wrap">
                       <Badge className="bg-[#d3ebac] text-[#4f6231] border-0 text-xs">
@@ -325,6 +339,7 @@ export default function JobsPage() {
                         </p>
                       </div>
                     </div>
+                  </div>
                   </div>
                 </article>
               </Link>
