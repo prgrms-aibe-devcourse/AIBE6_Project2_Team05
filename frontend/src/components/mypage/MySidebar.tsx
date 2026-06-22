@@ -22,7 +22,10 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
       })
         .then((res) => (res.ok ? res.json() : []))
         .then((posts: { proposalCount?: number }[]) => {
-          const total = posts.reduce((sum, p) => sum + (p.proposalCount ?? 0), 0);
+          const total = posts.reduce(
+            (sum, p) => sum + (p.proposalCount ?? 0),
+            0,
+          );
           setTotalProposalCount(total);
         })
         .catch(() => {});
@@ -38,13 +41,29 @@ export default function MySidebar({ onLogout }: MySidebarProps) {
     role === "FREELANCER" && !freelancerProfileId;
   const { badgeClass, avatarBgClass, avatarTextClass } = getRoleTheme(role);
 
-  const allMenu: { icon: string; label: string; href: string; badge?: number }[] = [
+  const allMenu: {
+    icon: string;
+    label: string;
+    href: string;
+    badge?: number;
+  }[] = [
     { icon: "👤", label: "회원 정보 수정", href: "/mypage?tab=info" },
-      { icon: "📅", label: role === "FREELANCER" ? "예약 관리" : "예약 현황", href: "/reservations" },
-    { icon: "🔖", label: "관심 프리랜서", href: "/bookmarks" },
+    {
+      icon: "📅",
+      label: role === "FREELANCER" ? "예약 관리" : "예약 현황",
+      href: "/reservations",
+    },
+    { icon: "🔖", label: "찜목록", href: "/bookmarks" },
     { icon: "⭐", label: "리뷰 내역", href: "/mypage?tab=reviews" },
     ...(role !== "FREELANCER"
-      ? [{ icon: "📝", label: "내 구인글", href: "/mypage/posts", badge: totalProposalCount || undefined }]
+      ? [
+          {
+            icon: "📝",
+            label: "내 구인글",
+            href: "/mypage/posts",
+            badge: totalProposalCount || undefined,
+          },
+        ]
       : []),
     ...(role !== "CLIENT"
       ? [{ icon: "📩", label: "내 제안서", href: "/mypage/proposals" }]

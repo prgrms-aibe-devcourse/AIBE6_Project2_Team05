@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface FreelancerProfile {
   careerYears: number;
   region: string;
@@ -7,6 +9,8 @@ interface FreelancerProfile {
   reviewCount: number;
   bookmarkCount: number;
   selfIntroduction?: string;
+  memberName?: string;
+  memberImageUrl?: string;
 }
 
 interface AboutTabProps {
@@ -17,6 +21,32 @@ interface AboutTabProps {
 export default function AboutTab({ profile, reviewCount }: AboutTabProps) {
   return (
     <div className="max-w-2xl mx-auto">
+      {/* 프로필 사진 + 이름 */}
+      <div className="flex items-center gap-4 mb-6 bg-white border border-[#efeee7] rounded-2xl p-5">
+        <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 border-2 border-[#efeee7]">
+          {profile.memberImageUrl ? (
+            <Image
+              src={profile.memberImageUrl}
+              alt={profile.memberName || "프리랜서"}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-[#d3ebac] text-[#4f6231] font-bold text-xl">
+              {profile.memberName?.charAt(0) ?? "?"}
+            </div>
+          )}
+        </div>
+        <div>
+          <p className="font-semibold text-[#1b1c18] text-base">
+            {profile.memberName ?? "프리랜서"}
+          </p>
+          <p className="text-xs text-[#75786c] mt-0.5">
+            {profile.categoryName}
+          </p>
+        </div>
+      </div>
+
       {/* 전문가 정보 요약 카드 */}
       <div className="bg-white border border-[#efeee7] rounded-2xl p-5 mb-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
