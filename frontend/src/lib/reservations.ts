@@ -1,4 +1,4 @@
-import { createAuthHeaders } from "@/lib/auth";
+import { authFetch } from "@/lib/authFetch";
 
 export const reservationStatuses = [
   "REQUESTED",
@@ -93,15 +93,12 @@ async function readErrorMessage(response: Response): Promise<string> {
 }
 
 async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
-  const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(init.headers as Record<string, string> | undefined),
+  };
 
-  const authHeaders = createAuthHeaders();
-  for (const [key, value] of Object.entries(authHeaders)) {
-    headers.set(key, value);
-  }
-
-  const response = await fetch(path, {
+  const response = await authFetch(path, {
     ...init,
     headers,
   });
