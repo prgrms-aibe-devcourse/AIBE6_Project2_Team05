@@ -8,9 +8,10 @@ export type ReservationSummary = {
   readonly freelancerProfileId: number;
   readonly freelancerName: string;
   readonly freelancerTitle: string;
-  readonly categoryName: string;
+  readonly categoryName: string | null;
   readonly reservationDate: string;
-  readonly price: number;
+  readonly price: number | null;
+  readonly freelancerImageUrl: string | null;
 };
 
 type ReviewBookingSummaryProps = {
@@ -19,15 +20,16 @@ type ReviewBookingSummaryProps = {
 
 export function buildReservationSummary(
   reservation: ReservationResponse,
-  profile: FreelancerProfileResponse,
+  profile: FreelancerProfileResponse | null,
 ): ReservationSummary {
   return {
     freelancerProfileId: reservation.freelancerProfileId,
     freelancerName: reservation.freelancerName,
-    freelancerTitle: reservation.freelancerTitle || profile.title,
-    categoryName: profile.categoryName,
+    freelancerTitle: reservation.freelancerTitle || profile?.title || "",
+    categoryName: profile?.categoryName ?? null,
     reservationDate: reservation.reservationDate,
-    price: profile.price,
+    price: profile?.price ?? null,
+    freelancerImageUrl: reservation.freelancerImageUrl ?? profile?.memberImageUrl ?? null,
   };
 }
 
@@ -47,7 +49,8 @@ function formatPrice(value: number): string {
   }).format(value);
 }
 
-function getReservationImageUrl(profileId: number | null): string {
+function getReservationImageUrl(imageUrl: string | null | undefined, profileId: number | null): string {
+  if (imageUrl) return imageUrl;
   const seed = profileId === null ? "loading" : String(profileId);
   return new URL(`/seed/freelancer-${seed}/200/200`, "https:" + "//picsum.photos")
     .toString();
@@ -59,7 +62,7 @@ export function ReviewBookingSummary({ summary }: ReviewBookingSummaryProps) {
       <div className="flex items-center gap-4">
         <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
           <Image
-            src={getReservationImageUrl(summary?.freelancerProfileId ?? null)}
+            src={getReservationImageUrl(summary?.freelancerImageUrl, summary?.freelancerProfileId ?? null)}
             alt={summary?.freelancerName ?? "예약 정보"}
             fill
             className="object-cover"
@@ -71,16 +74,16 @@ export function ReviewBookingSummary({ summary }: ReviewBookingSummaryProps) {
           </h3>
           <p className="text-xs text-[#75786c] mb-2">
             {summary
-              ? `${summary.categoryName} · ${formatReservationDate(
-                  summary.reservationDate,
-                )} 예약`
+              ? `${summary.categoryName ? summary.categoryName + " · " : ""}${formatReservationDate(summary.reservationDate)} 예약`
               : "예약 일정을 확인하고 있습니다"}
           </p>
           <div className="flex gap-4 text-xs text-[#45483d]">
             <span>{summary?.freelancerTitle ?? "서비스 정보 확인 중"}</span>
-            <span className="text-[#4f6231] font-semibold">
-              {summary ? formatPrice(summary.price) : "금액 확인 중"}
-            </span>
+            {summary?.price != null && (
+              <span className="text-[#4f6231] font-semibold">
+                {formatPrice(summary.price)}
+              </span>
+            )}
           </div>
         </div>
       </div>

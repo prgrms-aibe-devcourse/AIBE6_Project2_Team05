@@ -88,9 +88,12 @@ export default function ReviewPage() {
       }
 
       const reservation = await fetchReservationById(reservationId);
-      const profile = await fetchFreelancerProfile(
-        reservation.freelancerProfileId,
-      );
+      let profile = null;
+      try {
+        profile = await fetchFreelancerProfile(reservation.freelancerProfileId);
+      } catch {
+        // 권한 또는 네트워크 오류 시 예약 데이터만으로 진행
+      }
       setReservationSummary(buildReservationSummary(reservation, profile));
 
       const response = await authFetch(`/api/v1/reservations/${params.id}/reviews`, {
