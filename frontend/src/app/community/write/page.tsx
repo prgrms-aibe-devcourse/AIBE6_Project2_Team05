@@ -28,10 +28,12 @@ export default function CommunityWritePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const MAX_IMAGES = 4;
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
-    const remaining = 5 - images.length;
+    const remaining = MAX_IMAGES - images.length;
     const toAdd = files.slice(0, remaining);
     setImages((prev) => [...prev, ...toAdd]);
     setImagePreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
@@ -148,17 +150,23 @@ export default function CommunityWritePage() {
 
             {/* 이미지 업로드 */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#45483d]">
-                이미지 첨부 (선택 · 최대 5장)
-              </Label>
-              {images.length < 5 && (
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-[#45483d]">
+                  이미지 첨부 (선택 · 최대 {MAX_IMAGES}장)
+                </Label>
+                <span className={`text-xs font-medium ${images.length >= MAX_IMAGES ? "text-[#4f6231]" : "text-[#75786c]"}`}>
+                  {images.length} / {MAX_IMAGES}
+                </span>
+              </div>
+
+              {images.length < MAX_IMAGES ? (
                 <label className="block cursor-pointer">
                   <div className="border-2 border-dashed border-[#c5c8ba] rounded-xl p-6 text-center hover:border-[#4f6231] hover:bg-[#f5f4ec] transition-colors">
                     <svg className="w-8 h-8 text-[#75786c] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <p className="text-sm font-medium text-[#45483d] mb-1">
-                      클릭해서 이미지 업로드 ({images.length}/5)
+                      클릭해서 이미지 추가
                     </p>
                     <p className="text-xs text-[#75786c]">PNG, JPG, WEBP · 최대 10MB · 첫 번째 사진이 썸네일</p>
                   </div>
@@ -170,9 +178,15 @@ export default function CommunityWritePage() {
                     onChange={handleImageChange}
                   />
                 </label>
+              ) : (
+                <div className="border-2 border-dashed border-[#4f6231]/30 rounded-xl p-4 text-center bg-[#f5f4ec]">
+                  <p className="text-sm font-medium text-[#4f6231]">최대 {MAX_IMAGES}장이 첨부되었습니다</p>
+                  <p className="text-xs text-[#75786c] mt-0.5">이미지를 삭제하면 추가할 수 있어요</p>
+                </div>
               )}
+
               {imagePreviews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-[#efeee7]">
                       <Image src={preview} alt={`미리보기 ${index + 1}`} fill className="object-cover" />

@@ -34,7 +34,7 @@ public class PostController {
     private final MemberService memberService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "게시글 등록", description = "로그인한 회원이 게시글을 등록합니다. 이미지는 최대 5장까지 첨부 가능합니다. (WEDDING_REVIEW / TIP / BOARD / TALENT)")
+    @Operation(summary = "게시글 등록", description = "로그인한 회원이 게시글을 등록합니다. 이미지는 최대 4장까지 첨부 가능합니다. (WEDDING_REVIEW / TIP / BOARD / TALENT)")
     public ResponseEntity<Map<String, Long>> createPost(
             Authentication authentication,
             @RequestParam String title,
