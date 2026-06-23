@@ -88,14 +88,16 @@ export function ReservationCard({
             <h3 className="font-semibold text-[#1b1c18] text-sm">
               {cardView.displayName}
             </h3>
-            <Badge className={`${status.color} border-0 text-xs shrink-0`}>
-              {status.label}
-            </Badge>
-            {hasUnreadChat && (
-              <Badge className="shrink-0 border-0 bg-[#ff5a5f] text-xs text-white">
-                새 채팅
+            <div className="flex shrink-0 items-center gap-1.5">
+              {hasUnreadChat && (
+                <Badge className="border-0 bg-[#ff5a5f] text-xs text-white">
+                  새 채팅
+                </Badge>
+              )}
+              <Badge className={`${status.color} border-0 text-xs`}>
+                {status.label}
               </Badge>
-            )}
+            </div>
           </div>
           <p className="text-xs text-[#75786c] mb-2">
             {cardView.displaySubtitle}
