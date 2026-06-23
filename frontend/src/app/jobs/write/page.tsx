@@ -1,350 +1,135 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { JobForm } from "../_components/JobForm";
 import {
   getJobWeddingDateValidationMessage,
   getTodayDateString,
 } from "../job-date-utils.js";
+import type { Category, JobFormValues } from "../job-form-options";
+import { resolveJobRegionValue } from "../job-region-utils.js";
 
-type Category = { id: number; name: string };
-
-const CATEGORY_ICONS: Record<string, string> = {
-  헤어메이크업: "💄",
-  "스냅 사진": "📸",
-  "MC/사회자": "🎤",
-  "드레스/수트": "👗",
-  보컬리스트: "🎵",
-  "하객 알바": "🤝",
+const INITIAL_VALUES: JobFormValues = {
+  title: "",
+  content: "",
+  categoryId: "",
+  budget: "",
+  weddingDate: "",
+  selectedRegion: "",
+  customRegion: "",
 };
 
 export default function JobsWritePage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [categoryId, setCategoryId] = useState<number | "">("");
-  const [budget, setBudget] = useState("");
-  const [weddingDate, setWeddingDate] = useState("");
-  const [region, setRegion] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [values, setValues] = useState<JobFormValues>(INITIAL_VALUES);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const minWeddingDate = getTodayDateString();
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/categories`)
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then(setCategories)
       .catch(() => {});
   }, []);
 
-  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/,/g, "");
-    if (raw === "" || /^\d+$/.test(raw)) setBudget(raw);
+  const updateValue = <K extends keyof JobFormValues>(
+    key: K,
+    value: JobFormValues[K],
+  ) => {
+    setValues((previousValues) => ({
+      ...previousValues,
+      [key]: value,
+    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
-    const validationMessage = getJobWeddingDateValidationMessage(weddingDate);
+
+    const validationMessage = getJobWeddingDateValidationMessage(
+      values.weddingDate,
+    );
     if (validationMessage !== null) {
       setError(validationMessage);
       return;
     }
+
     setIsSubmitting(true);
 
     try {
-      const body = {
-        title,
-        content,
-        categoryId: Number(categoryId),
-        budget: budget ? Number(budget) : null,
-        weddingDate,
-        region: region || null,
-      };
-
-      const res = await fetch(`${API_BASE_URL}/api/v1/jobs`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...createAuthHeaders() },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          title: values.title,
+          content: values.content,
+          categoryId: Number(values.categoryId),
+          budget: values.budget ? Number(values.budget) : null,
+          weddingDate: values.weddingDate,
+          region:
+            resolveJobRegionValue(values.selectedRegion, values.customRegion) ||
+            null,
+        }),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
         throw new Error(data?.message ?? "구인글 등록에 실패했습니다.");
       }
 
-      const { postId } = await res.json();
-
-      if (imageFile && postId) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        await fetch(`${API_BASE_URL}/api/v1/jobs/${postId}/image`, {
-          method: "PATCH",
-          headers: createAuthHeaders(),
-          body: formData,
-        });
-      }
+      await response.json();
 
       router.push("/mypage/posts");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "구인글 등록에 실패했습니다.");
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "구인글 등록에 실패했습니다.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-[#fbf9f2]">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <div className="flex min-h-full flex-col bg-[#fbf9f2]">
+      <div className="mx-auto w-full max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
         <Link
           href="/mypage/posts"
-          className="flex items-center gap-1 text-sm text-[#75786c] hover:text-[#45483d] mb-8"
+          className="mb-8 flex items-center gap-1 text-sm text-[#75786c] hover:text-[#45483d]"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           구인글 목록으로
         </Link>
 
-        <div className="bg-white rounded-2xl border border-[#efeee7] p-6 sm:p-8">
-          <h1 className="font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18] mb-2">
+        <div className="rounded-2xl border border-[#efeee7] bg-white p-6 sm:p-8">
+          <h1 className="mb-2 font-[var(--font-display)] text-2xl font-semibold text-[#1b1c18]">
             구인글 작성
           </h1>
-          <p className="text-sm text-[#75786c] mb-8">
+          <p className="mb-8 text-sm text-[#75786c]">
             원하는 조건을 등록하면 프리랜서가 직접 제안서를 보내드려요.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-7">
-            {/* 카테고리 */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#45483d]">
-                카테고리 <span className="text-red-400">*</span>
-              </Label>
-              <div className="grid grid-cols-3 gap-2">
-                {categories.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setCategoryId(c.id)}
-                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-sm transition-all ${
-                      categoryId === c.id
-                        ? "border-[#4f6231] bg-[#f0f4eb] text-[#4f6231] font-medium"
-                        : "border-[#efeee7] bg-[#f5f4ec] text-[#45483d] hover:border-[#c5c8ba]"
-                    }`}
-                  >
-                    <span className="text-xl">
-                      {CATEGORY_ICONS[c.name] ?? "📋"}
-                    </span>
-                    <span className="text-xs text-center leading-tight">
-                      {c.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-[#efeee7]" />
-
-            {/* 제목 */}
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="title"
-                className="text-sm font-medium text-[#45483d]"
-              >
-                제목 <span className="text-red-400">*</span>
-              </Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="예: 야외 웨딩 스냅 작가 구합니다"
-                maxLength={200}
-                required
-                className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] placeholder:text-[#75786c]"
-              />
-            </div>
-
-            {/* 내용 */}
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="content"
-                className="text-sm font-medium text-[#45483d]"
-              >
-                상세 내용 <span className="text-red-400">*</span>
-              </Label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder={`원하는 스타일, 촬영 장소, 시간 등 구체적으로 적어주세요.\n\n예시)\n- 촬영 장소: 서울 야외\n- 촬영 시간: 2시간\n- 원하는 스타일: 자연스러운 스냅`}
-                rows={8}
-                required
-                className="bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] placeholder:text-[#75786c] resize-none"
-              />
-              <p className="text-xs text-[#75786c] text-right">
-                {content.length}자
-              </p>
-            </div>
-
-            <div className="border-t border-[#efeee7]" />
-
-            {/* 예산 + 웨딩 예정일 */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="budget"
-                  className="text-sm font-medium text-[#45483d]"
-                >
-                  예산{" "}
-                  <span className="text-xs text-[#75786c] font-normal">
-                    (선택)
-                  </span>
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="budget"
-                    type="text"
-                    inputMode="numeric"
-                    value={budget ? Number(budget).toLocaleString() : ""}
-                    onChange={handleBudgetChange}
-                    placeholder="협의 가능"
-                    className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] placeholder:text-[#75786c] pr-8"
-                  />
-                  {budget && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#75786c]">
-                      원
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="weddingDate"
-                  className="text-sm font-medium text-[#45483d]"
-                >
-                  웨딩 예정일 <span className="text-red-400">*</span>
-                </Label>
-                <Input
-                  id="weddingDate"
-                  type="date"
-                  value={weddingDate}
-                  onChange={(e) => setWeddingDate(e.target.value)}
-                  min={minWeddingDate}
-                  required
-                  className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18]"
-                />
-              </div>
-            </div>
-
-            {/* 지역 */}
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="region"
-                className="text-sm font-medium text-[#45483d]"
-              >
-                지역{" "}
-                <span className="text-xs text-[#75786c] font-normal">
-                  (선택)
-                </span>
-              </Label>
-              <Input
-                id="region"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                placeholder="예: 서울, 부산"
-                className="h-11 bg-[#f5f4ec] border-[#efeee7] focus-visible:ring-[#4f6231] text-[#1b1c18] placeholder:text-[#75786c]"
-              />
-            </div>
-
-            {/* 이미지 */}
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-[#45483d]">
-                이미지 <span className="text-xs text-[#75786c] font-normal">(선택)</span>
-              </Label>
-              {imagePreview ? (
-                <div className="relative w-full h-48 rounded-xl overflow-hidden border border-[#efeee7]">
-                  <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => { setImageFile(null); setImagePreview(null); }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center hover:bg-white"
-                  >
-                    <svg className="w-4 h-4 text-[#75786c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed border-[#c5c8ba] bg-[#f5f4ec] cursor-pointer hover:border-[#4f6231] transition-colors">
-                  <svg className="w-8 h-8 text-[#75786c] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span className="text-sm text-[#75786c]">이미지 추가</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setImageFile(file);
-                        setImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
-                </label>
-              )}
-            </div>
-
-            {error && (
-              <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-500">
-                {error}
-              </p>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                className="flex-1 h-11 border-[#c5c8ba] text-[#45483d] rounded-xl"
-              >
-                취소
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  isSubmitting ||
-                  !title.trim() ||
-                  !content.trim() ||
-                  !categoryId ||
-                  !weddingDate
-                }
-                className="flex-1 h-11 bg-[#4f6231] hover:bg-[#677b47] text-white rounded-xl"
-              >
-                {isSubmitting ? "등록 중..." : "등록하기"}
-              </Button>
-            </div>
-          </form>
+          <JobForm
+            values={values}
+            categories={categories}
+            error={error}
+            isSubmitting={isSubmitting}
+            submitLabel="등록하기"
+            submittingLabel="등록 중..."
+            minWeddingDate={minWeddingDate}
+            onChange={updateValue}
+            onCancel={() => router.back()}
+            onSubmit={handleSubmit}
+          />
         </div>
       </div>
     </div>
