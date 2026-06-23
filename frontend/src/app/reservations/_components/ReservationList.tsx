@@ -18,14 +18,18 @@ const reservationTabs = [
   { value: "cancelled", label: "취소됨" },
 ] as const;
 
+const emptyChatNotificationIds = new Set<number>();
+
 type ReservationListProps = {
   readonly reservations: readonly ReservationResponse[];
   readonly profileImageUrls: Readonly<Record<number, string | null>>;
   readonly isLoading: boolean;
   readonly errorMessage: string | null;
   readonly userRole: string | null;
+  readonly chatNotificationIds?: ReadonlySet<number>;
   readonly onRetry: () => void;
   readonly onRefresh: () => void;
+  readonly onChatOpened?: (reservationId: number) => void;
 };
 
 export function ReservationList({
@@ -34,8 +38,10 @@ export function ReservationList({
   isLoading,
   errorMessage,
   userRole,
+  chatNotificationIds = emptyChatNotificationIds,
   onRetry,
   onRefresh,
+  onChatOpened = () => {},
 }: ReservationListProps) {
   const [activeTab, setActiveTab] = useState("all");
   const filteredReservations = sortReservationsByDateDescending(
@@ -86,7 +92,9 @@ export function ReservationList({
                   profileImageUrls[reservation.freelancerProfileId] ?? null
                 }
                 userRole={userRole}
+                hasUnreadChat={chatNotificationIds.has(reservation.id)}
                 onRefresh={onRefresh}
+                onChatOpened={onChatOpened}
               />
             ))}
           </div>

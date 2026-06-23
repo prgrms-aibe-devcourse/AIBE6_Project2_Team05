@@ -1,8 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Client, type IMessage } from "@stomp/stompjs";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL, createAuthHeaders } from "@/lib/auth";
+import { API_BASE_URL, createAuthHeaders, getAccessToken } from "@/lib/auth";
+import {
+  createWebSocketUrl,
+  fetchChatRoom,
+  type ChatMessage,
+} from "@/lib/chat";
 import {
   fetchFreelancerProfile,
   fetchReservations,
@@ -14,6 +20,10 @@ import {
   shouldRenderReservationAuth,
   useReservationAuthState,
 } from "./reservation-auth-view.js";
+import {
+  getNextChatNotificationIds,
+  shouldNotifyReservationChat,
+} from "./reservation-chat-notification.js";
 import { ReservationList } from "./_components/ReservationList";
 
 function getErrorMessage(error: unknown): string {
@@ -26,16 +36,54 @@ function getErrorMessage(error: unknown): string {
   return "예약 목록을 불러오지 못했습니다.";
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseChatMessage(body: string): ChatMessage | null {
+  try {
+    const value: unknown = JSON.parse(body);
+    if (
+      !isRecord(value) ||
+      typeof value.id !== "number" ||
+      typeof value.roomId !== "number" ||
+      typeof value.senderId !== "number" ||
+      typeof value.receiverId !== "number" ||
+      typeof value.content !== "string" ||
+      typeof value.createdAt !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      id: value.id,
+      roomId: value.roomId,
+      senderId: value.senderId,
+      receiverId: value.receiverId,
+      content: value.content,
+      readAt: typeof value.readAt === "string" ? value.readAt : null,
+      createdAt: value.createdAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function ReservationsPage() {
   const router = useRouter();
   const { hasAccessToken, isMounted } = useReservationAuthState();
+  const roomReservationIdsRef = useRef<Map<number, number>>(new Map());
   const [reservations, setReservations] = useState<readonly ReservationResponse[]>([]);
   const [profileImageUrls, setProfileImageUrls] = useState<
     Readonly<Record<number, string | null>>
   >({});
+  const [chatNotificationIds, setChatNotificationIds] = useState<
+    ReadonlySet<number>
+  >(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     if (shouldRedirectReservationAuth({ hasAccessToken, isMounted })) {
@@ -73,6 +121,9 @@ export default function ReservationsPage() {
       if (meRes.ok) {
         const meData = await meRes.json();
         setUserRole(meData.role);
+        setCurrentMemberId(
+          typeof meData.id === "number" ? meData.id : null,
+        );
       }
     } catch (error: unknown) {
       setErrorMessage(getErrorMessage(error));
@@ -86,6 +137,69 @@ export default function ReservationsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
   }, [hasAccessToken, isMounted, loadData]);
+
+  const handleChatMessage = useCallback(
+    async (message: ChatMessage) => {
+      if (currentMemberId === null || message.senderId === currentMemberId) {
+        return;
+      }
+
+      let reservationId = roomReservationIdsRef.current.get(message.roomId);
+      if (reservationId === undefined) {
+        const room = await fetchChatRoom(message.roomId);
+        reservationId = room.reservationId;
+        roomReservationIdsRef.current.set(message.roomId, reservationId);
+      }
+
+      if (
+        shouldNotifyReservationChat({
+          messageSenderId: message.senderId,
+          currentMemberId,
+          reservationId,
+        })
+      ) {
+        setChatNotificationIds((current) =>
+          getNextChatNotificationIds(current, reservationId),
+        );
+      }
+    },
+    [currentMemberId],
+  );
+
+  useEffect(() => {
+    if (!hasAccessToken || currentMemberId === null) return;
+
+    const client = new Client({
+      brokerURL: createWebSocketUrl(),
+      connectHeaders: {
+        Authorization: `Bearer ${getAccessToken() ?? ""}`,
+      },
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe("/user/queue/messages", (message: IMessage) => {
+          const chatMessage = parseChatMessage(message.body);
+          if (chatMessage) {
+            void handleChatMessage(chatMessage);
+          }
+        });
+      },
+    });
+
+    client.activate();
+
+    return () => {
+      void client.deactivate();
+    };
+  }, [currentMemberId, handleChatMessage, hasAccessToken]);
+
+  const clearChatNotification = useCallback((reservationId: number) => {
+    setChatNotificationIds((current) => {
+      if (!current.has(reservationId)) return current;
+      const next = new Set(current);
+      next.delete(reservationId);
+      return next;
+    });
+  }, []);
 
   if (!shouldRenderReservationAuth({ hasAccessToken, isMounted })) {
     return null;
@@ -109,8 +223,10 @@ export default function ReservationsPage() {
           isLoading={isLoading}
           errorMessage={errorMessage}
           userRole={userRole}
+          chatNotificationIds={chatNotificationIds}
           onRetry={() => void loadData()}
           onRefresh={() => void loadData()}
+          onChatOpened={clearChatNotification}
         />
       </div>
     </div>
