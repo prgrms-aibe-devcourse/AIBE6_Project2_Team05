@@ -63,7 +63,7 @@ export default function ChatRoomPage({
   const typingThrottleRef = useRef(0);
   const typingIdleTimerRef = useRef<number | null>(null);
   const pendingTimersRef = useRef<Map<string, number>>(new Map());
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [opponentOnline, setOpponentOnline] = useState(false);
 
@@ -112,7 +112,10 @@ export default function ChatRoomPage({
   }, [loadInitialData]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [sortedMessages.length, pendingMessages.length, opponentTyping]);
 
   const clearPendingTimer = useCallback((key: string) => {
@@ -438,7 +441,7 @@ export default function ChatRoomPage({
         )}
 
         <section className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-lg border border-[#efeee7] bg-white shadow-sm">
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
+          <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
             {sortedMessages.length === 0 && pendingMessages.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-[#75786c]">
                 아직 주고받은 메시지가 없습니다.
@@ -498,7 +501,6 @@ export default function ChatRoomPage({
             {opponentTyping && (
               <div className="text-sm text-[#75786c]">상대방이 입력 중...</div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           <form
