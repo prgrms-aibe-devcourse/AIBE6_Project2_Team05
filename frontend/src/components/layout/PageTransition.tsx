@@ -22,7 +22,7 @@ export function PageTransition({ children }: { readonly children: React.ReactNod
   }, [pathname]);
 
   return (
-    <div className={entering ? "route-enter" : "route-shell"}>
+    <div className={`flex flex-1 flex-col ${entering ? "route-enter" : "route-shell"}`}>
       {children}
     </div>
   );

@@ -381,7 +381,7 @@ export default function ChatRoomPage({
 
   if (loading) {
     return (
-      <div className="flex min-h-full flex-col bg-[#fbf9f2]">
+      <div className="flex flex-1 flex-col bg-[#fbf9f2]">
         <main className="flex flex-1 items-center justify-center">
           <p className="text-sm text-[#75786c]">채팅방을 불러오는 중입니다...</p>
         </main>
@@ -390,7 +390,7 @@ export default function ChatRoomPage({
   }
 
   return (
-    <div className="flex min-h-full flex-col bg-[#fbf9f2]">
+    <div className="flex flex-1 flex-col bg-[#fbf9f2]">
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-4">
           <button
