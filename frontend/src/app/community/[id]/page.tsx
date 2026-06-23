@@ -24,6 +24,7 @@ type Post = {
   content: string;
   type: PostType;
   imageUrl: string | null;
+  imageUrls: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -201,14 +202,23 @@ export default function CommunityDetailPage() {
               </span>
             </div>
 
-            {post.imageUrl && (
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-[#efeee7] mt-6">
-                <Image
-                  src={post.imageUrl}
-                  alt={post.title}
-                  fill
-                  className="object-cover"
-                />
+            {post.imageUrls?.length > 0 && (
+              <div className={`mt-6 ${post.imageUrls.length === 1 ? "" : "grid grid-cols-2 gap-2"}`}>
+                {post.imageUrls.map((url, index) => (
+                  <div
+                    key={index}
+                    className={`relative rounded-xl overflow-hidden border border-[#efeee7] ${
+                      post.imageUrls.length === 1 ? "w-full aspect-video" : "aspect-square"
+                    }`}
+                  >
+                    <Image
+                      src={url}
+                      alt={`${post.title} 이미지 ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
               </div>
             )}
 

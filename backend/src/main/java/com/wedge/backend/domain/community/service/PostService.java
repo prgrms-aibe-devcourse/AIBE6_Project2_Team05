@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +26,18 @@ public class PostService {
     private final R2FileUploadService r2FileUploadService;
 
     @Transactional
-    public Long createPost(Member member, String title, String content, PostType type, MultipartFile image) throws IOException {
+    public Long createPost(Member member, String title, String content, PostType type, List<MultipartFile> images) throws IOException {
         String imageUrl = null;
-        if (image != null && !image.isEmpty()) {
-            imageUrl = r2FileUploadService.upload(image, "posts");
+        if (images != null && !images.isEmpty()) {
+            List<String> uploadedUrls = new ArrayList<>();
+            for (MultipartFile image : images) {
+                if (image != null && !image.isEmpty()) {
+                    uploadedUrls.add(r2FileUploadService.upload(image, "posts"));
+                }
+            }
+            if (!uploadedUrls.isEmpty()) {
+                imageUrl = String.join(",", uploadedUrls);
+            }
         }
         Post post = Post.create(member, title, content, type, imageUrl);
         return postRepository.save(post).getId();

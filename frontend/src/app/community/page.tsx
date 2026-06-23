@@ -21,7 +21,8 @@ type Post = {
   title: string;
   content: string;
   type: PostType;
-  imageUrl: string | null;
+  imageUrl: string | null;   // 첫 번째 이미지 (썸네일)
+  imageUrls: string[];
   createdAt: string;
 };
 

@@ -23,16 +23,25 @@ export default function CommunityWritePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState<PostType>("WEDDING_REVIEW");
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImage(file);
-    setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const remaining = 5 - images.length;
+    const toAdd = files.slice(0, remaining);
+    setImages((prev) => [...prev, ...toAdd]);
+    setImagePreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +54,7 @@ export default function CommunityWritePage() {
       formData.append("title", title);
       formData.append("content", content);
       formData.append("type", type);
-      if (image) formData.append("image", image);
+      images.forEach((img) => formData.append("images", img));
 
       const res = await fetch(`${API_BASE_URL}/api/v1/posts`, {
         method: "POST",
@@ -139,29 +148,48 @@ export default function CommunityWritePage() {
 
             {/* 이미지 업로드 */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#45483d]">이미지 첨부 (선택)</Label>
-              <label className="block cursor-pointer">
-                <div className="border-2 border-dashed border-[#c5c8ba] rounded-xl p-6 text-center hover:border-[#4f6231] hover:bg-[#f5f4ec] transition-colors">
-                  <svg className="w-8 h-8 text-[#75786c] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-sm font-medium text-[#45483d] mb-1">
-                    {image ? image.name : "클릭해서 이미지 업로드"}
-                  </p>
-                  <p className="text-xs text-[#75786c]">PNG, JPG, WEBP · 최대 10MB</p>
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-              </label>
-              {imagePreview && (
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-[#efeee7]">
-                  <Image src={imagePreview} alt="미리보기" fill className="object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => { setImage(null); setImagePreview(null); }}
-                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/70"
-                  >
-                    ✕
-                  </button>
+              <Label className="text-sm font-medium text-[#45483d]">
+                이미지 첨부 (선택 · 최대 5장)
+              </Label>
+              {images.length < 5 && (
+                <label className="block cursor-pointer">
+                  <div className="border-2 border-dashed border-[#c5c8ba] rounded-xl p-6 text-center hover:border-[#4f6231] hover:bg-[#f5f4ec] transition-colors">
+                    <svg className="w-8 h-8 text-[#75786c] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm font-medium text-[#45483d] mb-1">
+                      클릭해서 이미지 업로드 ({images.length}/5)
+                    </p>
+                    <p className="text-xs text-[#75786c]">PNG, JPG, WEBP · 최대 10MB · 첫 번째 사진이 썸네일</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              )}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-[#efeee7]">
+                      <Image src={preview} alt={`미리보기 ${index + 1}`} fill className="object-cover" />
+                      {index === 0 && (
+                        <span className="absolute bottom-1 left-1 bg-[#4f6231] text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                          썸네일
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black/70"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
