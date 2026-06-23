@@ -17,9 +17,13 @@ const CHROME_DISABLED_PATHS = new Set([
     "/oauth2/callback",
 ]);
 
+// 채팅방: Footer 없이 전체 높이를 차지해야 내부 스크롤 가능
+const FOOTER_DISABLED_PATTERN = /^\/chat\/\d+/;
+
 export function AppChrome({ children }: AppChromeProps) {
     const pathname = usePathname();
     const isChromeDisabled = CHROME_DISABLED_PATHS.has(pathname);
+    const isFooterDisabled = FOOTER_DISABLED_PATTERN.test(pathname);
 
     if (isChromeDisabled) {
         return <div className="flex flex-1 flex-col"><PageTransition>{children}</PageTransition></div>;
@@ -28,8 +32,10 @@ export function AppChrome({ children }: AppChromeProps) {
     return (
         <div className="flex flex-1 flex-col">
             <Navbar />
-            <main className="flex flex-1 flex-col"><PageTransition>{children}</PageTransition></main>
-            <Footer />
+            <main className={`flex flex-1 flex-col ${isFooterDisabled ? "min-h-0" : ""}`}>
+                <PageTransition>{children}</PageTransition>
+            </main>
+            {!isFooterDisabled && <Footer />}
             <ChatbotWidget />
         </div>
     );

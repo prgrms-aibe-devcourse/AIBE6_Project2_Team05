@@ -111,12 +111,33 @@ export default function ChatRoomPage({
     return () => window.clearTimeout(timer);
   }, [loadInitialData]);
 
-  useEffect(() => {
+  const isNearBottomRef = useRef(true);
+
+  const handleMessagesScroll = () => {
     const container = messagesContainerRef.current;
-    if (container) {
+    if (!container) return;
+    const threshold = 80;
+    isNearBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+  };
+
+  const scrollToBottom = useCallback((force = false) => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (force || isNearBottomRef.current) {
       container.scrollTop = container.scrollHeight;
     }
-  }, [sortedMessages.length, pendingMessages.length, opponentTyping]);
+  }, []);
+
+  // 초기 로드 시 맨 아래로
+  useEffect(() => {
+    scrollToBottom(true);
+  }, [loading, scrollToBottom]);
+
+  // 새 메시지/타이핑 표시기: 아래에 있을 때만 스크롤
+  useEffect(() => {
+    scrollToBottom();
+  }, [sortedMessages.length, pendingMessages.length, opponentTyping, scrollToBottom]);
 
   const clearPendingTimer = useCallback((key: string) => {
     const timer = pendingTimersRef.current.get(key);
@@ -342,8 +363,9 @@ export default function ChatRoomPage({
         setStatusMessage("전송 실패. 재전송을 시도해주세요.");
       }, 3000);
       pendingTimersRef.current.set(key, timer);
+      scrollToBottom(true);
     },
-    [numericRoomId],
+    [numericRoomId, scrollToBottom],
   );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -381,17 +403,15 @@ export default function ChatRoomPage({
 
   if (loading) {
     return (
-      <div className="flex flex-1 flex-col bg-[#fbf9f2]">
-        <main className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-[#75786c]">채팅방을 불러오는 중입니다...</p>
-        </main>
+      <div className="flex h-[calc(100dvh-4rem)] flex-col items-center justify-center bg-[#fbf9f2]">
+        <p className="text-sm text-[#75786c]">채팅방을 불러오는 중입니다...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-[#fbf9f2]">
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-8 sm:px-6 lg:px-8">
+    <div className="flex h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-[#fbf9f2]">
+      <main className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col overflow-hidden px-4 py-4 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-4">
           <button
             type="button"
@@ -440,8 +460,8 @@ export default function ChatRoomPage({
           </div>
         )}
 
-        <section className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-lg border border-[#efeee7] bg-white shadow-sm">
-          <div ref={messagesContainerRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#efeee7] bg-white shadow-sm">
+          <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
             {sortedMessages.length === 0 && pendingMessages.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-[#75786c]">
                 아직 주고받은 메시지가 없습니다.
