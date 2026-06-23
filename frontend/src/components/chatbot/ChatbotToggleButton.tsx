@@ -3,25 +3,9 @@ import { MessageCircle, X } from "lucide-react";
 interface Props {
   isOpen: boolean;
   onClick: () => void;
-  disabled?: boolean;
 }
 
-export function ChatbotToggleButton({ isOpen, onClick, disabled }: Props) {
-  if (disabled) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50 flex items-center cursor-not-allowed">
-        {/* 비활성 설명 텍스트 */}
-        <span className="bg-white/60 text-[#b0b3a8] text-sm font-medium pl-4 pr-16 py-2.5 rounded-full shadow-sm border border-[#efeee7]">
-          견적 문의하기
-        </span>
-        {/* 비활성 아이콘 버튼 */}
-        <div className="w-14 h-14 rounded-full bg-[#b0b3a8] text-white shadow-md flex items-center justify-center shrink-0 -ml-12 opacity-60">
-          <MessageCircle className="w-6 h-6" />
-        </div>
-      </div>
-    );
-  }
-
+export function ChatbotToggleButton({ isOpen, onClick }: Props) {
   return (
     <button
       onClick={onClick}

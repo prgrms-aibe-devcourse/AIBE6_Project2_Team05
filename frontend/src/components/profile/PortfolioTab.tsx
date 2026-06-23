@@ -75,38 +75,49 @@ export default function PortfolioTab({
       </div>
 
       {/* 대표 3개 그리드 */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-4">
         {visiblePortfolios.map((portfolio, index) => {
           const { plain, tags } = parseHashtags(portfolio.description || "");
           return (
             <div
               key={portfolio.id}
-              className="group cursor-pointer"
+              className="group cursor-pointer rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
               onClick={() => setSelectedIndex(index)}
             >
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
+              <div className="relative aspect-[4/3]">
                 <Image
                   src={portfolio.imageUrl}
                   alt={plain || "포트폴리오"}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* 항상 보이는 그라디언트 텍스트 오버레이 */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-10 pb-3 px-3">
+                  {plain && (
+                    <p className="text-white text-sm font-semibold leading-tight line-clamp-2 drop-shadow">
+                      {plain}
+                    </p>
+                  )}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {tags.slice(0, 2).map((tag, i) => (
+                        <span
+                          key={i}
+                          className="text-xs text-white/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* 호버 오버레이 */}
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <span className="text-white text-sm font-medium bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                     자세히 보기
                   </span>
                 </div>
               </div>
-              {plain && (
-                <p className="text-sm font-medium text-[#1b1c18] truncate">
-                  {plain}
-                </p>
-              )}
-              {tags.length > 0 && (
-                <p className="text-xs text-[#75786c] truncate mt-0.5">
-                  {tags.join(" ")}
-                </p>
-              )}
             </div>
           );
         })}
@@ -154,64 +165,76 @@ export default function PortfolioTab({
       {/* 팝업 */}
       {selectedPortfolio && selectedIndex !== null && (
         <div
-          className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"
           onClick={() => setSelectedIndex(null)}
         >
           <div
-            className="bg-white rounded-2xl overflow-hidden flex flex-col w-full"
-            style={{ maxWidth: "960px", height: "90vh" }}
+            className="rounded-2xl overflow-hidden flex flex-col w-full shadow-2xl"
+            style={{ maxWidth: "1000px", height: "90vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 상단: 정보 패널 + 이미지 */}
-            <div className="flex flex-1 min-h-0">
-              {/* 좌측: 정보 패널 */}
-              <div className="w-72 shrink-0 border-r border-[#efeee7] flex flex-col overflow-y-auto">
-                {/* 헤더 */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#efeee7] sticky top-0 bg-white z-10 shrink-0">
-                  <button
-                    onClick={() => setSelectedIndex(null)}
-                    className="text-[#75786c] hover:text-[#1b1c18]"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                  <span className="text-xs text-[#75786c]">
-                    {selectedIndex + 1} / {portfolios.length}
-                  </span>
-                </div>
+            {/* 상단 헤더 바 */}
+            <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-[#efeee7] shrink-0">
+              <button
+                onClick={() => setSelectedIndex(null)}
+                className="text-[#75786c] hover:text-[#1b1c18] transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <span className="text-xs text-[#75786c]">
+                {selectedIndex + 1} / {portfolios.length}
+              </span>
+              {/* 이전/다음 네비게이션 */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (selectedIndex > 0) setSelectedIndex(selectedIndex - 1); }}
+                  disabled={selectedIndex === 0}
+                  className="text-[#75786c] hover:text-[#1b1c18] transition-colors disabled:opacity-30"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); if (selectedIndex < portfolios.length - 1) setSelectedIndex(selectedIndex + 1); }}
+                  disabled={selectedIndex >= portfolios.length - 1}
+                  className="text-[#75786c] hover:text-[#1b1c18] transition-colors disabled:opacity-30"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-                {/* 상세 정보 */}
-                <div className="p-5 flex flex-col gap-4">
+            {/* 본문: 좌(텍스트) + 우(이미지) */}
+            <div className="flex flex-1 min-h-0">
+              {/* 좌측: 텍스트 정보 패널 */}
+              <div className="w-80 shrink-0 bg-[#fafaf8] border-r border-[#efeee7] overflow-y-auto flex flex-col">
+                <div className="p-6 flex flex-col gap-5">
                   {(() => {
                     const { plain, tags } = parseHashtags(
                       selectedPortfolio.description || "",
                     );
                     return (
                       <>
+                        {/* 제목 */}
                         <h3
-                          className="font-semibold text-[#1b1c18] text-base leading-snug break-keep"
+                          className="font-bold text-[#1b1c18] text-xl leading-snug break-keep"
                           style={{ wordBreak: "keep-all" }}
                         >
                           {plain || `포트폴리오 ${selectedIndex + 1}`}
                         </h3>
 
+                        {/* 해시태그 */}
                         {tags.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {tags.map((tag, i) => (
                               <span
                                 key={i}
-                                className="text-xs px-3 py-1.5 bg-[#f5f4ec] text-[#4f6231] rounded-full"
+                                className="text-sm px-3 py-1.5 bg-[#f0f4eb] text-[#4f6231] rounded-full font-medium border border-[#d4e0c2]"
                               >
                                 {tag}
                               </span>
@@ -219,56 +242,50 @@ export default function PortfolioTab({
                           </div>
                         )}
 
-                        <div className="border-t border-[#efeee7]" />
+                        <div className="h-px bg-[#e5e3db]" />
 
-                        {(selectedPortfolio.startDate ||
-                          selectedPortfolio.endDate) && (
-                          <div>
-                            <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                        {/* 메타데이터 - 각 항목 흰색 카드 */}
+                        {(selectedPortfolio.startDate || selectedPortfolio.endDate) && (
+                          <div className="bg-white rounded-xl p-4 shadow-sm">
+                            <p className="text-xs font-semibold text-[#75786c] uppercase tracking-wide mb-1.5">
                               참여 기간
                             </p>
-                            <p className="text-sm text-[#45483d]">
-                              {selectedPortfolio.startDate?.replace(
-                                /-(\d{2})-(\d{2})$/,
-                                "년 $1월 $2일",
-                              )}{" "}
-                              -{" "}
-                              {selectedPortfolio.endDate?.replace(
-                                /-(\d{2})-(\d{2})$/,
-                                "년 $1월 $2일",
-                              )}
+                            <p className="text-sm font-semibold text-[#1b1c18]">
+                              {selectedPortfolio.startDate?.replace(/-(\d{2})-(\d{2})$/, "년 $1월 $2일")}{" "}
+                              —{" "}
+                              {selectedPortfolio.endDate?.replace(/-(\d{2})-(\d{2})$/, "년 $1월 $2일")}
                             </p>
                           </div>
                         )}
 
                         {selectedPortfolio.client && (
-                          <div>
-                            <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                          <div className="bg-white rounded-xl p-4 shadow-sm">
+                            <p className="text-xs font-semibold text-[#75786c] uppercase tracking-wide mb-1.5">
                               클라이언트
                             </p>
-                            <p className="text-sm text-[#45483d]">
+                            <p className="text-sm font-semibold text-[#1b1c18]">
                               {selectedPortfolio.client}
                             </p>
                           </div>
                         )}
 
                         {selectedPortfolio.industry && (
-                          <div>
-                            <p className="text-xs font-semibold text-[#1b1c18] mb-1">
+                          <div className="bg-white rounded-xl p-4 shadow-sm">
+                            <p className="text-xs font-semibold text-[#75786c] uppercase tracking-wide mb-1.5">
                               업종
                             </p>
-                            <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">
+                            <span className="inline-block text-sm px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full border border-[#e2e1d9] mt-0.5">
                               {selectedPortfolio.industry}
                             </span>
                           </div>
                         )}
 
                         {selectedPortfolio.purpose && (
-                          <div>
-                            <p className="text-xs font-semibold text-[#1b1c18] mb-1">
-                              목적별
+                          <div className="bg-white rounded-xl p-4 shadow-sm">
+                            <p className="text-xs font-semibold text-[#75786c] uppercase tracking-wide mb-1.5">
+                              목적
                             </p>
-                            <span className="inline-block text-xs px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full">
+                            <span className="inline-block text-sm px-3 py-1 bg-[#f5f4ec] text-[#45483d] rounded-full border border-[#e2e1d9] mt-0.5">
                               {selectedPortfolio.purpose}
                             </span>
                           </div>
@@ -279,46 +296,31 @@ export default function PortfolioTab({
                 </div>
               </div>
 
-              {/* 우측: 이미지 */}
-              <div className="flex-1 overflow-y-auto bg-[#f8f7f2]">
-                {!selectedPortfolio.images ||
-                selectedPortfolio.images.length === 0 ? (
-                  // 1장: 세로 중앙 정렬
-                  <div className="min-h-full flex items-center">
+              {/* 우측: 이미지 영역 */}
+              <div className="flex-1 min-h-0 bg-[#f5f4ec] overflow-y-auto">
+                <div className="p-4 flex flex-col gap-4">
+                  <img
+                    src={selectedPortfolio.imageUrl}
+                    alt={selectedPortfolio.description || "포트폴리오"}
+                    className="w-full h-auto rounded-xl block shadow-sm"
+                  />
+                  {selectedPortfolio.images?.map((img, i) => (
                     <img
-                      src={selectedPortfolio.imageUrl}
-                      alt={selectedPortfolio.description || "포트폴리오"}
-                      className="w-full h-auto block"
+                      key={i}
+                      src={img.imageUrl}
+                      alt={`포트폴리오 이미지 ${i + 1}`}
+                      className="w-full h-auto rounded-xl block shadow-sm"
                     />
-                  </div>
-                ) : (
-                  // 여러 장: 위에서부터 쌓기
-                  <>
-                    <img
-                      src={selectedPortfolio.imageUrl}
-                      alt={selectedPortfolio.description || "포트폴리오"}
-                      className="w-full h-auto block"
-                    />
-                    {selectedPortfolio.images.map((img, i) => (
-                      <div key={i}>
-                        <div className="h-2 bg-[#efeee7]" />
-                        <img
-                          src={img.imageUrl}
-                          alt={`포트폴리오 이미지 ${i + 1}`}
-                          className="w-full h-auto block"
-                        />
-                      </div>
-                    ))}
-                  </>
-                )}
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* 하단: 다른 포트폴리오 가로 스크롤 */}
-            <div className="shrink-0 border-t border-[#efeee7] bg-white px-4 py-3">
+            {/* 하단: 다른 포트폴리오 썸네일 */}
+            <div className="shrink-0 bg-white border-t border-[#efeee7] px-4 py-3">
               <p className="text-xs text-[#75786c] mb-2">다른 포트폴리오</p>
               <div
-                className="flex gap-2 overflow-x-auto pb-1"
+                className="flex gap-2.5 overflow-x-auto pb-1"
                 style={{ scrollbarWidth: "none" }}
               >
                 {portfolios.map((p, i) => {
@@ -327,10 +329,10 @@ export default function PortfolioTab({
                     <button
                       key={p.id}
                       onClick={() => setSelectedIndex(i)}
-                      className={`relative shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
                         i === selectedIndex
-                          ? "border-[#4f6231]"
-                          : "border-transparent hover:border-[#c5c8ba]"
+                          ? "border-[#4f6231] shadow-md"
+                          : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >
                       <Image
