@@ -59,15 +59,18 @@ export default function ChatRoomPage({
   const shouldReconnectRef = useRef(false);
   const suppressReconnectRef = useRef(false);
   const refreshTimerRef = useRef<number | null>(null);
+  const presenceTimerRef = useRef<number | null>(null);
   const typingThrottleRef = useRef(0);
   const typingIdleTimerRef = useRef<number | null>(null);
   const pendingTimersRef = useRef<Map<string, number>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  const [opponentOnline, setOpponentOnline] = useState(false);
+
   const canSend = Boolean(room?.isActive) && connectionState === "연결됨";
   const isReconnectBusy =
     connectionState === "연결 중" || connectionState.startsWith("재연결 중");
-  const presenceIndicator = getChatPresenceIndicator(room?.opponent.isOnline ?? false);
+  const presenceIndicator = getChatPresenceIndicator(opponentOnline);
   const sortedMessages = useMemo(
     () =>
       [...messages].sort((a, b) => {
@@ -89,6 +92,7 @@ export default function ChatRoomPage({
       ]);
 
       setRoom(roomData);
+      setOpponentOnline(roomData.opponent.isOnline);
       setMessages(messagePage.content);
       setMe(meData);
       void markChatRoomRead(numericRoomId);
@@ -140,6 +144,9 @@ export default function ChatRoomPage({
           }
           return current;
         });
+      } else {
+        // 상대방이 메시지를 보냈으면 온라인 상태로 즉시 갱신
+        setOpponentOnline(true);
       }
 
       void markChatRoomRead(numericRoomId);
@@ -151,6 +158,8 @@ export default function ChatRoomPage({
     (body: string) => {
       const event = JSON.parse(body) as TypingEvent;
       if (event.roomId !== numericRoomId || event.userId === me?.id) return;
+      // 상대방이 타이핑 중이면 온라인 상태로 즉시 갱신
+      setOpponentOnline(true);
       setOpponentTyping(event.isTyping);
     },
     [me?.id, numericRoomId],
@@ -260,9 +269,20 @@ export default function ChatRoomPage({
       void connectStomp();
     }, 570000);
 
+    // 15초마다 상대방 온/오프라인 상태를 REST API로 갱신
+    presenceTimerRef.current = window.setInterval(async () => {
+      try {
+        const roomData = await fetchChatRoom(numericRoomId);
+        setOpponentOnline(roomData.opponent.isOnline);
+      } catch {
+        // 폴링 실패 시 현재 상태 유지
+      }
+    }, 15000);
+
     return () => {
       window.clearTimeout(connectTimer);
       if (refreshTimerRef.current) window.clearInterval(refreshTimerRef.current);
+      if (presenceTimerRef.current) window.clearInterval(presenceTimerRef.current);
       disconnectStomp();
       pendingTimers.forEach((timer) => window.clearTimeout(timer));
       pendingTimers.clear();
