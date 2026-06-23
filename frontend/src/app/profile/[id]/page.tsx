@@ -325,8 +325,32 @@ export default function ProfilePage({
         </div>
       </div>
 
+      {/* 주요 통계 스트립 */}
+      <div className="bg-white border-b border-[#efeee7]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-3 sm:grid-cols-6 divide-x divide-[#efeee7]">
+            {[
+              { label: "경력", value: `${profile.careerYears}년` },
+              { label: "리뷰 수", value: `${profile.reviewCount}개` },
+              { label: "평균 평점", value: profile.averageRating.toFixed(1) },
+              { label: "찜", value: `${profile.bookmarkCount}` },
+              { label: "활동 지역", value: profile.region },
+              {
+                label: "시작 가격",
+                value: `₩${profile.price.toLocaleString()}~`,
+              },
+            ].map(({ label, value }) => (
+              <div key={label} className="text-center py-4 px-3">
+                <p className="text-base font-bold text-[#4f6231]">{value}</p>
+                <p className="text-xs text-[#75786c] mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 탭 콘텐츠 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-10">
         <Tabs defaultValue="portfolio" className="w-full">
           <TabsList className="bg-transparent border-b border-[#efeee7] rounded-none p-0 h-auto gap-0 mb-8 w-full justify-start">
             {["portfolio", "about", "reviews"].map((tab) => (
