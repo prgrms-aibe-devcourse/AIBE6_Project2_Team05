@@ -69,7 +69,10 @@ export function ChatbotWidget() {
     }
   }, [isCompleted, estimate]);
 
-  if (isPortfolioOpen) return null;
+  // 포트폴리오 모달이 열려 있을 때: 챗봇은 보이되 클릭 불가
+  if (isPortfolioOpen) {
+    return <ChatbotToggleButton isOpen={false} onClick={() => {}} disabled />;
+  }
 
   return (
     <>
