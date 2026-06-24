@@ -76,6 +76,7 @@ export default function JobsPage() {
             getJobTotalCount({
               totalElements: data.totalElements,
               pageContentCount: data.content?.length ?? 0,
+              mergedCount: undefined,
             }),
           );
         } else {
