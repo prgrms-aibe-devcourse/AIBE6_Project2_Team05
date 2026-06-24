@@ -110,6 +110,7 @@ export default function JobsPage() {
           setTotalPages(Math.ceil(merged.length / 6));
           setTotalCount(
             getJobTotalCount({
+              totalElements: undefined,
               pageContentCount: merged.slice(start, start + 6).length,
               mergedCount: merged.length,
             }),
